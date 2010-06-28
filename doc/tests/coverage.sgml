@@ -1,0 +1,624 @@
+<sect1 id="summary"><title>Summary of Test Coverage</title>
+<para>
+The following tables provide a summary of the current test coverage,
+listing all of the SELinux hook functions that perform access control
+and identifying whether each hook function is being tested by the test
+suite.  The "Notes" field of the tables may provide more specific
+information for a test, e.g. to indicate that the test does not yet
+cover all cases for the hook.
+</para>
+
+<para><table id="task_coverage_table" frame=all>
+<title>Task Tests</title>
+<tgroup cols=3 align=left>
+<colspec colwidth="3*">
+<colspec colwidth="1*">
+<colspec colwidth="4*">
+<thead>
+<row>
+    <entry>Hook</entry>
+    <entry>Test </entry>
+    <entry>Notes</entry>
+</row>
+</thead>
+<tbody>
+<row>
+   <entry>create</entry>
+   <entry>Yes</entry>
+   <entry></entry>
+</row>
+<row>
+   <entry>setpgid</entry>
+   <entry>Yes</entry>
+   <entry></entry>
+</row>
+<row>
+   <entry>getpgid</entry>
+   <entry>Yes</entry>
+   <entry></entry>
+</row>
+<row>
+   <entry>getsid</entry>
+   <entry>Yes</entry>
+   <entry></entry>
+</row>
+<row>
+   <entry>setnice</entry>
+   <entry>Yes</entry>
+   <entry></entry>
+</row>
+<row>
+   <entry>setscheduler</entry>
+   <entry>Yes</entry>
+   <entry></entry>
+</row>
+<row>
+   <entry>getscheduler</entry>
+   <entry>Yes</entry>
+   <entry></entry>
+</row>
+<row>
+   <entry>kill</entry>
+   <entry>Yes</entry>
+   <entry></entry>
+</row>
+<row>
+   <entry>wait</entry>
+   <entry>Yes</entry>
+   <entry></entry>
+</row>
+</tbody>
+</tgroup>
+</table></para>
+
+<para><table id="binprm_coverage_table" frame=all>
+<title>Program Loading Tests</title>
+<tgroup cols=3 align=left>
+<colspec colwidth="3*">
+<colspec colwidth="1*">
+<colspec colwidth="4*">
+<thead>
+<row>
+    <entry>Hook</entry>
+    <entry>Test </entry>
+    <entry>Notes</entry>
+</row>
+</thead>
+<tbody>
+<row>
+   <entry>compute_creds</entry>
+   <entry>Yes</entry>
+   <entry></entry>
+</row>
+<row>
+   <entry>set_security</entry>
+   <entry>Yes</entry>
+   <entry></entry>
+</row>
+</tbody>
+</tgroup>
+</table></para>
+ 
+<para><table id="sb_coverage_table" frame=all>
+<title>Filesystem Tests</title>
+<tgroup cols=3 align=left>
+<colspec colwidth="3*">
+<colspec colwidth="1*">
+<colspec colwidth="4*">
+<thead>
+<row>
+    <entry>Hook</entry>
+    <entry>Test </entry>
+    <entry>Notes</entry>
+</row>
+</thead>
+<tbody>
+<row>
+   <entry>statfs</entry>
+   <entry>No</entry>
+   <entry></entry>
+</row>
+<row>
+   <entry>mount</entry>
+   <entry>No</entry>
+   <entry></entry>
+</row>
+<row>
+   <entry>check_sb</entry>
+   <entry>No</entry>
+   <entry></entry>
+</row>
+<row>
+   <entry>umount</entry>
+   <entry>No</entry>
+   <entry></entry>
+</row>
+</tbody>
+</tgroup>
+</table></para>
+ 
+<para><table id="inode_coverage_table" frame=all>
+<title>Inode Tests</title>
+<tgroup cols=3 align=left>
+<colspec colwidth="3*">
+<colspec colwidth="1*">
+<colspec colwidth="4*">
+<thead>
+<row>
+    <entry>Hook</entry>
+    <entry>Test </entry>
+    <entry>Notes</entry>
+</row>
+</thead>
+<tbody>
+<row>
+   <entry>create</entry>
+   <entry>No</entry>
+   <entry>The helper function is exercised by the mkdir test.</entry>
+</row>
+<row>
+   <entry>link</entry>
+   <entry>Yes</entry>
+   <entry></entry>
+</row>
+<row>
+   <entry>unlink</entry>
+   <entry>Yes</entry>
+   <entry></entry>
+</row>
+<row>
+   <entry>symlink</entry>
+   <entry>No</entry>
+   <entry>The helper function is exercised by the mkdir test.</entry>
+</row>
+<row>
+   <entry>mkdir</entry>
+   <entry>Yes</entry>
+   <entry></entry>
+</row>
+<row>
+   <entry>rmdir</entry>
+   <entry>No</entry>
+   <entry>The helper function is exercised by the unlink test.</entry>
+</row>
+<row>
+   <entry>mknod</entry>
+   <entry>No</entry>
+   <entry>The helper function is exercised by the mkdir test.</entry>
+</row>
+<row>
+   <entry>rename</entry>
+   <entry>Yes</entry>
+   <entry></entry>
+</row>
+<row>
+   <entry>readlink</entry>
+   <entry>Yes</entry>
+   <entry></entry>
+</row>
+<row>
+   <entry>follow_link</entry>
+   <entry>Yes</entry>
+   <entry></entry>
+</row>
+<row>
+   <entry>permission</entry>
+   <entry>Yes</entry>
+   <entry></entry>
+</row>
+<row>
+   <entry>setattr</entry>
+   <entry>Yes</entry>
+   <entry></entry>
+</row>
+<row>
+   <entry>stat</entry>
+   <entry>Yes</entry>
+   <entry></entry>
+</row>
+</tbody>
+</tgroup>
+</table></para>
+ 
+<para><table id="file_coverage_table" frame=all>
+<title>File Tests</title>
+<tgroup cols=3 align=left>
+<colspec colwidth="3*">
+<colspec colwidth="1*">
+<colspec colwidth="4*">
+<thead>
+<row>
+    <entry>Hook</entry>
+    <entry>Test </entry>
+    <entry>Notes</entry>
+</row>
+</thead>
+<tbody>
+<row>
+   <entry>permission</entry>
+   <entry>Yes</entry>
+   <entry></entry>
+</row>
+<row>
+   <entry>llseek</entry>
+   <entry>Yes</entry>
+   <entry>Only tested the success case.</entry>
+</row>
+<row>
+   <entry>ioctl</entry>
+   <entry>Yes</entry>
+   <entry>Ioctls tested: FIGETBSZ, FIOCLEX, FIONBIO, EXT2_IOC_SETVERSION</entry>
+</row>
+<row>
+   <entry>mmap</entry>
+   <entry>Yes</entry>
+   <entry></entry>
+</row>
+<row>
+   <entry>mprotect</entry>
+   <entry>Yes</entry>
+   <entry></entry>
+</row>
+<row>
+   <entry>lock</entry>
+   <entry>Yes</entry>
+   <entry></entry>
+</row>
+<row>
+   <entry>fcntl</entry>
+   <entry>Yes</entry>
+   <entry></entry>
+</row>
+<row>
+   <entry>send_sigiotask</entry>
+   <entry>Yes</entry>
+   <entry></entry>
+</row>
+<row>
+   <entry>receive</entry>
+   <entry>Yes</entry>
+   <entry></entry>
+</row>
+</tbody>
+</tgroup>
+</table></para>
+
+<para><table id="ipc_coverage_table" frame=all>
+<title>General IPC Tests</title>
+<tgroup cols=3 align=left>
+<colspec colwidth="3*">
+<colspec colwidth="1*">
+<colspec colwidth="4*">
+<thead>
+<row>
+    <entry>Hook</entry>
+    <entry>Test</entry>
+    <entry>Notes</entry>
+</row>
+</thead>
+<tbody>
+<row>
+   <entry>permission</entry>
+   <entry>Yes</entry>
+   <entry></entry>
+</row>
+<row>
+   <entry>getinfo</entry>
+   <entry>Yes</entry>
+   <entry></entry>
+</row>
+</tbody>
+</tgroup>
+</table></para>
+ 
+<para><table id="msgq_coverage_table" frame=all>
+<title>Message Queue IPC Tests</title>
+<tgroup cols=3 align=left>
+<colspec colwidth="3*">
+<colspec colwidth="1*">
+<colspec colwidth="4*">
+<thead>
+<row>
+    <entry>Hook</entry>
+    <entry>Test</entry>
+    <entry>Notes</entry>
+</row>
+</thead>
+<tbody>
+<row>
+   <entry>associate</entry>
+   <entry>Yes</entry>
+   <entry></entry>
+</row>
+<row>
+   <entry>msgctl</entry>
+   <entry>Yes</entry>
+   <entry></entry>
+</row>
+<row>
+   <entry>msgsnd</entry>
+   <entry>Yes</entry>
+   <entry></entry>
+</row>
+<row>
+   <entry>msgrcv</entry>
+   <entry>Yes</entry>
+   <entry></entry>
+</row>
+</tbody>
+</tgroup>
+</table></para>
+ 
+<para><table id="shm_coverage_table" frame=all>
+<title>Shared Memory Tests</title>
+<tgroup cols=3 align=left>
+<colspec colwidth="3*">
+<colspec colwidth="1*">
+<colspec colwidth="4*">
+<thead>
+<row>
+    <entry>Hook</entry>
+    <entry>Test</entry>
+    <entry>Notes</entry>
+</row>
+</thead>
+<tbody>
+<row>
+   <entry>associate</entry>
+   <entry>Yes</entry>
+   <entry></entry>
+</row>
+<row>
+   <entry>shmctl</entry>
+   <entry>Yes</entry>
+   <entry></entry>
+</row>
+<row>
+   <entry>shmat</entry>
+   <entry>Yes</entry>
+   <entry></entry>
+</row>
+</tbody>
+</tgroup>
+</table></para>
+ 
+<para><table id="sem_coverage_table" frame=all>
+<title>Semaphore Tests</title>
+<tgroup cols=3 align=left>
+<colspec colwidth="3*">
+<colspec colwidth="1*">
+<colspec colwidth="4*">
+<thead>
+<row>
+    <entry>Hook</entry>
+    <entry>Test</entry>
+    <entry>Notes</entry>
+</row>
+</thead>
+<tbody>
+<row>
+   <entry>associate</entry>
+   <entry>Yes</entry>
+   <entry></entry>
+</row>
+<row>
+   <entry>semctl</entry>
+   <entry>Yes</entry>
+   <entry></entry>
+</row>
+<row>
+   <entry>semop</entry>
+   <entry>Yes</entry>
+   <entry></entry>
+</row>
+</tbody>
+</tgroup>
+</table></para>
+ 
+<para><table id="socket_coverage_table" frame=all>
+<title>Socket Tests</title>
+<tgroup cols=3 align=left>
+<colspec colwidth="3*">
+<colspec colwidth="1*">
+<colspec colwidth="4*">
+<thead>
+<row>
+    <entry>Hook</entry>
+    <entry>Test </entry>
+    <entry>Notes</entry>
+</row>
+</thead>
+<tbody>
+<row>
+   <entry>create</entry>
+   <entry>Yes</entry>
+   <entry></entry>
+</row>
+<row>
+   <entry>bind</entry>
+   <entry>Yes</entry>
+   <entry></entry>
+</row>
+<row>
+   <entry>connect</entry>
+   <entry>Yes</entry>
+   <entry></entry>
+</row>
+<row>
+   <entry>listen</entry>
+   <entry>Yes</entry>
+   <entry></entry>
+</row>
+<row>
+   <entry>accept</entry>
+   <entry>Yes</entry>
+   <entry></entry>
+</row>
+<row>
+   <entry>sendmsg</entry>
+   <entry>Yes</entry>
+   <entry></entry>
+</row>
+<row>
+   <entry>recvmsg</entry>
+   <entry>Yes</entry>
+   <entry></entry>
+</row>
+<row>
+   <entry>getsockname</entry>
+   <entry>Yes</entry>
+   <entry>Deny permission not tested.</entry>
+</row>
+<row>
+   <entry>getpeername</entry>
+   <entry>Yes</entry>
+   <entry>Deny permission not tested.</entry>
+</row>
+<row>
+   <entry>getsockopt</entry>
+   <entry>Yes</entry>
+   <entry>Deny permission not tested.</entry>
+</row>
+<row>
+   <entry>setsockopt</entry>
+   <entry>Yes</entry>
+   <entry>Deny permission not tested.</entry>
+</row>
+<row>
+   <entry>shutdown</entry>
+   <entry>Yes</entry>
+   <entry>Deny permission not tested.</entry>
+</row>
+<row>
+   <entry>sock_rcv_skb</entry>
+   <entry>Yes</entry>
+   <entry></entry>
+</row>
+<row>
+   <entry>unix_stream_connect</entry>
+   <entry>Yes</entry>
+   <entry></entry>
+</row>
+<row>
+   <entry>unix_may_send</entry>
+   <entry>Yes</entry>
+   <entry></entry>
+</row>
+</tbody>
+</tgroup>
+</table></para>
+ 
+<para><table id="ip_coverage_table" frame=all>
+<title>IP Tests</title>
+<tgroup cols=3 align=left>
+<colspec colwidth="3*">
+<colspec colwidth="1*">
+<colspec colwidth="4*">
+<thead>
+<row>
+    <entry>Hook</entry>
+    <entry>Test</entry>
+    <entry>Notes</entry>
+</row>
+</thead>
+<tbody>
+<row>
+   <entry>preroute_last</entry>
+   <entry>No</entry>
+   <entry></entry>
+</row>
+<row>
+   <entry>postroute_first</entry>
+   <entry>No</entry>
+   <entry></entry>
+</row>
+</tbody>
+</tgroup>
+</table></para>
+ 
+ 
+<para><table id="security_coverage_table" frame=all>
+<title>System and Capability Tests</title>
+<tgroup cols=3 align=left>
+<colspec colwidth="3*">
+<colspec colwidth="1*">
+<colspec colwidth="4*">
+<thead>
+<row>
+    <entry>Hook</entry>
+    <entry>Test </entry>
+    <entry>Notes</entry>
+</row>
+</thead>
+<tbody>
+<row>
+   <entry>ptrace</entry>
+   <entry>Yes</entry>
+   <entry></entry>
+</row>
+<row>
+   <entry>capset_check</entry>
+   <entry>No</entry>
+   <entry></entry>
+</row>
+<row>
+   <entry>capset_set</entry>
+   <entry>No</entry>
+   <entry></entry>
+</row>
+<row>
+   <entry>sysctl</entry>
+   <entry>Yes</entry>
+   <entry></entry>
+</row>
+<row>
+   <entry>capable</entry>
+   <entry>Yes</entry>
+   <entry>Not tested: CAP_FS_MASK,
+   CAP_KILL, CAP_SETGID, CAP_SETUID, CAP_SETPCAP, CAP_LINUX_IMMUTABLE, 
+   CAP_NET_BROADCAST,
+   CAP_IPC_LOCK, CAP_IPC_OWNER, 
+   CAP_SYS_PTRACE, CAP_SYS_PACCT, CAP_SYS_BOOT, CAP_SYS_RESOURCE, CAP_SYS_TIME,
+   CAP_SYS_TTY_CONFIG
+   </entry>
+</row>
+<row>
+   <entry>swapon</entry>
+   <entry>Yes</entry>
+   <entry></entry>
+</row>
+<row>
+   <entry>swapoff</entry>
+   <entry>Yes</entry>
+   <entry></entry>
+</row>
+<row>
+   <entry>nfsservctl</entry>
+   <entry>Yes</entry>
+   <entry></entry>
+</row>
+<row>
+   <entry>quotactl</entry>
+   <entry>No</entry>
+   <entry></entry>
+</row>
+<row>
+   <entry>quota_on</entry>
+   <entry>No</entry>
+   <entry></entry>
+</row>
+<row>
+   <entry>bdflush</entry>
+   <entry>Yes</entry>
+   <entry></entry>
+</row>
+<row>
+   <entry>syslog</entry>
+   <entry>Yes</entry>
+   <entry></entry>
+</row>
+</tbody>
+</tgroup>
+</table></para>
+ 
+</sect1>

@@ -1,0 +1,68 @@
+#!/usr/bin/perl
+
+use Test;
+BEGIN { plan tests => 16}
+
+$basedir = $0;  $basedir =~ s|(.*)/[^/]*|$1|;
+
+# Start the process that will receive the signal.
+if (($pid = fork()) == 0) {
+    exec "runcon -t test_kill_server_t $basedir/server";
+}
+
+sleep 1; # Give it a moment to initialize.
+
+# Verify that test_kill_signal_t cannot send CHLD, STOP, or KILL to the server.
+$result = system "runcon -t test_kill_signal_t -- kill -s CHLD $pid 2>&1";
+ok($result); 
+$result = system "runcon -t test_kill_signal_t -- kill -s STOP $pid 2>&1";
+ok($result); 
+$result = system "runcon -t test_kill_signal_t -- kill -s KILL $pid 2>&1";
+ok($result); 
+
+# Verify that test_kill_sigchld_t cannot send TERM, STOP, or KILL to the server.
+$result = system "runcon -t test_kill_sigchld_t -- kill -s TERM $pid 2>&1";
+ok($result); 
+$result = system "runcon -t test_kill_sigchld_t -- kill -s STOP $pid 2>&1";
+ok($result); 
+$result = system "runcon -t test_kill_sigchld_t -- kill -s KILL $pid 2>&1";
+ok($result); 
+
+# Verify that test_kill_sigstop_t cannot send TERM, CHLD, or KILL the server.
+$result = system "runcon -t test_kill_sigstop_t -- kill -s TERM $pid 2>&1";
+ok($result); 
+$result = system "runcon -t test_kill_sigstop_t -- kill -s CHLD $pid 2>&1";
+ok($result); 
+$result = system "runcon -t test_kill_sigstop_t -- kill -s KILL $pid 2>&1";
+ok($result); 
+
+# Verify that test_kill_sigkill_t cannot send TERM, CHLD, or STOP to the server.
+$result = system "runcon -t test_kill_sigkill_t -- kill -s TERM $pid 2>&1";
+ok($result); 
+$result = system "runcon -t test_kill_sigkill_t -- kill -s CHLD $pid 2>&1";
+ok($result); 
+$result = system "runcon -t test_kill_sigkill_t -- kill -s STOP $pid 2>&1";
+ok($result); 
+
+# Verify that test_kill_signal_t can send a TERM signal to the server.
+$result = system "runcon -t test_kill_signal_t -- kill -s TERM $pid 2>&1";
+ok($result, 0); 
+
+# Verify that test_kill_sigchld_t can send a CHLD signal to the server.
+$result = system "runcon -t test_kill_sigchld_t -- kill -s CHLD $pid 2>&1";
+ok($result, 0); 
+
+# Verify that test_kill_sigstop_t can send a STOP signal to the server.
+$result = system "runcon -t test_kill_sigstop_t -- kill -s STOP $pid 2>&1";
+ok($result, 0); 
+
+# Resume the server.
+kill CONT, $pid;
+
+# Verify that test_kill_sigkill_t can send a KILL signal to the server.
+$result = system "runcon -t test_kill_sigkill_t -- kill -s KILL $pid 2>&1";
+ok($result, 0); 
+
+# Bye.
+
+exit;

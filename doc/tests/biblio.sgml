@@ -1,0 +1,39 @@
+<bibliography>
+<title>References</title>
+
+<biblioentry id="LoscoccoFreenix01">
+  <abbrev>LoscoccoFreenix2001</abbrev>
+  <biblioset relation=article>
+    <authorgroup>
+      <author><firstname>Peter</firstname><surname>Loscocco</surname></author>
+      <author><firstname>Stephen</firstname><surname>Smalley</surname></author>
+    </authorgroup>
+    <title>Integrating Flexible Support for Security Policies into the Linux Operating System</title>
+  </biblioset>
+  <biblioset relation=journal>
+    <title>Proceedings of the FREENIX Track: 2001 USENIX Annual Technical Conference</title>
+    <publisher>
+      <publishername>The USENIX Association</publishername>
+    </publisher>
+    <pubdate>June 2001</pubdate>
+  </biblioset>
+</biblioentry>
+
+<biblioentry id="SmalleyModuleTR01">
+  <abbrev>SmalleyModuleTR2001</abbrev>
+  <biblioset relation=article>
+    <authorgroup>
+      <author><firstname>Stephen</firstname><surname>Smalley</surname></author>
+      <author><firstname>Chris</firstname><surname>Vance</surname></author>
+      <author><firstname>Wayne</firstname><surname>Salamon</surname></author>
+    </authorgroup>
+    <title>Implementing SELinux as a Linux Security Module</title>
+  </biblioset>
+  <biblioset relation=journal>
+    <title>NAI Labs Report #01-043</title>
+    <pubdate>December 2001</pubdate>
+  </biblioset>
+</biblioentry>
+
+</bibliography>
+

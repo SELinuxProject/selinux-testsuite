@@ -1,0 +1,32 @@
+#!/usr/bin/perl
+
+use Test;
+BEGIN { plan tests => 4}
+
+$basedir = $0;  $basedir =~ s|(.*)/[^/]*|$1|;
+
+# Remove any leftover test directory from prior failed runs.
+system ("rm -rf $basedir/test_dir");
+
+# Create a test dir with the test_rxdir_dir_t type for use in the tests.
+system ("mkdir $basedir/test_dir");
+system ("chcon -t test_rxdir_dir_t $basedir/test_dir");
+
+# Touch a file in the directory.
+system ("touch $basedir/test_dir/test_file");
+
+# Verify that test_rdir_t can read but not search the directory.
+$result = system ("runcon -t test_rdir_t -- ls $basedir/test_dir 2>&1");
+ok($result, 0); 
+$result = system ("runcon -t test_rdir_t -- ls $basedir/test_dir/test_file 2>&1");
+ok($result); 
+
+# Verify that test_xdir_t can search but not read the directory.
+$result = system ("runcon -t test_xdir_t -- ls $basedir/test_dir/test_file 2>&1");
+ok($result, 0); 
+$result = system ("runcon -t test_xdir_t -- ls $basedir/test_dir 2>&1");
+ok($result); 
+
+# Cleanup.
+system ("rm -rf $basedir/test_dir");
+

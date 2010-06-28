@@ -1,0 +1,191 @@
+<sect1 id="capable_tests"><title>Capability Tests</title>
+<para>
+Test the capability permissions enforced by the SELinux module, 
+specifically the <function>selinux_capable</function> hook. The permissions
+that are checked are specified in the sections below.
+
+</para>
+
+<para>
+The following sections describe the domains, test scripts and
+helper programs used by each set of tests. In addition to the types defined
+for each test suite, the type 
+<constant>test_file_t</constant> from <filename>test_global.te</filename>
+is used by these domains for temporary file access.
+</para>
+
+<sect2 id="capable_file"><title>File Related Capability Tests</title>
+<para>
+The <filename>capable_file/test</filename> script checks permissions for
+<constant>CAP_CHOWN</constant>,
+<constant>CAP_FOWNER</constant>,
+<constant>CAP_FSETID</constant>,
+<constant>CAP_LEASE</constant>, and
+<constant>CAP_MKNOD</constant>.
+
+A helper program in source file <filename>test_lease.c</filename> is used
+to test the <constant>F_SETLEASE</constant> file control operation. This
+program returns <constant>0</constant> if the operation succeeds, 
+<constant>1</constant> on failure, and <constant>2</constant> if on
+unrelated failure, such as when the file cannot be opened.
+
+</para>
+<para>
+The policy for this set of tests is located in the file
+<filename>test_capable_file.te</filename>.
+The domains defined by the policy file are summarized in
+<xref linkend="capable_file_test_dt_table">.
+
+<table id="capable_file_test_dt_table" frame=all>
+<title>File Related Capability Test Domains</title>
+<tgroup cols=2 align=left>
+<colspec colwidth="2*">
+<colspec colwidth="3*">
+<thead>
+<row>
+    <entry>Name</entry>
+    <entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+    <entry>test_fcap_t</entry>
+    <entry>Domain for process that has all file capabilities.</entry>
+</row>
+<row>
+    <entry>test_resfcap_t</entry>
+    <entry>Domain for process that has a restricted set of file capabilities.</entry>
+</row>
+<row>
+    <entry>test_nofcap_t</entry>
+    <entry>Domain for process that has no file capabilities.</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</para>
+</sect2>
+
+<sect2 id="capable_net"><title>Network Related Capability Tests</title>
+
+<para>
+The <filename>capable_net/test</filename> script checks permissions for
+<constant>CAP_NET_ADMIN</constant>, 
+<constant>CAP_NET_BIND_SERVICE</constant>, 
+and <constant>CAP_NET_RAW</constant>.
+Two helper programs in source files <filename>test_bind.c</filename>
+and <filename>test_raw.c</filename> are used by the test script.
+<filename>test_bind</filename> attempts a bind operation on a socket for a
+reserved port.
+<filename>test_raw</filename> tests the
+create operation on a raw socket. Both programs return <constant>0</constant> 
+on success and <constant>1</constant> on failure.
+</para>
+
+<para>
+The policy for this set of tests is located in the file
+<filename>test_capable_net.te</filename>.
+The domains defined by the policy file are summarized in
+<xref linkend="capable_net_test_dt_table">.
+
+<table id="capable_net_test_dt_table" frame=all>
+<title>Network Related Capability Test Domains</title>
+<tgroup cols=2 align=left>
+<colspec colwidth="2*">
+<colspec colwidth="3*">
+<thead>
+<row>
+    <entry>Name</entry>
+    <entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+    <entry>test_ncap_t</entry>
+    <entry>Domain for process that has all network capabilities.</entry>
+</row>
+<row>
+    <entry>test_resncap_t</entry>
+    <entry>Domain for process that has raw IP socket create capability.</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</para>
+</sect2>
+
+<sect2 id="capable_sys"><title>System Related Capability Tests</title>
+<para>
+The <filename>capable_sys/test</filename> script checks permissions for
+<constant>CAP_SYS_RAWIO</constant>, 
+<constant>CAP_SYS_CHROOT</constant>, 
+<constant>CAP_SYS_ADMIN</constant>, 
+and <constant>CAP_SYS_NICE</constant>.
+Several helper programs are used by the test script. These programs return
+<constant>0</constant> on success, <constant>1</constant> on failure for
+the tested operation, and <constant>2</constant> for other failures.
+
+<itemizedlist>
+  <listitem>
+   <para>
+    <filename>test_chroot.c</filename> Invoke the <function>chroot()</function>
+      system call on a path given as the argument.
+   </para>
+  </listitem>
+  <listitem>
+   <para>
+    <filename>test_hostname.c</filename> Invoke the 
+<function>sethostname()</function> system call with the host name retrieved
+from <function>gethostname()</function> as the parameter.
+   </para>
+  </listitem>
+  <listitem>
+   <para>
+    <filename>test_nice.c</filename> Invoke the <function>nice()</function>
+system call with a negative value.
+   </para>
+  </listitem>
+  <listitem>
+   <para>
+    <filename>test_rawio.c</filename> Invoke the <function>ioctl()</function>
+system call for the <constant>FIBMAP</constant> operation to test the 
+<constant>rawio</constant> system permission.
+   </para>
+  </listitem>
+</itemizedlist>
+
+</para>
+
+<para>
+The policy for this set of tests is located in the file
+<filename>test_capable_sys.te</filename>. 
+The domains defined by the policy file are summarized in
+<xref linkend="capable_sys_test_dt_table">.
+
+<table id="capable_sys_test_dt_table" frame=all>
+<title>System Related Capability Test Domains</title>
+<tgroup cols=2 align=left>
+<colspec colwidth="2*">
+<colspec colwidth="3*">
+<thead>
+<row>
+    <entry>Name</entry>
+    <entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+    <entry>test_scap_t</entry>
+    <entry>Domain for process that has all system capabilities.</entry>
+</row>
+<row>
+    <entry>test_noscap_t</entry>
+    <entry>Domain for process that has no system capabilities.</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</para>
+
+</sect2>
+</sect1>

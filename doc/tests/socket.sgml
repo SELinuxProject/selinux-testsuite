@@ -1,0 +1,295 @@
+<sect1 id="socket_tests"><title>Socket Tests</title>
+<para>
+This set of tests exercises SELinux socket hooks by performing a
+number of operations on INET stream, INET datagram, UNIX stream and
+UNIX datagram sockets.  The policy for this set of tests is located
+in the <filename>test_socket.te</filename> policy file, 
+summarized in <xref linkend="socket_test_dt_table">.
+
+<table id="socket_test_dt_table" frame=all>
+<title>Socket Test Domains and Types</title>
+<tgroup cols=2 align=left>
+<colspec colwidth="1*">
+<colspec colwidth="2*">
+<thead>
+<row>
+    <entry>Name</entry>
+    <entry>Description</entry>
+</row>
+</thead>
+<tbody>
+
+<row>
+    <entry>test_socket_base_t</entry>
+    <entry>Domain for process that has all socket permissions.</entry>
+</row>
+<row>
+    <entry>test_socket_secondary_t</entry>
+    <entry>Domain for process that has all socket permissions; used
+    for tests needing two distinct domains.  Has basic permissions to
+    communicate with test_socket_base_t.</entry>
+</row>
+<row>
+    <entry>test_socket_norecv_t</entry>
+    <entry>Domain that doesn't have recvfrom permission.</entry>
+</row>
+<row>
+    <entry>test_socket_noconnect_t</entry>
+    <entry>Domain that doesn't have connectto permission.</entry>
+</row>
+<row>
+    <entry>test_socket_noaccept_t</entry>
+    <entry>Domain that doesn't have acceptfrom permission.</entry>
+</row>
+<row>
+    <entry>test_socket_minimal_t</entry>
+    <entry>Domain that can create sockets but that can't communicate
+    with test_socket_base_t.</entry>
+</row>
+<row>
+    <entry>test_socket_none_t</entry>
+    <entry>Domain that can't use the network at all.</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+
+</para>
+
+<sect2 id="base_socket_tests"><title>Basic Socket Tests</title>
+<para>
+These test scripts use several helper programs.  They are run from the
+various socket domains to test for both allowed and denied socket
+permissions.  The client and server programs establish, configure and
+transmit data on both stream (tcp) and datagram (udp) sockets.  Since
+SELinux socket permissions generally correspond to socket system
+calls, by mimicking the behavior of a typical client/server
+applications, nearly all socket permissions are tested.  In some
+cases, additional test programs were necessary to test socket options
+and to test for non-standard failures.  These helper programs are
+summarized in the following list:
+
+<itemizedlist>
+  <listitem><para>
+    <filename>sink.c</filename> A test server for INET sockets; it
+    supports both stream and datagram sockets. This program returns 0
+    on success and 1 on failure.
+  </para></listitem>
+
+  <listitem><para>
+    <filename>source.c</filename> A test client for INET sockets; it
+    supports both stream and datagram sockets. This program returns 0
+    on success and 1 on failure.
+  </para></listitem>
+
+  <listitem><para>
+    <filename>unix_sink.c</filename> A test server for UNIX sockets; it
+    supports both stream and datagram sockets. This program returns 0
+    on success and 1 on failure.
+  </para></listitem>
+
+  <listitem><para>
+    <filename>unix_source.c</filename> A test client for UNIX sockets; it
+    supports both stream and datagram sockets. This program returns 0
+    on success and 1 on failure.
+  </para></listitem>
+
+  <listitem><para>
+    <filename>options.c, unix_options.c</filename> Tests various
+    socket operations. These programs perform a sequence of operations and
+    print a string containing the results of each individual test.
+    The string contains a list of 0 and 1 characters, a 0 for each
+    sub-test that succeeded and 1 for each sub-test that failed.
+  </para></listitem>
+
+  <listitem><para>
+    <filename>noaccept.c</filename> A test server for INET sockets
+    that changes the socket SID before calling accept in order to test
+    the socket <constant>accept</constant> permission.  This program
+    returns 0 on success and 1 failure.
+  </para></listitem>
+</itemizedlist>
+</para>
+
+
+<para>
+The server program performs the expected sequence of socket calls; it
+first performs <function>socket</function> and
+<function>bind</function> system calls, then
+<function>listen</function>, <function>accept</function>,
+<function>read</function> for stream sockets and
+<function>recvfrom</function> for datagram sockets.  Finally, it
+performs <function>shutdown</function> and <function>close</function>.
+</para>
+
+<para>
+Likewise, the client program performs the expected sequence of socket
+calls; <function>socket</function>, <function>connect</function>,
+<function>write</function>, <function>shutdown</function>, and finally
+<function>close</function>.
+</para>
+
+<para>
+The socket scripts test the following hooks:
+<table id="socket_table" frame=all>
+<title>Socket Tests</title>
+<tgroup cols=3 align=left>
+<colspec colwidth="3*">
+<colspec colwidth="2*">
+<colspec colwidth="2*">
+<thead>
+<row>
+    <entry>Hook</entry>
+    <entry>Class</entry>
+    <entry>Permission</entry>
+</row>
+</thead>
+<tbody>
+<row>
+    <entry>selinux_socket_create</entry>
+    <entry>socket</entry>
+    <entry>create</entry>
+</row>
+<row>
+    <entry>selinux_socket_setsockopt</entry>
+    <entry>socket</entry>
+    <entry>setopt</entry>
+</row>
+<row>
+    <entry>selinux_socket_bind</entry>
+    <entry>socket</entry>
+    <entry>bind, name_bind</entry>
+</row>
+<row>
+    <entry>selinux_socket_listen</entry>
+    <entry>socket</entry>
+    <entry>listen</entry>
+</row>
+<row>
+    <entry>selinux_socket_recvmsg</entry>
+    <entry>socket</entry>
+    <entry>read</entry>
+</row>
+<row>
+    <entry>selinux_socket_sendmsg</entry>
+    <entry>socket</entry>
+    <entry>write</entry>
+</row>
+<row>
+    <entry>selinux_socket_shutdown</entry>
+    <entry>socket</entry>
+    <entry>shutdown</entry>
+</row>
+<row>
+    <entry>selinux_socket_connect</entry>
+    <entry>socket</entry>
+    <entry>connect</entry>
+</row>
+<row>
+    <entry>selinux_socket_accept</entry>
+    <entry>socket</entry>
+    <entry>accept</entry>
+</row>
+<row>
+    <entry>selinux_socket_shutdown</entry>
+    <entry>socket</entry>
+    <entry>shutdown</entry>
+</row>
+
+<row>
+    <entry>selinux_socket_setsockopt</entry>
+    <entry>socket</entry>
+    <entry>setopt</entry>
+</row>
+<row>
+    <entry>selinux_socket_getsockopt</entry>
+    <entry>socket</entry>
+    <entry>getopt</entry>
+</row>
+
+<row>
+    <entry>selinux_socket_getpeername</entry>
+    <entry>socket</entry>
+    <entry>getattr</entry>
+</row>
+<row>
+    <entry>selinux_socket_getsockname</entry>
+    <entry>socket</entry>
+    <entry>getattr</entry>
+</row>
+
+<row>
+    <entry>selinux_socket_unix_may_send</entry>
+    <entry>socket</entry>
+    <entry>sendto</entry>
+</row>
+
+<row>
+    <entry>selinux_socket_unix_stream_connect</entry>
+    <entry>socket</entry>
+    <entry>connectto</entry>
+</row>
+
+<row>
+    <entry>selinux_socket_sock_rcv_skb</entry>
+    <entry>socket</entry>
+    <entry>recvfrom, acceptfrom, connectto</entry>
+</row>
+
+</tbody>
+</tgroup>
+</table>
+</para>
+</sect2>
+
+<sect2 id="socket_secure"><title>Secure Socket Sytem Call Tests</title>
+<para>
+The tests in the <filename>socket_secure</filename> and
+<filename>unix_secure</filename> subdirectories create a single server
+socket and then create contention by connecting to this server socket
+with a large number of clients.  These tests show that the SID
+returned by <function>accept_secure</function> correctly corresponds
+with the client connection for both unix stream and tcp sockets.  The
+scripts make extensive use of the SELinux secure socket calls, showing
+that they are functioning normally.
+</para>
+
+<para>
+The server encodes the SID returned by
+<function>accept_secure</function> and transmit it back to the client.
+The client will read the network message and verify that the SID
+received by the server matches the SID of the message transmitted.
+</para>
+
+</sect2>
+
+<sect2 id="send_secure"><title>TCP Socket Send Tests</title>
+<para>
+This tests the binding of message SIDs and destination SIDs to
+particular messages even in the presence of multiple outgoing messages
+with different SIDs on the same socket.  This test case only applies
+to udp connections since tcp connections cannot label individual
+messages.
+</para>
+<para>
+This test client opens a SOCK_DGRAM socket, forks several times, and
+each child subsequently uses <function>sendto_secure</function> to
+write messages of various SIDS to that shared socket.  The message
+being passed is the string representation of the SID used in the
+sendto_secure call.  In this way the server may compare the SID
+returned by <function>recvfrom_secure</function> to the one the client
+encoded in the message buffer.  The server verifies that the received
+message is of the same type the client says it sent.  If not, the
+server prints an error and quits.  This tests the case of
+congestion/contention on sending sockets.
+</para>
+
+<para>
+Since the Linux networking code includes optimizations for the
+localhost device, errors in the case of socket contention will only
+turn up when an actual network device is being used.  Since there is
+no way to automate this type of test, it will not be run by the test
+harness.
+</para>
+</sect2>
+</sect1>

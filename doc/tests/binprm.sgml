@@ -1,0 +1,291 @@
+<sect1 id="binprm_tests"><title>Program Loading Tests</title>
+<para>
+This section describes the tests related to program loading access
+controls.  Each of the following subsections describes one of these
+tests. 
+</para>
+
+<sect2 id="process_trans"><title>Process Transition Test</title>
+<para>
+The <filename>domain_trans/test</filename> script tests the success
+and failure cases for the process <constant>transition</constant>
+permission check performed by the
+<function>selinux_bprm_set_security</function> hook function.  It uses
+three test domains defined in the
+<filename>test_transition.te</filename> policy file, summarized in
+<xref linkend="transition_test_dt_table">.  
+
+<table id="transition_test_dt_table" frame=all>
+<title>Process Transition Test Domains and Types</title>
+<tgroup cols=2 align=left>
+<thead>
+<row>
+    <entry>Name</entry>
+    <entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+    <entry>test_transition_fromdomain_t</entry>
+    <entry>Domain for process that can transition to new domain.</entry>
+</row>
+<row>
+    <entry>test_transition_notfromdomain_t</entry>
+    <entry>Domain for process that cannot transition to new domain.</entry>
+</row>
+<row>
+    <entry>test_transition_todomain_t</entry>
+    <entry>New domain for process after transition.</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</para>
+</sect2>
+
+<sect2 id="file_entrypoint"><title>File Entrypoint Test</title>
+<para>
+The <filename>entrypoint/test</filename> script tests the success and
+failure cases for the file <constant>entrypoint</constant> permission
+check performed by the <function>selinux_bprm_set_security</function>
+hook function. It uses a test domain and a test type defined in the
+<filename>test_entrypoint.te</filename> policy file, summarized in
+<xref linkend="entrypoint_test_dt_table">.
+
+<table id="entrypoint_test_dt_table" frame=all>
+<title>File Entrypoint Test Domains and Types</title>
+<tgroup cols=2 align=left>
+<thead>
+<row>
+    <entry>Name</entry>
+    <entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+    <entry>test_entrypoint_execute_t</entry>
+    <entry>Entrypoint type for the test domain.</entry>
+</row>
+<row>
+    <entry>test_entrypoint_t</entry>
+    <entry>The test domain.</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</para>
+</sect2>
+
+<sect2 id="file_execute_no_trans"><title>File Execute_no_trans Test</title>
+<para>
+The <filename>execute_no_trans/test</filename> script tests the success and
+failure cases for the file <constant>execute_no_trans</constant> permission
+check performed by the <function>selinux_bprm_set_security</function>
+hook function. It uses a test domain and two test types defined in the
+<filename>test_execute_no_trans.te</filename> policy file, summarized in
+<xref linkend="execute_no_trans_test_dt_table">.
+
+<table id="execute_no_trans_test_dt_table" frame=all>
+<title>File Execute_no_trans Test Domains and Types</title>
+<tgroup cols=2 align=left>
+<thead>
+<row>
+    <entry>Name</entry>
+    <entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+    <entry>test_execute_notrans_t</entry>
+    <entry>The test domain.</entry>
+</row>
+<row>
+    <entry>test_execute_notrans_allowed_t</entry>
+    <entry>Type that can be executed by the test domain without a transition.</entry>
+</row>
+<row>
+    <entry>test_execute_notrans_denied_t</entry>
+    <entry>Type that cannot be executed by the test domain without a transition.</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</para>
+</sect2>
+
+<sect2 id="fd_inherit"><title>File Descriptor Inherit Test</title>
+<para>
+The <filename>inherit/test</filename> script tests the success and
+failure cases for the file descriptor <constant>use</constant>
+permission check and the file permission checks performed by the
+<function>selinux_bprm_compute_creds</function> hook function.
+The script uses four test domains and one test type defined in the
+<filename>test_inherit.te</filename> policy file, summarized in <xref
+linkend="inherit_test_dt_table">.  
+
+<table id="inherit_test_dt_table" frame=all>
+<title>File Descriptor Inherit Test Domains and Types</title>
+<tgroup cols=2 align=left>
+<thead>
+<row>
+    <entry>Name</entry>
+    <entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+    <entry>test_inherit_parent_t</entry>
+    <entry>Domain for the parent process.</entry>
+</row>
+<row>
+    <entry>test_inherit_file_t</entry>
+    <entry>Type for test file opened by parent, inherited by child.</entry>
+</row>
+<row>
+    <entry>test_inherit_nouse_t</entry>
+    <entry>Domain for child process that cannot inherit read-write fd to test file from parent due to a lack of fd use permission.</entry>
+</row>
+<row>
+    <entry>test_inherit_nowrite_t</entry>
+    <entry>Domain for child process that cannot inherit read-write fd to test file from parent due to a lack of file write permission.</entry>
+</row>
+<row>
+    <entry>test_inherit_child_t</entry>
+    <entry>Domain for child process that can inherit read-write fd to test file from parent.</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</para>
+
+<para>
+This script uses two helper programs, whose source code is in
+<filename>parent.c</filename> and <filename>child.c</filename>, for
+the parent and child processes.  The <filename>parent</filename>
+program is run in the <constant>test_inherit_parent_t</constant>
+domain by the test script.  This program opens the test file
+with read-write access and then runs the <filename>child</filename> 
+program, passing the descriptor as a parameter, in one of the child domains.
+The child program attempts to write to the descriptor.  When the child is
+run in the <constant>test_inherit_child_t</constant> domain, this
+succeeds.  Otherwise, the descriptor is closed during the
+<function>execve</function> due to the lack of file descriptor
+<constant>use</constant> permission or the lack of file 
+<constant>write</constant> permission.
+</para>
+</sect2>
+
+<sect2 id="exectrace"><title>Process Tracing Across Exec</title>
+<para>
+The <filename>exectrace/test</filename> script tests the success and
+failure cases for the process <constant>ptrace</constant> permission
+check performed by the <function>selinux_bprm_set_security</function>
+hook function when a process SID changes during an
+<function>execve</function> and the process is being traced. The
+script uses three test domains defined in the
+<filename>test_exectrace.te</filename> policy file, summarized in
+<xref linkend="exectrace_test_dt_table">.
+
+<table id="exectrace_test_dt_table" frame=all>
+<title>Process Trace Across Exec Test Domains and Types</title>
+<tgroup cols=2 align=left>
+<thead>
+<row>
+    <entry>Name</entry>
+    <entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+    <entry>test_exectrace_parent_t</entry>
+    <entry>Domain for the parent process.</entry>
+</row>
+<row>
+    <entry>test_exectrace_child_t</entry>
+    <entry>Domain for child process that can be traced across an exec by the parent.</entry>
+</row>
+<row>
+    <entry>test_exectrace_notchild_t</entry>
+    <entry>Domain for child process that cannot be traced across an exec by the parent.</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</para>
+
+<para>
+This script uses two helper programs, whose source code is in
+<filename>parent.c</filename> and <filename>child.c</filename>, for
+the parent and child processes.  The <filename>parent</filename>
+program is run in the <constant>test_exectrace_parent_t</constant>
+domain by the test script.  This program forks a child, enables
+process tracing on the child, and has the child process try to execute
+the <filename>child</filename> program in one of the child domains.
+The parent process waits for the child.  If the
+<constant>ptrace</constant> permission is granted, then the
+<function>execve</function> will succeed and will cause a
+<constant>SIGTRAP</constant> signal to be immediately sent to the
+child to permit the parent to obtain control.  If the
+<constant>ptrace</constant> permission is not granted, then the
+<function>execve</function> will fail and the child process will exit
+with an error.
+</para>
+</sect2>
+
+<sect2 id="execshare"><title>Sharing State Across Exec</title>
+<para>
+The <filename>execshare/test</filename> script tests the success and
+failure cases for the process <constant>share</constant> permission
+check performed by the <function>selinux_bprm_set_security</function>
+hook function when a process SID changes during an
+<function>execve</function> and the process has shared state due to a
+prior call to <function>clone</function> with appropriate flags.
+The script uses three test domains defined in the
+<filename>test_execshare.te</filename> policy file, summarized in <xref
+linkend="execshare_test_dt_table">.  
+
+<table id="execshare_test_dt_table" frame=all>
+<title>Process Share Test Domains and Types</title>
+<tgroup cols=2 align=left>
+<thead>
+<row>
+    <entry>Name</entry>
+    <entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+    <entry>test_execshare_parent_t</entry>
+    <entry>Domain for the parent process.</entry>
+</row>
+<row>
+    <entry>test_execshare_child_t</entry>
+    <entry>Domain for child process that can share state with the parent across an exec.</entry>
+</row>
+<row>
+    <entry>test_execshare_notchild_t</entry>
+    <entry>Domain for child process that cannot share state with the parent across an exec.</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</para>
+
+<para>
+This script uses two helper programs, whose source code is in
+<filename>parent.c</filename> and <filename>child.c</filename>, for
+the parent and child processes.  The <filename>parent</filename>
+program is run in the <constant>test_execshare_parent_t</constant>
+domain by the test script.  This program clones a child with specified
+clone flags, and has the child process try to execute the
+<filename>child</filename> program in one of the child domains.  The
+parent process waits for the child.  If the
+<constant>share</constant> permission is granted, then the 
+<function>child</function> program will run and exit successfully.
+If the <constant>share</constant> permission is not granted, then the
+<function>execve</function> will fail and the child process will exit
+with an error.
+</para>
+</sect2>
+
+</sect1>

@@ -1,0 +1,286 @@
+<sect1 id="file_tests"><title>File Tests</title>
+<sect2 id="file_test_dt"><title>Basic File Operations</title>
+
+<para>
+The <filename>file/test</filename> script tests the success and failure 
+of basic file permissions.  The policy for this set of tests is located
+in <filename>test_file.te</filename>.
+</para>
+
+<para>
+The test script uses several helper programs. Most of the programs are run in 
+the <constant>test_fileop_t</constant> and <constant>test_nofileop_t</constant>
+domains to test for allowed and denied permissions. These programs return
+<constant>0</constant> on permission granted, <constant>1</constant> on failure
+due to the tested operation not permitted, and <constant>2</constant> on
+failure due to other reasons (file not opened, etc.).
+
+<itemizedlist>
+  <listitem>
+   <para>
+    <filename>test_fcntl.c</filename> Test the <constant>F_SETFL</constant>,
+      <constant>F_GETFL</constant>, and <constant>F_GETLK</constant>
+      file control operations. This program returns success when permission
+      is allowed.
+   </para>
+  </listitem>
+  <listitem>
+   <para>
+    <filename>test_lock.c</filename> Test the file lock operation by changing
+     the SID of a file we are able to open.
+   </para>
+  </listitem>
+  <listitem>
+   <para>
+    <filename>test_mmap.c</filename> Test the mmap operation on a file by
+      changing the SID of a file we are able to open.
+   </para>
+  </listitem>
+  <listitem>
+   <para>
+    <filename>test_mprotect.c</filename> Test the mprotect operation on a file 
+     by changing the SID of a file we are able to open and mmap.
+   </para>
+  </listitem>
+  <listitem>
+   <para>
+    <filename>test_nofcntl.c</filename> Test the <constant>F_SETFL</constant>
+     and <constant>F_GETLK</constant> file control operations for permission
+     denied. This program returns success when the permission is denied.
+   </para>
+  </listitem>
+  <listitem>
+   <para>
+    <filename>test_seek.c</filename> Test the seek operation on a file.
+   </para>
+  </listitem>
+  <listitem>
+   <para>
+    <filename>test_sigiotask.c</filename> Test the SIGIO operations by creating
+a child and registering that process for SIGIO signals for the terminal.
+   </para>
+  </listitem>
+  <listitem>
+   <para>
+    <filename>wait_io.c</filename> The program for the child process created
+by <function>test_sigiotask</function>. The executable is labeled with type 
+<constant>fileop_exec_t</constant> and runs in domain 
+<constant>fileop_t</constant>.
+   </para>
+  </listitem>
+</itemizedlist>
+
+</para>
+
+<para>
+<xref linkend="file_test_dt_table"> summarizes the domains and types defined
+by the <filename>test_file.te</filename> policy file.
+
+<table id="file_test_dt_table" frame=all>
+<title>File Test Domains and Types</title>
+<tgroup cols=2 align=left>
+<thead>
+<row>
+    <entry>Name</entry>
+    <entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+    <entry>test_fileop_t</entry>
+    <entry>Domain for process that has all file permissions.</entry>
+</row>
+<row>
+    <entry>test_nofileop_t</entry>
+    <entry>Domain for process that has a restricted set of file permissions for certain file types.</entry>
+</row>
+<row>
+    <entry>fileop_t</entry>
+    <entry>Domain for running certain test programs. Used to test SIGIO between
+domains.</entry>
+</row>
+<row>
+    <entry>fileop_file_t</entry>
+    <entry>Type for test files that the test_fileop_t domain has all permissions.</entry>
+</row>
+<row>
+    <entry>fileop_exec_t</entry>
+    <entry>Type for test program that needs to transition to <constant>fileop_t
+</constant> domain.</entry>
+</row>
+<row>
+    <entry>nofileop_rw_file_t</entry>
+    <entry>Type for temporary files that <constant>test_nofileop_t</constant>
+has <constant>read/write/append/relabelfrom</constant> permissions.</entry>
+</row>
+<row>
+    <entry>nofileop_rw_file_t</entry>
+    <entry>Type for temporary files that <constant>test_nofileop_t</constant>
+has <constant>read/append</constant> permissions.</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</para>
+
+<para>
+The hooks and permissions tested by the <filename>file/test</filename> script 
+are summarized in <xref linkend="file_table">.
+
+<table id="file_table" frame=all>
+<title>File Tests</title>
+<tgroup cols=3 align=left>
+<colspec colwidth="3*">
+<colspec colwidth="2*">
+<colspec colwidth="2*">
+<thead>
+<row>
+    <entry>Hook</entry>
+    <entry>Class</entry>
+    <entry>Permission</entry>
+</row>
+</thead>
+<tbody>
+<row>
+    <entry>selinux_file_permission</entry>
+    <entry><simplelist><member>fd</member><member>file</member></simplelist></entry>
+    <entry><simplelist><member>use</member><member>write</member></simplelist></entry>
+</row>
+<row>
+    <entry>selinux_file_llseek</entry>
+    <entry>fd</entry>
+    <entry>use</entry>
+</row>
+<row>
+    <entry>selinux_file_mmap</entry>
+    <entry><simplelist><member>fd</member><member>file</member></simplelist></entry>
+    <entry><simplelist><member>use</member><member>read, write, execute</member></simplelist></entry>
+</row>
+<row>
+    <entry>selinux_file_mprotect</entry>
+    <entry><simplelist><member>fd</member><member>file</member></simplelist></entry>
+    <entry><simplelist><member>use</member><member>read</member></simplelist></entry>
+</row>
+<row>
+    <entry>selinux_file_lock</entry>
+    <entry><simplelist><member>fd</member><member>file</member></simplelist></entry>
+    <entry><simplelist><member>use</member><member>lock</member></simplelist></entry>
+</row>
+<row>
+    <entry>selinux_file_fcntl</entry>
+    <entry><simplelist><member>fd</member><member>file</member></simplelist></entry>
+    <entry><simplelist><member>use</member><member>write, lock</member></simplelist></entry>
+</row>
+<row>
+    <entry>selinux_file_set_fowner</entry>
+    <entry>n/a</entry>
+    <entry>n/a</entry>
+</row>
+<row>
+    <entry>selinux_file_send_sigiotask</entry>
+    <entry>process</entry>
+    <entry>signal</entry>
+</row>
+
+</tbody>
+</tgroup>
+</table>
+</para>
+</sect2>
+
+<sect2 id="ioctl_test_dt"><title>IOCTL Operations</title>
+<para>
+The <filename>ioctl/test</filename> script tests the success and failure 
+scenarios for the <constant>ioctl</constant> permission check.
+<xref linkend="ioctl_test_dt_table"> summarizes the domains and types defined
+by the <filename>test_ioctl.te</filename> policy file.
+
+<table id="ioctl_test_dt_table" frame=all>
+<title>IOCTL Test Domains and Types</title>
+<tgroup cols=2 align=left>
+<thead>
+<row>
+    <entry>Name</entry>
+    <entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+    <entry>test_ioctl_t</entry>
+    <entry>Domain for process that has all ioctl file permission.</entry>
+</row>
+<row>
+    <entry>test_nofileop_t</entry>
+    <entry>Domain for process that has no ioctl file permission.</entry>
+</row>
+<row>
+    <entry>test_ioctl_file_t</entry>
+    <entry>Type for temporary files that the test_fileop_t domain has all permissions and test_nofileop_t has only read permission.</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</para>
+</sect2>
+
+<sect2 id="fd_receive"><title>File Descriptor Receive Test</title>
+<para>
+The <filename>fdreceive/test</filename> script tests the success and
+failure cases for the file descriptor <constant>use</constant>
+permission check and the file permission checks performed by the
+<function>selinux_file_receive</function> hook function.
+The script uses three test domains and two test types defined in the
+<filename>test_fdreceive.te</filename> policy file, summarized in <xref
+linkend="fdreceive_test_dt_table">.  
+
+<table id="fdreceive_test_dt_table" frame=all>
+<title>File Descriptor Receive Test Domains and Types</title>
+<tgroup cols=2 align=left>
+<thead>
+<row>
+    <entry>Name</entry>
+    <entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+    <entry>test_fdreceive_file_t</entry>
+    <entry>Type for test file opened by client, sent to server.  The server can access this type.</entry>
+</row>
+<row>
+    <entry>test_fdreceive_file2_t</entry>
+    <entry>Type for second test file opened by client, sent to server.  The server cannot access this type.</entry>
+</row>
+<row>
+    <entry>test_fdreceive_client_t</entry>
+    <entry>Domain for client process.  The server can receive descriptors created by this domain.</entry>
+</row>
+<row>
+    <entry>test_fdreceive_client2_t</entry>
+    <entry>Domain for second client process.  The server cannot receive descriptors created by this domain.</entry>
+</row>
+<row>
+    <entry>test_fdreceive_server_t</entry>
+    <entry>Domain for server process.</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</para>
+
+<para>
+This script uses two helper programs, whose source code is in
+<filename>client.c</filename> and <filename>server.c</filename>, for
+the client and server processes.  The <filename>client</filename>
+program opens a specified test file, sends a message including the
+resulting descriptor to the server, receives a response from the
+server indicating whether the descriptor was received, and exits with
+this status.  The <filename>test</filename> script runs the
+<filename>client</filename> program in the client domains with the
+test files to test the success and failure cases for the file
+descriptor <constant>use</constant> permission check and the file
+permission checks.
+</para>
+</sect2>
+
+</sect1>

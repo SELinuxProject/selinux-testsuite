@@ -1,0 +1,465 @@
+<sect1 id="inode_tests"><title>Inode Tests</title>
+<para>
+This section describes the tests related to access controls for inode
+operations.  Each of the following subsections describes one of these
+tests.
+</para>
+
+<sect2 id="mkdir"><title>Directory Creation Test</title>
+<para>
+The <filename>mkdir/test</filename> script tests the success and
+failure cases for the <constant>search</constant>,
+<constant>add_name</constant>, and <constant>create</constant>
+permission checks performed by the
+<function>selinux_inode_mkdir</function> hook function.  Since this
+hook function uses the same SELinux helper function
+(<function>may_create</function>) as the other SELinux file creation
+hook functions, this test should also cover the other file creation
+hook functions.  The test uses five test domains and two test types
+defined in the <filename>test_mkdir.te</filename> policy file,
+summarized in <xref linkend="mkdir_test_dt_table">.
+
+<table id="mkdir_test_dt_table" frame=all>
+<title>Mkdir Test Domains and Types</title>
+<tgroup cols=2 align=left>
+<thead>
+<row>
+    <entry>Name</entry>
+    <entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+    <entry>test_mkdir_dir_t</entry>
+    <entry>A type for test directories.</entry>
+</row>
+<row>
+    <entry>test_addname_t</entry>
+    <entry>Domain for process that can create a subdirectory in a directory, where both have the above type.</entry>
+</row>
+<row>
+    <entry>test_noaddname_t</entry>
+    <entry>Domain for process that cannot create a subdirectory due to a lack of add_name permission to the directory.</entry>
+</row>
+<row>
+    <entry>test_nosearch_t</entry>
+    <entry>Domain for process that cannot create a subdirectory due to a lack of search permission to the directory.</entry>
+</row>
+<row>
+    <entry>test_create_dir_t</entry>
+    <entry>A new type for the subdirectory.</entry>
+</row>
+<row>
+    <entry>test_create_t</entry>
+    <entry>Domain for process that can create a subdirectory in a directory, where the subdirectory has the new type.</entry>
+</row>
+<row>
+    <entry>test_nocreate_t</entry>
+    <entry>Domain for process that cannot create a subdirectory due to a lack
+of create permission to the new type.</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</para>
+</sect2>
+
+<sect2 id="link"><title>Link/Unlink Test</title>
+<para>
+The <filename>link/test</filename> script tests the success and
+failure cases for the <constant>add_name</constant> and
+<constant>link</constant> permission checks performed by the
+<function>selinux_inode_link</function> hook function.  It also tests
+the success and failure cases for the <constant>remove_name</constant>
+and <constant>unlink</constant> permission checks performed by the
+<function>selinux_inode_unlink</function> hook function.  It does not
+yet separately test the <function>selinux_inode_rmdir</function> hook
+function.  All three SELinux hook functions use the same SELinux
+helper function, <function>may_link</function>, with different
+parameters. The test uses six test domains and two test types
+defined in the <filename>test_link.te</filename> policy file,
+summarized in <xref linkend="link_test_dt_table">.
+
+<table id="link_test_dt_table" frame=all>
+<title>Link/Unlink Test Domains and Types</title>
+<tgroup cols=2 align=left>
+<thead>
+<row>
+    <entry>Name</entry>
+    <entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+    <entry>test_link_dir_t</entry>
+    <entry>Type for the test directory.</entry>
+</row>
+<row>
+    <entry>test_link_file_t</entry>
+    <entry>Type for the test file.</entry>
+</row>
+<row>
+    <entry>test_link_t</entry>
+    <entry>Domain for process that can create a hard link to the test file in the test directory.</entry>
+</row>
+<row>
+    <entry>test_nolink_t</entry>
+    <entry>Domain for process that cannot create a hard link to the file due to a lack of link permission to the file.</entry>
+</row>
+<row>
+    <entry>test_nolink2_t</entry>
+    <entry>Domain for process that cannot create a hard link in the directory due to a lack of add_name permission to the directory.</entry>
+</row>
+<row>
+    <entry>test_unlink_t</entry>
+    <entry>Domain for process that can remove a hard link to the file from the directory.</entry>
+</row>
+<row>
+    <entry>test_nounlink_t</entry>
+    <entry>Domain for process that cannot remove a hard link to the file due to a lack of unlink permission to the file.</entry>
+</row>
+<row>
+    <entry>test_nounlink2_t</entry>
+    <entry>Domain for process that cannot remove a hard link from the directory due to a lack of remove_name permission to the directory.</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</para>
+</sect2>
+
+<sect2 id="rename"><title>Rename Test</title>
+<para>
+The <filename>rename/test</filename> script tests the success and
+failure cases for the permission checks performed by the
+<function>selinux_inode_rename</function> hook function.  These
+permission checks are implemented in the SELinux
+<function>may_rename</function> helper function.  The test script
+tests the basic rename permission checks, the additional checks if the
+destination file already exists, and the additional checks if a
+directory is being reparented by the rename.  The test uses eight test
+domains and four test types defined in the
+<filename>test_rename.te</filename> policy file, summarized in <xref
+linkend="rename_test_dt_table">.
+
+<table id="rename_test_dt_table" frame=all>
+<title>Rename Test Domains and Types</title>
+<tgroup cols=2 align=left>
+<thead>
+<row>
+    <entry>Name</entry>
+    <entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+    <entry>test_rename_src_dir_t</entry>
+    <entry>Type for the source directory.</entry>
+</row>
+<row>
+    <entry>test_rename_dst_dir_t</entry>
+    <entry>Type for the destination directory.</entry>
+</row>
+<row>
+    <entry>test_rename_file_t</entry>
+    <entry>Type for the test file to be renamed.</entry>
+</row>
+<row>
+    <entry>test_rename_dir_t</entry>
+    <entry>Type for the test directory to be renamed.</entry>
+</row>
+<row>
+    <entry>test_rename_t</entry>
+    <entry>Domain for process that can rename the test file and directory.</entry>
+</row>
+<row>
+    <entry>test_rename2_t</entry>
+    <entry>Domain for process that can rename the test file over an existing file.</entry>
+</row>
+<row>
+    <entry>test_norename_t</entry>
+    <entry>Domain for process that cannot rename the test file because it lacks rename permission to the file.</entry>
+</row>
+<row>
+    <entry>test_norename2_t</entry>
+    <entry>Domain for process that cannot rename from the source directory because it lacks remove_name permission to it.</entry>
+</row>
+<row>
+    <entry>test_norename3_t</entry>
+    <entry>Domain for process that cannot rename to the destination directory because it lacks add_name permission to it.</entry>
+</row>
+<row>
+    <entry>test_norename4_t</entry>
+    <entry>Domain for process that cannot rename over an existing file because it lacks remove_name permission to the destination directory.</entry>
+</row>
+<row>
+    <entry>test_norename5_t</entry>
+    <entry>Domain for process that cannot rename over an existing file because it lacks unlink permission to it.</entry>
+</row>
+<row>
+    <entry>test_norename6_t</entry>
+    <entry>Domain for process that cannot rename the test directory because it lacks reparent permission to it.</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</para>
+</sect2>
+
+<sect2 id="open"><title>Open Test</title>
+<para>
+The <filename>open/test</filename> script tests the success and
+failure cases for the file <constant>read</constant>,
+<constant>write</constant>, and <constant>append</constant> permission
+checks performed by the <function>selinux_inode_permission</function>
+hook function.  The test uses three test domains and one test type
+defined in the <filename>test_open.te</filename> policy file,
+summarized in <xref linkend="open_test_dt_table">.
+
+<table id="open_test_dt_table" frame=all>
+<title>Open Test Domains and Types</title>
+<tgroup cols=2 align=left>
+<thead>
+<row>
+    <entry>Name</entry>
+    <entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+    <entry>test_open_file_t</entry>
+    <entry>Type for the test file.</entry>
+</row>
+<row>
+    <entry>test_open_t</entry>
+    <entry>Domain for process that can open the test file for reading and writing.</entry>
+</row>
+<row>
+    <entry>test_noopen_t</entry>
+    <entry>Domain for process that cannot open the test file for reading or writing.</entry>
+</row>
+<row>
+    <entry>test_append_t</entry>
+    <entry>Domain for process that can open the test file for appending.</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</para>
+
+<para>
+This script uses two helper programs, whose source code is in
+<filename>fopen.c</filename> and <filename>append2write.c</filename>.
+The <filename>fopen</filename> program attempts to open the test file
+with the specified access mode.  The test script runs this program in
+each of the test domains with various access modes to test success and
+failure cases.  The <filename>append2write</filename> program attempts
+to first open the test file with append-only access and then clear the
+append-only flag via <function>fcntl</function> to obtain full write
+access.  The test script verifies that this program fails when run in
+the the <constant>test_append_t</constant> domain but succeeds when
+run in the <constant>test_open_t</constant> domain.
+</para>
+</sect2>
+
+<sect2 id="rxdir"><title>Read/Search Directory Test</title>
+<para>
+The <filename>rxdir/test</filename> script tests the success and
+failure cases for the directory <constant>read</constant> and
+<constant>search</constant> permission checks performed by the
+<function>selinux_inode_permission</function> hook function.  The test
+uses two test domains and one test type defined in the
+<filename>test_rxdir.te</filename> policy file, summarized in <xref
+linkend="rxdir_test_dt_table">.
+
+<table id="rxdir_test_dt_table" frame=all>
+<title>Read/Search Directory Test Domains and Types</title>
+<tgroup cols=2 align=left>
+<thead>
+<row>
+    <entry>Name</entry>
+    <entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+    <entry>test_rxdir_dir_t</entry>
+    <entry>Type for the test directory.</entry>
+</row>
+<row>
+    <entry>test_rdir_t</entry>
+    <entry>Domain for process that can read but not search the test directory.</entry>
+</row>
+<row>
+    <entry>test_xdir_t</entry>
+    <entry>Domain for process that can search but not read the test directory.</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</para>
+</sect2>
+
+<sect2 id="readlink"><title>Read/Follow Symlink Test</title>
+<para>
+The <filename>readlink/test</filename> script tests the success and
+failure cases for the file <constant>read</constant> permission checks
+performed by the <function>selinux_inode_readlink</function> and the
+<function>selinux_inode_follow_link</function> hook functions.  The
+test uses two test domains and two test types defined in the
+<filename>test_readlink.te</filename> policy file, summarized in <xref
+linkend="readlink_test_dt_table">.
+
+<table id="readlink_test_dt_table" frame=all>
+<title>Read/Follow Symlink Test Domains and Types</title>
+<tgroup cols=2 align=left>
+<thead>
+<row>
+    <entry>Name</entry>
+    <entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+    <entry>test_readlink_file_t</entry>
+    <entry>Type for the test file.</entry>
+</row>
+<row>
+    <entry>test_readlink_link_t</entry>
+    <entry>Type for the test symbolic link that refers to the test file.</entry>
+</row>
+<row>
+    <entry>test_readlink_t</entry>
+    <entry>Domain for process that can read and follow the symbolic link.</entry>
+</row>
+<row>
+    <entry>test_noreadlink_t</entry>
+    <entry>Domain for process that cannot read or follow the symbolic link.</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</para>
+</sect2>
+
+<sect2 id="setattr"><title>Set Attribute Test</title>
+<para>
+The <filename>setattr/test</filename> script tests the success and
+failure cases for the file <constant>setattr</constant> permission
+check performed by the <function>selinux_inode_setattr</function>
+hook function.  The test uses two test domains and one test type
+defined in the <filename>test_setattr.te</filename> policy file,
+summarized in <xref linkend="setattr_test_dt_table">.
+
+<table id="setattr_test_dt_table" frame=all>
+<title>Set Attribute Test Domains and Types</title>
+<tgroup cols=2 align=left>
+<thead>
+<row>
+    <entry>Name</entry>
+    <entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+    <entry>test_setattr_file_t</entry>
+    <entry>Type for the test file.</entry>
+</row>
+<row>
+    <entry>test_setattr_t</entry>
+    <entry>Domain for process that can set attributes on the test file.</entry>
+</row>
+<row>
+    <entry>test_nosetattr_t</entry>
+    <entry>Domain for process that cannot set attributes on the test file.</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</para>
+</sect2>
+
+<sect2 id="stat"><title>Stat Test</title>
+<para>
+The <filename>stat/test</filename> script tests the success and
+failure cases for the file <constant>getattr</constant> permission
+check performed by the <function>selinux_inode_stat</function>
+hook function.  The test uses two test domains and one test type
+defined in the <filename>test_stat.te</filename> policy file,
+summarized in <xref linkend="stat_test_dt_table">.
+
+<table id="stat_test_dt_table" frame=all>
+<title>Stat Test Domains and Types</title>
+<tgroup cols=2 align=left>
+<thead>
+<row>
+    <entry>Name</entry>
+    <entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+    <entry>test_stat_file_t</entry>
+    <entry>Type for the test file.</entry>
+</row>
+<row>
+    <entry>test_stat_t</entry>
+    <entry>Domain for process that can get attributes of the test file.</entry>
+</row>
+<row>
+    <entry>test_nostat_t</entry>
+    <entry>Domain for process that cannot get attributes of the test file.</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</para>
+</sect2>
+
+<sect2 id="relabel"><title>Relabel Test</title>
+<para>
+The <filename>relabel/test</filename> script tests the success and
+failure cases for the file <constant>relabelfrom</constant> and
+<constant>relabelto</constant> permission checks performed by the new
+<function>chsid</function> system call.  The test uses three test
+domains and two test types defined in the
+<filename>test_relabel.te</filename> policy file, summarized in <xref
+linkend="relabel_test_dt_table">.
+
+<table id="relabel_test_dt_table" frame=all>
+<title>Relabel Test Domains and Types</title>
+<tgroup cols=2 align=left>
+<thead>
+<row>
+    <entry>Name</entry>
+    <entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+    <entry>test_relabel_oldtype_t</entry>
+    <entry>Old type for the test file before the relabel.</entry>
+</row>
+<row>
+    <entry>test_relabel_newtype_t</entry>
+    <entry>New type for the test file after the relabel.</entry>
+</row>
+<row>
+    <entry>test_relabel_t</entry>
+    <entry>Domain for process that can relabel the test file to the new type.</entry>
+</row>
+<row>
+    <entry>test_norelabelfrom_t</entry>
+    <entry>Domain for process that cannot relabel the test file due to a lack of relabelfrom permission to the old type.</entry>
+</row>
+<row>
+    <entry>test_norelabelto_t</entry>
+    <entry>Domain for process that cannot relabel the test file to the new type due to a lack of relabelto permission to it.</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</para>
+</sect2>
+
+</sect1>

@@ -1,0 +1,31 @@
+#!/usr/bin/perl
+
+use Test;
+BEGIN { plan tests => 3}
+
+$basedir = $0;  $basedir =~ s|(.*)/[^/]*|$1|;
+
+# Remove any leftover test files from prior failed runs.
+system ("rm -rf $basedir/test_file $basedir/test_symlink");
+
+# Create a test file.  
+system ("touch $basedir/test_file 2>&1");
+system ("chcon -t test_readlink_file_t $basedir/test_file 2>&1");
+
+# Create a test symbolic link to the test file.
+system ("ln -sf test_file $basedir/test_symlink 2>&1");
+system ("chcon -h -t test_readlink_link_t $basedir/test_symlink 2>&1");
+
+# Verify that test_readlink_t can read and follow this link.
+$result = system ("runcon -t test_readlink_t -- ls -Ll $basedir/test_symlink");
+ok($result, 0); 
+
+# Verify that test_noreadlink_t cannot read or follow this link.
+$result = system ("runcon -t test_noreadlink_t -- ls -l $basedir/test_symlink 2>&1");
+ok($result); 
+$result = system ("runcon -t test_noreadlink_t -- ls -Ll $basedir/test_symlink 2>&1");
+ok($result); 
+
+# Cleanup.
+system ("rm -rf $basedir/test_file $basedir/test_symlink");
+

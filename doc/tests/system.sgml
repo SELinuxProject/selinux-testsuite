@@ -1,0 +1,46 @@
+<sect1 id="system_tests"><title>System Tests</title>
+
+<para>
+The <filename>sysctl/test</filename> script checks permissions for
+system control (sysctl) operations.  The policy for this set of tests
+is located in <filename>test_sysctl.te</filename>.  <xref
+linkend="sysctl_test_dt_table"> summarizes the domains defined by the
+policy.
+</para>
+
+<para>
+<table id="sysctl_test_dt_table" frame=all>
+<title>System Control Test Domains</title>
+<tgroup cols=2 align=left>
+<colspec colwidth="2*">
+<colspec colwidth="3*">
+<thead>
+<row>
+    <entry>Name</entry>
+    <entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+    <entry>test_sysctl_t</entry>
+    <entry>Domain for process that has all system control permissions.</entry>
+</row>
+<row>
+    <entry>test_nosysctl_t</entry>
+    <entry>Domain for process that has no system control permissions, except for search access to the directories.</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</para>
+
+<para>
+The <function>selinux_sysctl</function> hook is tested.  Attempts are
+made to read and write the <constant>kernel.modprobe</constant> sysctl
+variable from each domain.  The <constant>test_sysctl_t</constant>
+domain should succeed on both operations, while the
+<constant>test_nosysctl_t</constant> domain should fail on both
+operations.
+</para>
+
+</sect1>

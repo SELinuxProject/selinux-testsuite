@@ -1,0 +1,29 @@
+#!/usr/bin/perl
+
+use Test;
+BEGIN { plan tests => 4}
+
+$basedir = $0;  $basedir =~ s|(.*)/[^/]*|$1|;
+
+# Remove any leftover test file from prior failed runs.
+system ("rm -rf $basedir/test_file");
+
+# Create a test file with the test_setattr_file_t type for use in the tests.
+system ("touch $basedir/test_file");
+system ("chcon -t test_setattr_file_t $basedir/test_file");
+
+# Verify that test_setattr_t can set attributes on the file.
+$result = system ("runcon -t test_setattr_t chown root $basedir/test_file 2>&1");
+ok($result, 0); 
+$result = system ("runcon -t test_setattr_t chmod 0755 $basedir/test_file 2>&1");
+ok($result, 0); 
+
+# Verify that test_nosetattr_t cannot set attributes on the file.
+$result = system ("runcon -t test_nosetattr_t chown nobody $basedir/test_file 2>&1");
+ok($result); 
+$result = system ("runcon -t test_nosetattr_t chmod 0644 $basedir/test_file 2>&1");
+ok($result); 
+
+# Cleanup.
+system ("rm -rf $basedir/test_file");
+

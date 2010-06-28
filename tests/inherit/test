@@ -1,0 +1,33 @@
+#!/usr/bin/perl
+
+use Test;
+BEGIN { plan tests => 3}
+
+$basedir = $0;  $basedir =~ s|(.*)/[^/]*|$1|;
+
+# Remove any leftover test file from prior failed runs.
+system ("rm -rf $basedir/test_file");
+
+# Create a test file with the test_inherit_file_t type for use in the tests.
+system ("touch $basedir/test_file");
+system ("chcon -t test_inherit_file_t $basedir/test_file");
+
+# Verify that test_inherit_nouse_t cannot inherit the rw fd to the test_file 
+# from test_inherit_parent_t.
+# Should fail on fd use permission.
+$result = system ("runcon -t test_inherit_parent_t -- $basedir/parent test_inherit_nouse_t $basedir/test_file $basedir/child 2>&1");
+ok($result); # we expect this to fail.
+
+# Verify that test_inherit_nowrite_t cannot inherit the rw fd to the test_file
+# from test_inherit_parent_t.
+# Should fail on file write permission.
+$result = system ("runcon -t test_inherit_parent_t -- $basedir/parent test_inherit_nowrite_t $basedir/test_file $basedir/child 2>&1");
+ok($result); # we expect this to fail.
+
+# Verify that test_inherit_child_t can inherit the rw fd to the test file 
+# from test_inherit_parent_t.
+$result = system ("runcon -t test_inherit_parent_t -- $basedir/parent test_inherit_child_t $basedir/test_file $basedir/child 2>&1");
+ok($result, 0);
+
+# Cleanup.
+system ("rm -rf $basedir/test_file");

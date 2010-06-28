@@ -1,0 +1,452 @@
+<sect1 id="task_tests"><title>Task Tests</title>
+<para>
+This section describes the tests related to access controls for task
+operations.  Each of the following subsections describes one of these
+tests.  There are still a number of tests that need to be implemented
+for the task access controls; see <xref linkend="summary"> for the
+summary of the test coverage.
+</para>
+
+<sect2 id = "create"><title>Create Test</title>
+<para>
+The <filename>create/test</filename> script tests the success and
+failure cases for the fork permission check performed by the
+<function>selinux_task_create</function> hook function.  The test
+uses two test domains defined in the <filename>test_task_create.te
+</filename> policy file, summarized in <xref linkend="task_create_dt_table">.
+
+<table id="task_create_dt_table" frame=all>
+<title>Create Test Domains and Types</title>
+<tgroup cols=2 align=left>
+<thead>
+<row>
+    <entry>Name</entry>
+    <entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+    <entry>test_create_yes_t</entry>
+    <entry>Domain for the process allowed to fork</entry>
+</row>
+<row>
+    <entry>test_create_no_t</entry>
+    <entry>Domain for the process not allowed to fork</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</para>
+<para>
+This script uses a helper program whose source code is in 
+<filename>parent.c</filename>.  The <function>parent</function> 
+program is first run by the test script in the 
+<function>test_create_yes_t</function> domain.  It is then run 
+in the <function>test_create_no_t</function> domain.  The 
+<function>parent</function> program will be able to fork a child process 
+in the first case, but not in the second case.
+</para>
+</sect2>
+
+<sect2 id = "setpgid"><title>Setpgid Test</title>
+<para>
+The <filename>task_setpgid/test</filename> script tests the success 
+and failure cases for the <function>setpgid</function> permission 
+check performed by the <function>selinux_task_setpgid</function> 
+hook function.  The test uses two test domains defined in the 
+<filename>test_task_setpgid.te</filename> policy file,  
+summarized in <xref linkend="task_setpgid_dt_table">.
+
+<table id="task_setpgid_dt_table" frame=all>
+<title>Setpgid Test Domains and Types</title>
+<tgroup cols=2 align=left>
+<thead>
+<row>
+    <entry>Name</entry>
+    <entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+    <entry>test_setpgid_yes_t</entry>
+    <entry>Domain for the process allowed to set the process 
+	group ID.</entry>
+</row>
+<row>
+    <entry>test_setpgid_no_t</entry>
+    <entry>Domain for the process not allowed to set the process 
+	group ID.</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</para>
+<para>
+This script uses a helper program whose source code is in 
+<filename>source.c</filename>.  The <function>source</function> 
+program is first run by the test script in the 
+<function>test_setpgid_yes_t</function> domain.  It is then run 
+in the <function>test_setpgid_no_t</function> domain.  The 
+<function>source</function> program will be able to set the group 
+ID of itself in the first case, but not in the second case.
+</para>
+</sect2>
+
+<sect2 id = "getpgid"><title>Getpgid Test</title>
+<para>
+The <filename>task_getpgid/test</filename> script tests the success 
+and failure cases for the <function>getpgid</function> permission 
+check performed by the <function>selinux_task_getpgid</function> 
+hook function.  The test uses three test domains defined in the 
+<filename>test_task_getpgid.te</filename> policy file,  
+summarized in <xref linkend="task_getpgid_dt_table">.
+
+<table id="task_getpgid_dt_table" frame=all>
+<title>Getpgid Test Domains and Types</title>
+<tgroup cols=2 align=left>
+<thead>
+<row>
+    <entry>Name</entry>
+    <entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+    <entry>test_getpgid_yes_t</entry>
+    <entry>Domain for the process allowed to get the process 
+	group ID.</entry>
+</row>
+<row>
+    <entry>test_getpgid_no_t</entry>
+    <entry>Domain for the process not allowed to get the process 
+	group ID.</entry>
+</row>
+<row>
+    <entry>test_getpgid_target_t</entry>
+    <entry>Domain for the target process</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</para>
+<para>
+This script uses two helper programs whose source code are in 
+<filename>target.c</filename> and <filename>source.c</filename>.  
+The <function>target</function> program is run in the 
+<function>test_getpgid_target_t</function> domain by the test script.  
+The <function>source</function> program is first run by the test 
+script in the <function>test_getpgid_yes_t</function> domain.  
+It is then run in the <function>test_getpgid_no_t</function> domain.  
+The <function>source</function> will be able to get the group ID of 
+the <function>target</function> in the first case, but not in 
+the second case.
+</para>
+</sect2>
+
+<sect2 id = "getsid"><title>Getsid Test</title>
+<para>
+The <filename>task_getsid/test</filename> script tests the success 
+and failure cases for the <function>getsession</function> permission 
+check performed by the <function>selinux_task_getsid</function> 
+hook function.  The test uses three test domains defined in the 
+<filename>test_task_getsid.te</filename> policy file,  
+summarized in <xref linkend="task_getsid_dt_table">.
+
+<table id="task_getsid_dt_table" frame=all>
+<title>Getsid Test Domains and Types</title>
+<tgroup cols=2 align=left>
+<thead>
+<row>
+    <entry>Name</entry>
+    <entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+    <entry>test_getsid_yes_t</entry>
+    <entry>Domain for the process allowed to get the session  
+	ID.</entry>
+</row>
+<row>
+    <entry>test_getsid_no_t</entry>
+    <entry>Domain for the process not allowed to get the session 
+	ID.</entry>
+</row>
+<row>
+    <entry>test_getsid_target_t</entry>
+    <entry>Domain for the target process</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</para>
+<para>
+This script uses two helper programs whose source code are in 
+<filename>target.c</filename> and <filename>source.c</filename>.  
+The <function>target</function> program is run in the 
+<function>test_getsid_target_t</function> domain by the test script.  
+The <function>source</function> program is first run by the test 
+script in the <function>test_getsid_yes_t</function> domain.  
+It is then run in the <function>test_getsid_no_t</function> domain.  
+The <function>source</function> will be able to get the session ID of 
+the <function>target</function> in the first case, but not in 
+the second case.
+</para>
+</sect2>
+
+<sect2 id = "setnice"><title>Setnice Test</title>
+<para>
+The <filename>task_setnice/test</filename> script tests the success 
+and failure cases for the <function>setsched</function> permission 
+check performed by the <function>selinux_task_setnice</function> 
+hook function.  The test uses three test domains defined in the 
+<filename>test_task_setsched.te</filename> policy file,  
+summarized in <xref linkend="task_setsched_dt_table">.
+
+<table id="task_setsched_dt_table" frame=all>
+<title> Setsched Domains and Types</title>
+<tgroup cols=2 align=left>
+<thead>
+<row>
+    <entry>Name</entry>
+    <entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+    <entry>test_setsched_yes_t</entry>
+    <entry>Domain for the process allowed to change the target's 
+	priority and scheduling policy.</entry>
+</row>
+<row>
+    <entry>test_setsched_no_t</entry>
+    <entry>Domain for the process not allowed to change the target's 
+	priority and scheduling policy.</entry>
+</row>
+<row>
+    <entry>test_setsched_target_t</entry>
+    <entry>Domain for the target process</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</para>
+<para>
+This script uses a helper program whose source code is in 
+<filename>target.c</filename>.  
+The <function>target</function> program is run in the 
+<function>test_setsched_target_t</function> domain by the test script.  
+The <function>renice</function> command is first run by the test 
+script in the <function>test_setsched_yes_t</function> domain.  
+It is then run in the <function>test_setsched_no_t</function> domain.  
+The <function>renice</function> command will be able to change the 
+priority of the <function>target</function> in the first case, but not 
+in the second case.
+</para>
+</sect2>
+
+<sect2 id = "setscheduler"><title>Setscheduler Test</title>
+<para>
+The <filename>task_setscheduler/test</filename> script tests the success 
+and failure cases for the <function>setsched</function> permission 
+check performed by the <function>selinux_task_setscheduler</function> 
+hook function.  The test uses three test domains defined in the 
+<filename>test_task_setsched.te</filename> policy file,  
+summarized in <xref linkend="task_setsched_dt_table">.
+</para>
+<para>
+This script uses two helper programs whose source code are in 
+<filename>target.c</filename> and <filename>source.c</filename>.  
+The <function>target</function> program is run in the 
+<function>test_setsched_target_t</function> domain by the test script.  
+The <function>source</function> program is first run by the test script 
+in the <function>test_setsched_yes_t</function> domain.  
+It is then run in the <function>test_setsched_no_t</function> domain.  
+The <function>source</function> program will be able to change the 
+scheduling of the <function>target</function> in the first case, but not 
+in the second case.
+</para>
+</sect2>
+
+<sect2 id = "getscheduler"><title>Getscheduler Test</title>
+<para>
+The <filename>task_getscheduler/test</filename> script tests the success 
+and failure cases for the <function>getsched</function> permission 
+check performed by the <function>selinux_task_getscheduler</function> 
+hook function.  The test uses three test domains defined in the 
+<filename>test_task_getsched.te</filename> policy file,  
+summarized in <xref linkend="task_getsched_dt_table">.
+
+<table id="task_getsched_dt_table" frame=all>
+<title> Getsched Domains and Types</title>
+<tgroup cols=2 align=left>
+<thead>
+<row>
+    <entry>Name</entry>
+    <entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+    <entry>test_getsched_yes_t</entry>
+    <entry>Domain for the process allowed to get the target's 
+	scheduling policy.</entry>
+</row>
+<row>
+    <entry>test_getsched_no_t</entry>
+    <entry>Domain for the process not allowed to get the target's 
+	scheduling policy.</entry>
+</row>
+<row>
+    <entry>test_getsched_target_t</entry>
+    <entry>Domain for the target process</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</para>
+<para>
+This script uses two helper programs whose source code are in 
+<filename>target.c</filename> and <filename>source.c</filename>.  
+The <function>target</function> program is run in the 
+<function>test_getsched_target_t</function> domain by the test script.  
+The <function>source</function> program is first run by the test script 
+in the <function>test_getsched_yes_t</function> domain.  
+It is then run in the <function>test_getsched_no_t</function> domain.  
+The <function>source</function> program will be able to get the 
+scheduling of the <function>target</function> in the first case, but not 
+in the second case.
+</para>
+</sect2>
+
+<sect2 id="kill"><title>Kill Test</title>
+<para>
+The <filename>sigkill/test</filename> script tests the success and
+failure cases for the signal permission checks
+performed by the <function>selinux_task_kill</function> hook function.
+The test uses five test domains defined in the
+<filename>test_sigkill.te</filename> policy file, summarized in 
+<xref linkend="sigkill_test_dt_table">.
+
+<table id="sigkill_test_dt_table" frame=all>
+<title>Kill Test Domains and Types</title>
+<tgroup cols=2 align=left>
+<thead>
+<row>
+    <entry>Name</entry>
+    <entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+    <entry>test_kill_server_t</entry>
+    <entry>Domain for server process that receives the signals.</entry>
+</row>
+<row>
+    <entry>test_kill_sigkill_t</entry>
+    <entry>Domain for process that can send KILL to the server process.</entry>
+</row>
+<row>
+    <entry>test_kill_sigstop_t</entry>
+    <entry>Domain for process that can send STOP to the server process.</entry>
+</row>
+<row>
+    <entry>test_kill_sigchld_t</entry>
+    <entry>Domain for process that can send CHLD to the server process.</entry>
+</row>
+<row>
+    <entry>test_kill_signal_t</entry>
+    <entry>Domain for process that can send other signals to the server process.</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</para>
+</sect2>
+
+<sect2 id="wait"><title>Wait Test</title>
+<para>
+The <filename>wait/test</filename> script tests the success and
+failure cases for the permission check performed by the
+<function>selinux_task_wait</function> hook function.  The test uses
+three test domains defined in the <filename>test_wait.te</filename>
+policy file, summarized in <xref linkend="wait_test_dt_table">.
+
+<table id="wait_test_dt_table" frame=all>
+<title>Wait Test Domains and Types</title>
+<tgroup cols=2 align=left>
+<thead>
+<row>
+    <entry>Name</entry>
+    <entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+    <entry>test_wait_parent_t</entry>
+    <entry>Domain for parent process.</entry>
+</row>
+<row>
+    <entry>test_wait_child_t</entry>
+    <entry>Domain for child process that can be reaped by the parent.</entry>
+</row>
+<row>
+    <entry>test_wait_notchild_t</entry>
+    <entry>Domain for child process that cannot be reaped by the parent.</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</para>
+
+<para>
+This script uses two helper programs, whose source code is in
+<filename>parent.c</filename> and <filename>child.c</filename>, for
+the parent and child processes.  The <filename>parent</filename>
+program is run in the <constant>test_wait_parent_t</constant> domain
+by the test script.  This program forks and executes the
+<filename>child</filename> program in one of the child domains, and
+then waits for the child.  The child program immediately exits.  When
+the child is run in the <constant>test_wait_child_t</constant> domain,
+the wait succeeds.  Otherwise, the wait fails.
+</para>
+</sect2>
+
+<sect2 id="ptrace"><title>Process Trace Test</title>
+<para>
+The <filename>ptrace/test</filename> script tests the success and
+failure cases for the <constant>ptrace</constant> permission check
+performed by the <function>selinux_ptrace</function> hook function.
+The test uses three test domains defined in the
+<filename>test_ptrace.te</filename> policy file, summarized in <xref
+linkend="ptrace_test_dt_table">.
+
+<table id="ptrace_test_dt_table" frame=all>
+<title>Process Trace Test Domains and Types</title>
+<tgroup cols=2 align=left>
+<thead>
+<row>
+    <entry>Name</entry>
+    <entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+    <entry>test_ptrace_tracer_t</entry>
+    <entry>Domain for process that can trace the target process.</entry>
+</row>
+<row>
+    <entry>test_ptrace_nottracer_t</entry>
+    <entry>Domain for process that cannot trace the target process.</entry>
+</row>
+<row>
+    <entry>test_ptrace_traced_t</entry>
+    <entry>Domain for target process.</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</para>
+</sect2>
+
+</sect1>

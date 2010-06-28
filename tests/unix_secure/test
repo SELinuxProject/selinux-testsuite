@@ -1,0 +1,64 @@
+#!/usr/bin/perl
+
+use Test;
+BEGIN { plan tests => 12}
+$basedir = $0;  $basedir =~ s|(.*)/[^/]*|$1|;
+
+$result = system "$basedir/checksyscalls";
+if ($result != 0) {
+    print "Secure sockets not implemented, skipping tests\n";
+    for ($i = 0; $i < 12; $i++) {
+	ok(1);
+    }
+    exit;
+}
+
+$output = `id`;
+$output =~ /uid=\d+\((\w+)\).*context=(\w+):(\w+):(\w+)/ || die ("Can't determine user's id\n");
+$user = $2;
+$role = $3;
+
+$socket_sid = `context_to_sid $user:$role:test_socket_base_t`;
+$second_sid = `context_to_sid $user:$role:test_socket_secondary_t`;
+chop($socket_sid);
+chop($second_sid);
+
+$basedir = $0;  $basedir =~ s|(.*)/[^/]*|$1|;
+$count = 100;
+$servercount = $count * 6;
+if (($pid = fork()) == 0) {
+    unlink unix_test_socket;
+    $output = `runas -t test_socket_base_t -- $basedir/server $servercount`;
+    exit;
+}
+
+$output = `$basedir/client.pl $count`;
+eval $output;
+
+kill 9, $pid; # just in case :)
+unlink unix_test_socket;
+
+#
+# Do the same thing, but use explicit SIDs
+#
+if (($pid = fork()) == 0) {
+    $output = `runas -t test_socket_base_t -- $basedir/server $servercount $socket_sid`;
+    exit;
+}
+$output = `$basedir/client2.pl $count`;
+kill 9, $pid; # just in case :)
+eval $output;
+
+unlink unix_test_socket;
+
+exit;
+
+# In addition to testing socket listen queues and peer labeling, it
+# tests for successful operation of the following secure socket system
+# calls:
+#       socket_secure
+#       getsockname_secure
+#       connect_secure
+#       getpeername_secure
+#       accept_secure
+

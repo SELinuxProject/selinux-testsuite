@@ -1,0 +1,15 @@
+#!/usr/bin/perl
+
+use Test;
+BEGIN { plan tests => 2}
+
+$basedir = $0;  $basedir =~ s|(.*)/[^/]*|$1|;
+
+# Verify that test_setnice_change_t can have nice set by test_setnice_set_t
+$result = system ("runcon -t test_setnice_change_t $basedir/parent test_setnice_set_t $basedir/child 2>&1");
+ok($result, 0); # we expect this to succeed.
+
+# Verify that test_setnice_change_t cannot have nice set by test_setnice_noset_t
+# Should fail on setsched permission.
+$result = system ("runcon -t test_setnice_change_t $basedir/parent test_setnice_noset_t $basedir/child 2>&1");
+ok($result); # we expect this to fail.

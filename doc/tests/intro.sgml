@@ -1,0 +1,35 @@
+<sect1 id="intro"><title>Introduction</title>
+
+<para>
+NSA Security-Enhanced Linux (SELinux) is an implementation of
+fine-grained and flexible nondiscretionary access controls in the
+Linux kernel <citation><XRef LinkEnd="LoscoccoFreenix01"></citation>.
+The SELinux implementation has been reworked by NAI Labs to use the
+Linux Security Modules (LSM) kernel patch<citation><XRef
+LinkEnd="SmalleyModuleTR01"></citation>.  This technical report
+describes the functional test suite developed for the LSM-based
+SELinux security module.  
+</para>
+
+<para>
+The test suite permits automated validation of the correct
+implementation of the SELinux access controls in the hook functions of
+the LSM-based SELinux security module.  The test suite does not yet
+provide comprehensive coverage of all of the SELinux hook functions.
+Nonetheless, the test suite can be used to provide feedback on the
+basic functionality of the SELinux module as the module is undergoing
+continued development.  The test suite does not provide any validation
+of the example security policy configuration or system security; such
+validation is outside the scope of this test suite.
+</para>
+
+<para>
+The report begins by providing an overview of the test environment,
+including a discussion of the test policy configuration and test
+scripts.  It then briefly describes each set of tests, identifying the
+set of access controls that are being tested.  Finally, the report
+summarizes the current test coverage.
+</para>
+</sect1>
+
+

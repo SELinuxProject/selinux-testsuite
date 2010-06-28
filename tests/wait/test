@@ -1,0 +1,15 @@
+#!/usr/bin/perl
+
+use Test;
+BEGIN { plan tests => 2}
+
+$basedir = $0;  $basedir =~ s|(.*)/[^/]*|$1|;
+
+# Verify that test_wait_parent_t can wait on test_wait_child_t.
+$result = system ("runcon -t test_wait_parent_t -- $basedir/parent test_wait_child_t $basedir/child 2>&1");
+ok($result, 0);
+
+# Verify that test_wait_parent_t cannot wait on test_wait_notchild_t.
+$result = system ("runcon -t test_wait_parent_t -- $basedir/parent test_wait_notchild_t $basedir/child 2>&1");
+ok($result);
+

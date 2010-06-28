@@ -1,0 +1,32 @@
+#!/usr/bin/perl
+
+use Test;
+BEGIN { plan tests => 4}
+
+$basedir = $0;  $basedir =~ s|(.*)/[^/]*|$1|;
+
+# Start the process that will have its priority changed.
+if ( ($pid = fork()) == 0 ) {
+	exec "runcon -t test_setsched_target_t $basedir/target";
+}
+
+sleep 1; # Give it a second to start
+
+# Verify that test_setsched_yes_t can change the priority up and down.
+$result = system "runcon -t test_setsched_yes_t -- renice +10 -p $pid 2>&1";
+ok($result, 0); 
+# Giving the process a higher priority (lower nice number) requires the
+# sys_nice capability
+$result = system "runcon -t test_setsched_yes_t -- renice -20 -p $pid 2>&1";
+ok($result, 0); 
+
+# Verify that test_setsched_no_t cannot change the priority up or down.
+$result = system "runcon -t test_setsched_no_t -- renice +10 -p $pid 2>&1";
+ok($result); 
+$result = system "runcon -t test_setsched_no_t -- renice -20 -p $pid 2>&1";
+ok($result); 
+
+# Kill the target
+kill KILL, $pid;
+
+exit;

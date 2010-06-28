@@ -1,0 +1,86 @@
+#!/usr/bin/perl
+#
+# This test performs capability tests for file operations.
+#
+
+use Test;
+BEGIN { plan tests => 10 }
+
+$basedir = $0;  $basedir =~ s|(.*)/[^/]*|$1|;
+
+# Clean up from a previous run
+system "rm -f $basedir/temp_file 2>&1";
+system "rm -f $basedir/temp_file2 2>&1";
+
+#
+# Tests for the good domains.
+#
+# CAP_CHOWN
+system "touch $basedir/temp_file 2>&1";
+$result = system "runcon -t test_fcap_t -- chown daemon $basedir/temp_file 2>&1";
+ok($result, 0); 
+
+# CAP_FOWNER
+system "chown daemon.tty $basedir/temp_file 2>&1";
+$result = system "runcon -t test_fcap_t -- chmod 0400 $basedir/temp_file 2>&1";
+ok($result, 0); 
+
+# CAP_FSETID
+$fn = "$basedir/temp_file";
+$mode = (stat($fn))[2];
+system "runcon -t test_fcap_t -- chmod g+rs $basedir/temp_file 2>&1";
+$result = 1;
+if( $mode eq (stat($fn))[2] ) {
+  $result = 0;
+}
+# prior mode should not be same as current mode
+ok($result); 
+
+# CAP_LEASE
+$result = system "runcon -t test_fcap_t --  $basedir/test_lease $basedir/temp_file 2>&1";
+ok($result, 0);
+
+# CAP_MKNOD
+$result = system "runcon -t test_fcap_t -- mknod $basedir/temp_file2 c 5 5 2>&1";
+ok($result, 0); 
+
+# Cleanup time.
+system "rm -f $basedir/temp_file 2>&1";
+system "rm -f $basedir/temp_file2 2>&1";
+
+#
+# Tests for the bad domain.
+#
+# CAP_CHOWN
+system "touch $basedir/temp_file 2>&1";
+$result = system "runcon -t test_nofcap_t -- chown daemon $basedir/temp_file 2>&1";
+ok($result); 
+
+# CAP_FOWNER
+system "chown daemon.tty $basedir/temp_file 2>&1";
+$result = system "runcon -t test_nofcap_t -- chmod 0400 $basedir/temp_file 2>&1";
+ok($result); 
+
+# CAP_FSETID - Domain needs CAP_FOWNER
+$fn = "$basedir/temp_file";
+$mode = (stat($fn))[2];
+$result = system "runcon -t test_resfcap_t -- chmod g+rs $basedir/temp_file 2>&1";
+$result = 1;
+if( $mode eq (stat($fn))[2] ) {
+  $result = 0;
+}
+# prior mode should be same as current mode
+ok($result, 0); 
+
+# CAP_LEASE - Needs DAC_OVERRIDE
+$result = system "runcon -t test_resfcap_t --  $basedir/test_lease $basedir/temp_file 2>&1";
+ok($result);
+
+# CAP_MKNOD - Domain needs CAP_DAC_OVERRIDE
+$result = system "runcon -t test_resfcap_t -- mknod $basedir/temp_file2 c 5 5 2>&1";
+ok($result); 
+
+system "rm -f $basedir/temp_file 2>&1";
+system "rm -f $basedir/temp_file2 2>&1";
+
+exit;

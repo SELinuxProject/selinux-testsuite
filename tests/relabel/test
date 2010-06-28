@@ -1,0 +1,34 @@
+#!/usr/bin/perl
+
+use Test;
+BEGIN { plan tests => 3}
+
+$basedir = $0;  $basedir =~ s|(.*)/[^/]*|$1|;
+
+# Remove any leftover test file from prior failed runs.
+system ("rm -rf $basedir/test_file");
+
+# Create a test file with the test_relabel_oldtype_t type for use in the tests.
+system ("touch $basedir/test_file");
+system ("chcon -t test_relabel_oldtype_t $basedir/test_file");
+
+# Verify that test_relabel_t can relabel the file.
+$result = system ("runcon -t test_relabel_t -- chcon -t test_relabel_newtype_t $basedir/test_file 2>&1");
+ok($result, 0); 
+
+# Revert.
+system ("chcon -t test_relabel_oldtype_t $basedir/test_file");
+
+# Verify that test_norelabelfrom_t cannot relabel the file.
+# Should fail on the relabelfrom permission check to the original type.
+$result = system ("runcon -t test_norelabelfrom_t -- chcon -t test_relabel_newtype_t $basedir/test_file 2>&1");
+ok($result); 
+
+# Verify that test_norelabelto_t cannot relabel the file to the new type.
+# Should fail on the relabelto permission check to the new type.
+$result = system ("runcon -t test_norelabelto_t -- chcon -t test_relabel_newtype_t $basedir/test_file 2>&1");
+ok($result); 
+
+# Cleanup.
+system ("rm -rf $basedir/test_file");
+

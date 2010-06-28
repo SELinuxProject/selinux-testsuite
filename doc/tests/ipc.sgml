@@ -1,0 +1,249 @@
+<sect1 id="ipc_tests"><title>IPC Tests</title>
+<para>
+This set of tests exercises SELinux System V IPC hooks by performing a
+number of operations on shared memory, semaphores, and message queues.
+Within the test hierarchy, the physical test scripts and executable
+are separated into three directories corresponding to the IPC object
+type, <filename>shm</filename>, <filename>sem</filename>, and
+<filename>msg</filename>.  While the tests are in different physical
+locations, they share the same test policy and perform similar tests.
+This section describes the tests and policy as it applies to all three
+IPC object types and notes any differences.  The policy for IPC tests
+is located in the <filename>test_ipc.te</filename> policy file, 
+summarized in <xref linkend="ipc_test_dt_table">.
+
+<table id="ipc_test_dt_table" frame=all>
+<title>IPC Test Domains and Types</title>
+<tgroup cols=2 align=left>
+<colspec colwidth="1*">
+<colspec colwidth="2*">
+<thead>
+<row>
+    <entry>Name</entry>
+    <entry>Description</entry>
+</row>
+</thead>
+<tbody>
+
+<row>
+    <entry>test_ipc_base_t</entry>
+    <entry>Domain for process that has all IPC permissions.</entry>
+</row>
+<row>
+    <entry>test_ipc_read_t</entry>
+    <entry>Domain for process that has read only IPC permissions.</entry>
+</row>
+<row>
+    <entry>test_ipc_none_t</entry>
+    <entry>Domain for process that has no IPC permissions.</entry>
+</row>
+<row>
+    <entry>test_ipc_associate_t</entry>
+    <entry>Domain for process with only the IPC associate permission.</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</para>
+
+<para>
+Each of the tests begin by creating and deleting IPC objects; testing
+create, delete, and associate permissions.  The scripts then test object
+control permissions, specific to IPC object type.  Next, object usage
+tests are performed: for semaphores, <function>semop</function> is
+tested, and for for shared memory, <function>shmat</function> is
+tested, and for message queues, <function>msgsnd</function> and
+<function>msgrcv</function> are tested.  Lastly, SELinux extended IPC
+system calls are tested.
+</para>
+
+<para>
+The test script uses several helper programs.  They are run from the
+various test domains to test for both allowed and denied permissions.
+<itemizedlist>
+  <listitem><para>
+    <filename>msgget.c, shmget.c, semget.c</filename> Test 
+    <constant>create</constant> and <constant>associate</constant> IPC
+    permissions.  These programs return 0 on success and 1 on failure.
+  </para></listitem>
+
+  <listitem><para>
+    <filename>msgctl.c, shmctl.c, semctl.c</filename> Test IPC control
+    permissions.  These programs perform a sequence of operations and
+    print a string containing the results of each individual test.
+    The string contains a list of 0 and 1 characters, a 0 for each
+    sub-test that succeeded and 1 for each sub-test that failed.
+  </para></listitem>
+
+  <listitem><para>
+    <filename>msgsid.c, shmsid.c, semsid.c</filename> Test extended
+    SELinux system calls used to retrieve the SID for an IPC
+    object. These programs return 0 on success and -1 on failure.
+  </para></listitem>
+
+  <listitem><para>
+    <filename>shmat.c</filename> Test shared memory <constant>read</constant>
+    and <constant>write</constant> permissions.
+    This program returns 0 on success and -1 on failure.
+  </para></listitem>
+
+  <listitem><para>
+    <filename>semop.c</filename> Test semaphore <constant>read</constant>
+    and <constant>write</constant> permissions.
+    This program returns 0 on success and -1 on failure.
+  </para></listitem>
+
+  <listitem><para>
+    <filename>msgsnd.c</filename> Tests message queue
+    <constant>write</constant> and <constant>enqueue</constant>
+    permissions and message <constant>send</constant> permission.
+    This program returns 0 on success and -1 on failure.
+  </para></listitem>
+
+  <listitem><para>
+    <filename>msgrcv.c</filename> Tests message queue
+    <constant>read</constant> and message <constant>receive</constant>
+    permissions.  This program returns 0 on success and -1 on failure.
+  </para></listitem>
+
+  <listitem><para>
+    <filename>getinfo.c</filename> Tests system
+    <constant>ipc_info</constant> permission.  This program returns 0
+    on success and -1 on failure.
+  </para></listitem>
+
+</itemizedlist>
+</para>
+
+<para>
+Each of the test scripts test both success and failure for each of
+the IPC object permissions listed in the tables below.  Since 
+calls to <function>selinux_ipc_permission</function> are 
+made from many places in the Linux IPC code; there is no explicit test
+for this hook, but test coverage guarantees that it was exercised.
+</para>
+
+<table id="sem" frame=all>
+<title>Semaphore Tests</title>
+<tgroup cols=3 align=left>
+<colspec colwidth="3*">
+<colspec colwidth="2*">
+<colspec colwidth="2*">
+<thead>
+<row>
+    <entry>Hook</entry>
+    <entry>Class</entry>
+    <entry>Permission</entry>
+</row>
+</thead>
+<tbody>
+<row>
+    <entry>selinux_sem_alloc_security</entry>
+    <entry>semaphore</entry>
+    <entry>create</entry>
+</row>
+<row>
+    <entry>selinux_sem_associate</entry>
+    <entry>semaphore</entry>
+    <entry>associate</entry>
+</row>
+<row>
+    <entry>selinux_sem_semctl</entry>
+    <entry>semaphore</entry>
+    <entry>getattr, setattr, read, write, destroy</entry>
+</row>
+<row>
+    <entry>selinux_sem_semop</entry>
+    <entry>semaphore</entry>
+    <entry>read, write</entry>
+</row>
+<row>
+    <entry>selinux_ipc_getinfo</entry>
+    <entry>system</entry>
+    <entry>ipc_info</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+
+<table id="shm" frame=all>
+<title>Shared Memory Tests</title>
+<tgroup cols=3 align=left>
+<colspec colwidth="3*">
+<colspec colwidth="2*">
+<colspec colwidth="2*">
+<thead>
+<row>
+    <entry>Hook</entry>
+    <entry>Class</entry>
+    <entry>Permission</entry>
+</row>
+</thead>
+<tbody>
+<row>
+    <entry>selinux_shm_alloc_security</entry>
+    <entry>shm</entry>
+    <entry>create</entry>
+</row>
+<row>
+    <entry>selinux_shm_associate</entry>
+    <entry>shm</entry>
+    <entry>associate</entry>
+</row>
+<row>
+    <entry>selinux_shm_shmctl</entry>
+    <entry>shm</entry>
+    <entry>getattr, setattr, associate, lock, destroy</entry>
+</row>
+<row>
+    <entry>selinux_shm_shmat</entry>
+    <entry>shm</entry>
+    <entry>read, write</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+
+<table id="msg" frame=all>
+<title>Message Queue Tests</title>
+<tgroup cols=3 align=left>
+<colspec colwidth="3*">
+<colspec colwidth="2*">
+<colspec colwidth="2*">
+<thead>
+<row>
+    <entry>Hook</entry>
+    <entry>Class</entry>
+    <entry>Permission</entry>
+</row>
+</thead>
+<tbody>
+<row>
+    <entry>selinux_msg_queue_alloc_security</entry>
+    <entry>msgq</entry>
+    <entry>create</entry>
+</row>
+<row>
+    <entry>selinux_msg_queue__associate</entry>
+    <entry>msgq</entry>
+    <entry>associate</entry>
+</row>
+<row>
+    <entry>selinux_msg_queue_msgctl</entry>
+    <entry>msgq</entry>
+    <entry>getattr, setattr, associate, destroy</entry>
+</row>
+<row>
+    <entry>selinux_msg_queue_msgsnd</entry>
+    <entry><simplelist><member>msgq</member><member>msg</member></simplelist></entry>
+    <entry><simplelist><member>write, enqueue</member><member>send</member></simplelist></entry>
+</row>
+<row>
+    <entry>selinux_msg_queue_msgrcv</entry>
+    <entry><simplelist><member>msgq</member><member>msg</member></simplelist></entry>
+    <entry><simplelist><member>read</member><member>receive</member></simplelist></entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</sect1>

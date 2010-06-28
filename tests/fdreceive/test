@@ -1,0 +1,45 @@
+#!/usr/bin/perl
+
+use Test;
+BEGIN { plan tests => 3}
+
+$basedir = $0;  $basedir =~ s|(.*)/[^/]*|$1|;
+
+# Remove any leftover test file from prior failed runs.
+system ("rm -rf $basedir/test_file $basedir/test_file2 $basedir/test_sock");
+
+# Create and label the test files.
+system ("touch $basedir/test_file $basedir/test_file2");
+system ("chcon -t test_fdreceive_file_t $basedir/test_file");
+system ("chcon -t test_fdreceive_file2_t $basedir/test_file2");
+
+# Start server process in test_fdreceive_server_t.
+if (($pid = fork()) == 0) {
+    exec "runcon -t test_fdreceive_server_t $basedir/server $basedir/test_sock";
+}
+
+sleep 1; # Give it a moment to initialize.
+
+# Verify that test_fdreceive_server_t can receive a rw fd to the test_file
+# from test_fdreceive_client_t.
+$result = system "runcon -t test_fdreceive_client_t -- $basedir/client $basedir/test_file $basedir/test_sock";
+ok($result, 0);
+
+# Verify that test_fdreceive_server_t cannot receive a rw fd to test_file2.
+# Should fail on file permissions to test_file2.
+$result = system "runcon -t test_fdreceive_client_t -- $basedir/client $basedir/test_file2 $basedir/test_sock";
+ok($result);
+
+# Verify that test_fdreceive_server_t cannot receive a fd created by
+# test_fdreceive_client2_t.
+# Should fail on fd use permission.
+$result = system "runcon -t test_fdreceive_client2_t -- $basedir/client $basedir/test_file $basedir/test_sock";
+ok($result);
+
+# Kill the server.
+kill TERM, $pid;
+
+# Cleanup.
+system ("rm -rf $basedir/test_file $basedir/test_file2 $basedir/test_sock");
+
+exit;

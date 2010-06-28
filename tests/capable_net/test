@@ -1,0 +1,44 @@
+#!/usr/bin/perl
+#
+# This test performs checks for network-related capabilties.
+#
+
+use Test;
+BEGIN { plan tests => 5 }
+
+$basedir = $0;  $basedir =~ s|(.*)/[^/]*|$1|;
+
+#
+# Tests for the good domain.
+#
+# CAP_NET_ADMIN
+$result = system "runcon -t test_ncap_t -- /sbin/ifconfig lo -promisc 2>&1";
+ok($result, 0); 
+
+# CAP_NET_BIND_SERVICE
+$result = system "runcon -t test_ncap_t -- $basedir/test_bind 2>&1";
+ok($result, 0); 
+
+# CAP_NET_BROADCAST - Not done. Kernel does not check this capability yet.
+
+# CAP_NET_RAW
+$result = system "runcon -t test_ncap_t -- $basedir/test_raw 2>&1";
+ok($result, 0); 
+
+#
+# Tests for the bad domain.
+#
+
+# CAP_NET_ADMIN
+$result = system "runcon -t test_resncap_t -- /sbin/ifconfig lo -promisc 2>&1";
+ok($result); 
+
+# CAP_NET_BIND_SERVICE; included in can_network by fedora policy
+#$result = system "runcon -t test_resncap_t -- $basedir/test_bind 2>&1";
+#ok($result); 
+
+# CAP_NET_RAW - Domain requires rawip_socket create permission
+$result = system "runcon -t test_resncap_t -- $basedir/test_raw 2>&1";
+ok($result); 
+
+exit;

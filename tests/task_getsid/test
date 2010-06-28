@@ -1,0 +1,26 @@
+#!/usr/bin/perl
+
+use Test;
+BEGIN { plan tests => 2}
+
+$basedir = $0;  $basedir =~ s|(.*)/[^/]*|$1|;
+
+# Start the target process.
+if ( ($pid = fork()) == 0 ) {
+	exec "runcon -t test_getsid_target_t $basedir/target";
+}
+
+sleep 1; # Give it a second to start
+
+# Verify that test_getsid_yes_t can get the session ID.
+$result = system "runcon -t test_getsid_yes_t -- $basedir/source $pid 2>&1";
+ok($result, 0); 
+
+# Verify that test_getsid_no_t cannot get the session ID.
+$result = system "runcon -t test_getsid_no_t -- $basedir/source $pid 2>&1";
+ok($result); 
+
+# Kill the target
+kill KILL, $pid;
+
+exit;

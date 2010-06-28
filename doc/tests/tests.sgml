@@ -1,0 +1,63 @@
+<!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook V3.1//EN"[
+<!ENTITY intro SYSTEM "intro.sgml">
+<!ENTITY environment SYSTEM "environment.sgml">
+<!ENTITY task SYSTEM "task.sgml">
+<!ENTITY binprm SYSTEM "binprm.sgml">
+<!ENTITY inode SYSTEM "inode.sgml">
+<!ENTITY file SYSTEM "file.sgml">
+<!ENTITY ipc SYSTEM "ipc.sgml">
+<!ENTITY socket SYSTEM "socket.sgml">
+<!ENTITY system SYSTEM "system.sgml">
+<!ENTITY capable SYSTEM "capable.sgml">
+<!ENTITY coverage SYSTEM "coverage.sgml">
+<!ENTITY ackno SYSTEM "ackno.sgml">
+<!ENTITY biblio SYSTEM "biblio.sgml">
+]>
+<article class="whitepaper" id="SELinuxTesting" lang="en">
+ <artheader>
+ <title>Testing the SELinux Security Module</title>
+ <authorgroup>
+ <author>
+ <firstname>Stephen</firstname> 
+ <surname>Smalley</surname>
+ <affiliation>
+ <address><email>sds@epoch.ncsc.mil</email></address>
+ </affiliation>
+ </author>
+ <author>
+ <firstname>Chris</firstname>
+ <surname>Vance</surname>
+ <affiliation>
+ <orgname>NAI Labs</orgname>
+ <address><email>cvance@nai.com</email></address>
+ </affiliation>
+ </author>
+ <author>
+ <firstname>Wayne</firstname>
+ <surname>Salamon</surname>
+ <affiliation>
+ <orgname>NAI Labs</orgname>
+ <address><email>wsalamon@nai.com</email></address>
+ </affiliation>
+ </author>
+ </authorgroup
+ <pubsnumber>NAI Labs Report #02-001</pubsnumber>
+ <pubdate>January 2002</pubdate>
+ <contractsponsor>This work supported by NSA contract MDA904-01-C-0926 (SELinux)</contractsponsor>
+ </artheader>
+
+&intro
+&ackno
+&environment
+&task
+&binprm
+&inode
+&file
+&ipc
+&socket
+&system
+&capable
+&coverage
+&biblio
+
+</article>

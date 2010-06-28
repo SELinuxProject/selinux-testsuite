@@ -1,0 +1,263 @@
+<sect1 id="environment"><title>Test Environment</title>
+<para>
+The SELinux test suite consists of a test policy configuration and a
+collection of test scripts.  After loading the test policy
+configuration, all scripts can be run automatically and the test
+results will be parsed and summarized.  This section provides an
+overview of the test policy configuration, the test scripts, steps for
+running the tests, and steps for adding new tests.
+</para>
+
+<sect2 id="policy"><title>Test Policy Configuration</title>
+<para>
+The test policy configuration adds a set of test domains and types
+that were specifically developed for the test scripts.  The use of
+separate test domains and types permits fine-grained testing of the
+individual SELinux access controls and reduces (but does not
+completely eliminate) the sensitivity of the test suite to changes in
+the example policy.  The test domains and types are defined in the
+files within the <filename>policy</filename> subdirectory of the
+<filename>selinux-testsuite</filename> package..  A separate policy
+file is provided for each test script with the domains and types used
+by that script.  Since only one of the test scripts deals with the
+<constant>entrypoint</constant> permission, distinct entrypoint types
+are typically not defined for the test domains, unlike the domains in
+the example policy.  The <filename>test_global.te</filename> file
+contains rules that apply to most of the test domains, and the
+<filename>test_attrib.te</filename> file contains attribute
+declarations for the type attributes used in the test policy.
+</para>
+
+<para>
+Prior to running the test suite, the test policy configuration should
+be loaded by running <command>make load</command> in the
+<filename>policy</filename> subdirectory.  This installs the test
+policy files under
+<filename>/etc/security/selinux/src/policy/domains/misc</filename>,
+rebuilds the policy to include the test policy files, and loads the
+resulting policy.  After running the test suite, the test policy files
+can be removed and the original policy configuration can be reloaded
+by running <command>make cleanup</command> in the
+<filename>policy</filename> subdirectory.  Notice that this reloading
+will invalidate any contexts used by the test suite whose security
+contexts include a test domain or type.  Invalidated contexts are
+automatically remapped to the security context associated with the
+<constant>unlabeled</constant> SID.
+
+</para>
+</sect2>
+
+<sect2 id="scripts"><title>Test Scripts</title>
+<para>
+The test scripts are written in perl and make use of the perl testing
+harness, described at <ulink
+url="http://www.perldoc.com/perl5.6.1/lib/Test/Harness.html"></ulink>.
+The <constant>Test::Harness</constant> perl module provides a
+mechanism to automate testing of an arbitrary number of individual
+test scripts. The <constant>Test</constant> perl module provides
+routines to output test results in a format that the test harness can
+parse.  With these two modules, it is easy to write test scripts
+without needing to worry about formatting details.
+</para>
+
+<para>
+The test scripts are located within the <filename>tests</filename>
+subdirectory.  This directory consists of a
+<filename>Makefile</filename>, the <filename>runtests.pl</filename>
+perl script, and a collection of subdirectories with the individual
+tests.  Each subdirectory contains its own
+<filename>Makefile</filename> and a <filename>test</filename> perl
+script and may also contain other supporting files needed by the
+<filename>test</filename> script.  
+</para>
+
+<para>
+The test suite is executed by running <command>make test</command> in
+the <filename>tests</filename> directory.  This first traverses the
+subdirectories listed in the <constant>SUBDIRS</constant> definition
+in the <filename>Makefile</filename>, performing a <command>make
+all</command> in each subdirectory to build any supporting programs
+needed by the <filename>test</filename> scripts.  It then runs the
+<filename>runtests.pl</filename> perl script. 
+</para>
+
+<para>
+The <filename>runtests.pl</filename> script first verifies that the
+user is the superuser and is in the <constant>sysadm_r</constant> role
+and that the system is in enforcing mode, exiting with an error
+message otherwise.  The superuser requirement is to ensure that the
+test scripts pass the Linux capability checks and will only fail due
+to the SELinux access controls.  The <constant>sysadm_r</constant>
+requirement is to ensure that the test scripts can perform any
+necessary setup for the tests, i.e. relabeling or creating files with
+test types and transitioning to the test domains.  The test domains
+are only permitted to be entered from the
+<constant>sysadm_r</constant> role since some of these test domains
+are testing privileged permissions.  The system must be in enforcing
+mode or tests for permission failures will not function properly.
+</para>
+
+<para>
+After performing these checks, the <filename>runtests.pl</filename>
+script relabels the entire <filename>tests</filename> directory tree
+with the <constant>test_file_t</constant> type.  This allows the test
+policies to use this type regardless of where the
+<filename>tests</filename> directory happens to be located.  Then, the
+<filename>runtests.pl</filename> script uses the perl
+<constant>Test::Harness</constant> module to run all the test scripts
+in the subdirectories listed in the <constant>SUBDIRS</constant>
+definition in the <filename>Makefile</filename>.  The output of each
+of the scripts is examined and the results are collected. After all
+the scripts have run, the script summarizes the results and prints
+some test statistics.
+</para>
+</sect2>
+
+<sect2 id="runningtests"><title>Running the Tests</title>
+<para>
+The test environment assumes a standard installation of SELinux on the
+recommended base platforms, currently Fedora Core.  Prior
+to running the test suite, the user should create a shell with the
+<constant>sysadm_r</constant> role and superuser identity, e.g.
+<command>newrole -r sysadm_r</command> followed by
+<command>su</command>.  The user should also verify that the system is
+in enforcing mode using the <command>getenforce</command> program.
+The <command>setenforce</command> program can be used to toggle into
+enforcing mode if necessary.
+</para>
+
+<para>
+The user can then load the test policy configuration by running
+<command>make load</command> in the <filename>policy</filename>
+subdirectory and can then execute the test suite by running <command>make
+test</command> in the <filename>tests</filename> subdirectory.  After
+running the tests, the user can restore the system to the original
+policy configuration by running <command>make cleanup</command> in the
+<filename>policy</filename> subdirectory.
+</para>
+
+<para>
+As each test script is run, the name of the script will be displayed
+followed by a status.  After running all of the test scripts, a
+summary of the test results will be displayed.  If all tests were
+successful, something similar to the following summary will be
+displayed:
+<programlisting>
+All tests successful.
+Files=7, Tests=16, 2 wallclock secs ( 0.17 cusr + 0.12 csys = 0.29 CPU)
+</programlisting>
+</para>
+
+<para>
+Otherwise, if one or more tests failed, the script will report
+statistics on the number of tests that succeeded and will include a
+table summarizing which tests had failed.  The output will be similar
+to the following text, which shows that a total of three tests have failed:
+<programlisting>
+Failed Test  Status Wstat Total Fail  Failed  List of failed
+-------------------------------------------------------------------------------
+entrypoint/test               2    1  50.00%  1
+inherit/test                  3    2  66.67%  1-2
+Failed 2/7 test scripts, 71.43% okay. 3/16 subtests failed, 81.25% okay.
+make: *** [test] Error 255
+</programlisting>
+</para>
+
+<para>
+The user can also run individual <filename>test</filename> scripts by
+hand, e.g. running <command>./rename/test</command>, to see the raw
+output of the test script.  This is particularly useful if a
+particular test within a given script fails in order to help identify
+the cause.  The output for a successful run of the rename test script
+would be similar to the following:
+<programlisting>
+1..9
+ok 1
+ok 2
+ok 3
+mv: cannot open `./rename/src_dir/test_file' for reading: Permission denied
+ok 4
+mv: cannot open `./rename/src_dir/test_file' for reading: Permission denied
+ok 5
+mv: cannot open `./rename/src_dir/test_file' for reading: Permission denied
+ok 6
+mv: cannot move `./rename/src_dir/test_file' to `./rename/dst_dir/test_file': Permission denied
+ok 7
+mv: cannot move `./rename/src_dir/test_file' to `./rename/dst_dir/test_file': Permission denied
+ok 8
+mv: cannot create directory `./rename/dst_dir/test_dir': Permission denied
+ok 9
+</programlisting>
+
+This script performs nine individual tests of the SELinux access
+controls associated with the <function>rename</function> system call.
+The output shown by this manual run of the test script is consumed by
+the perl test harness when it is run via
+<filename>runtests.pl</filename>.  When run by hand, the script
+displays the expected number of tests, a status for each test, and any
+error messages from the test script or its helper programs.  In this
+case, the first three tests do not cause any permission failures and
+the latter six tests produce permission denials as expected.
+</para>
+</sect2>
+
+<sect2><title>Adding New Tests</title>
+<para>
+To add a new test, create a new test policy file and a new test
+script.  The new test policy file should be added to the
+<filename>policy</filename> subdirectory and should contain
+a set of test domains and types specifically designed for the test.
+For the test script, create a new subdirectory in the
+<filename>tests</filename> subdirectory, populate it with at least a
+<filename>Makefile</filename> and a <filename>test</filename> perl
+script and add it to the <constant>SUBDIRS</constant> definition in
+the <filename>tests/Makefile</filename> file.
+</para>
+
+<para>
+The <filename>Makefile</filename> must contain
+<constant>all</constant> and <constant>clean</constant> targets, even
+if they are empty, to support the build system.  The
+<filename>test</filename> script must run with no arguments and must
+comply with the perl automated test format.
+The simplest way to comply with the Perl automated test format is to
+use the Perl <constant>Test</constant> module.  To do this, first
+include the following statement at the top of the
+<filename>test</filename> Perl script:
+
+<programlisting>use Test;</programlisting>
+
+Next, include a declaration that specifies how many tests the script
+will run; the statement to include will be similar to:
+
+<programlisting>BEGIN { plan tests => 2} </programlisting>
+
+Where the '2' must be replaced by the actual number of tests the
+script will perform.
+</para>
+
+<para>
+The Perl <constant>Test</constant> module provides convenience
+routines to format and display the results of an individual test in a
+format that is compatible with the <constant>Test::Harness</constant>
+module.  Any of the following <function>ok</function> subroutines may
+be used to report the result of a test:
+<programlisting>
+        ok(1);           # success
+        ok(0);           # failure
+        ok(0,1);         # failure, got '0', expected '1'
+        ok($results, 0); # success if $results == 0, failure otherwise
+</programlisting></para>
+
+<para>
+In order for all scripts to run from the automated test harness, it is
+important to internally handle all error conditions.  The test script
+must complete without errors in order for the harness to continue
+testing.  When an individual test fails, use the appropriate
+<function>ok</function> routine to report the error and continue
+running tests.  Likewise the test scripts must not hang, wait for user
+input, or endlessly retry a failed access.
+</para>
+</sect2>
+
+</sect1>

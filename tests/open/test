@@ -1,0 +1,47 @@
+#!/usr/bin/perl
+
+use Test;
+BEGIN { plan tests => 8}
+
+$basedir = $0;  $basedir =~ s|(.*)/[^/]*|$1|;
+
+# Remove any leftover test directories from prior failed runs.
+system ("rm -rf $basedir/test_file");
+
+# Create a test file.
+system ("touch $basedir/test_file");
+system ("chcon -t test_open_file_t $basedir/test_file" );
+
+# Verify that test_open_t can open the file for reading and writing.
+$result = system ("runcon -t test_open_t $basedir/fopen $basedir/test_file r+ 2>&1");
+ok($result, 0); 
+
+# Verify that test_noopen_t cannot open the file for reading or writing.
+$result = system ("runcon -t test_noopen_t $basedir/fopen $basedir/test_file r 2>&1");
+ok($result); 
+$result = system ("runcon -t test_noopen_t $basedir/fopen $basedir/test_file w 2>&1");
+ok($result); 
+$result = system ("runcon -t test_noopen_t $basedir/fopen $basedir/test_file r+ 2>&1");
+ok($result); 
+
+# Verify that test_append_t cannot open the file for writing.
+$result = system ("runcon -t test_append_t $basedir/fopen $basedir/test_file w 2>&1");
+ok($result); 
+
+# Verify that test_append_t can open the file for appending.
+$result = system ("runcon -t test_append_t $basedir/fopen $basedir/test_file a 2>&1");
+ok($result, 0); 
+
+# Verify that test_append_t cannot open the file for appending and then
+# clear the o_append flag.
+$result = system ("runcon -t test_append_t $basedir/append2write $basedir/test_file 2>&1");
+ok($result); 
+
+# Verify that test_open_t can open the file for appending and then
+# clear the o_append flag.
+$result = system ("runcon -t test_open_t $basedir/append2write $basedir/test_file 2>&1");
+ok($result, 0); 
+
+# Cleanup.
+system ("rm -rf $basedir/test_file");
+
