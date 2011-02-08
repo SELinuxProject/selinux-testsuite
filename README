@@ -58,6 +58,10 @@ at a time.
 
 Userland and Base Policy
 ------------------------
+
+The testsuite depends on the perl test harness, which you can
+install on Fedora via yum install perl-Test-Harness.
+
 The testsuite requires a pre-existing base policy configuration of
 SELinux, using either the old example policy or the reference policy
 as the baseline.  It also requires the core SELinux userland packages
