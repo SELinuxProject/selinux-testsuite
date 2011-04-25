@@ -40,6 +40,6 @@ corecmd_bin_entry_type(ioctldomain)
 sysadm_bin_spec_domtrans_to(ioctldomain)
 
 # Allow the test domains some access to the temp file
-allow test_ioctl_t test_ioctl_file_t:file { open read write ioctl };
+allow test_ioctl_t test_ioctl_file_t:file { open read write ioctl getattr setattr };
 allow test_noioctl_t test_ioctl_file_t:file { open read };
 

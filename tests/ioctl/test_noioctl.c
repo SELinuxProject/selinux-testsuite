@@ -31,7 +31,7 @@ int main(int argc, char **argv) {
     exit(1);
   }
 
-  if (strverscmp(uts.release, "2.6.27") >= 0)
+  if (strverscmp(uts.release, "2.6.27") >= 0 && strverscmp(uts.release, "2.6.39") < 0)
     oldkernel = 0;
 
   fd = open(argv[1], O_RDONLY, 0);
@@ -41,7 +41,7 @@ int main(int argc, char **argv) {
     exit(1);
   }
 
-  /* This one should hit the FILE__IOCTL test and fail. */
+  /* This one should hit the FILE__IOCTL or FILE__GETATTR test and fail. */
   rc = ioctl(fd, FIGETBSZ, &val);
   if( rc == 0 ) {
       printf("test_noioctl:FIGETBSZ");
