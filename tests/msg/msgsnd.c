@@ -14,7 +14,7 @@ struct msgbuf {
 
 int main(int argc, char **argv)
 {
-	char ch;
+	int ch;
 	int key = 0x8888;
 	int id;
 	int error;

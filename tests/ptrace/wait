@@ -1,4 +1,5 @@
 #!/usr/bin/perl
 
-while (<>) {
+while () {
+    sleep 1;
 }
