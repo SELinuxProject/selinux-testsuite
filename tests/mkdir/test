@@ -5,7 +5,22 @@ BEGIN { plan tests => 5}
 
 $basedir = $0;  $basedir =~ s|(.*)/[^/]*|$1|;
 
-$mls = `cat /selinux/mls`;
+$selinux_mntpoint = `mount | grep "^selinuxfs" | awk '{ORS="";print \$3}'`;
+if (-e "$selinux_mntpoint/mls") {
+    print "selinuxfs found at: $selinux_mntpoint\n";
+} else {
+    print "selinuxfs not found in mount list\n";
+    @locations = ('/selinux', '/sys/fs/selinux');
+    foreach (@locations) {
+        if (-e "$_/mls") {
+            $selinux_mntpoint = $_;
+            print "selinuxfs found at: $selinux_mntpoint\n";
+            last;
+        }
+    }
+}
+
+$mls = `cat $selinux_mntpoint/mls`;
 if ($mls eq 1) {
 	$suffix = ":s0";
 } else {
