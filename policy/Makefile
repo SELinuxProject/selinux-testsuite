@@ -16,7 +16,9 @@ test_sigkill.te test_stat.te test_sysctl.te test_task_create.te \
 test_task_getpgid.te test_task_getsched.te test_task_getsid.te \
 test_task_setpgid.te test_task_setsched.te test_transition.te test_wait.te
 
-ifeq ($(VERS),24)
+VERS_GE_24 := $(shell [ $(VERS) -ge 24 ] && echo true )
+
+ifeq ($(VERS_GE_24),true)
 TARGETS+= test_bounds.te
 endif
 
