@@ -63,11 +63,16 @@ require {
 	type devtty_t;
 	type null_device_t;
 	type zero_device_t;
+	type init_t;
+	type initrc_t;
+	type console_device_t;
 }
 allow testdomain { root_t etc_t bin_t sbin_t lib_t usr_t devpts_t }:dir r_dir_perms;
 allow testdomain lib_t:{ file lnk_file } r_file_perms;
 allow testdomain etc_t:file r_file_perms;
 allow testdomain { devtty_t null_device_t zero_device_t }:chr_file rw_file_perms;
+allow testdomain { init_t initrc_t }:fd use;
+allow testdomain { console_device_t }:chr_file { read write ioctl };
 miscfiles_read_localization(testdomain)
 domain_use_interactive_fds(testdomain)
 seutil_read_config(testdomain)
