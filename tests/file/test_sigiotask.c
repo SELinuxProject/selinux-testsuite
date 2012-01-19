@@ -13,6 +13,7 @@
 #include<signal.h>
 #include<asm/ioctls.h>
 #include <libgen.h>
+#include <pty.h>
 
 /*
  * Test the sigio operations by creating a child and registering that process
@@ -27,12 +28,25 @@ int main(int argc, char **argv) {
   pid_t pid;
   char key = '\r';
 
-  fd = open(ctermid(NULL), O_RDWR, 0);
-  
-  if(fd == -1) {
-    perror("test_sigiotask:open");
+  /*
+   * ctermid returns controlling terminal, which could be console, pts,..
+   * It may not be present in some situations, e.g. running in automated test
+   * environment, where init/service spawning this test has not ctty:
+   * if (fork() > 0) {
+   *   _exit(0);
+   * }
+   * setsid();
+   */
+  pid_t ret;
+  int master, slave;
+
+  ret = openpty(&master, &slave, NULL, NULL, NULL);
+  if (ret == -1)
+  {
+    perror("test_sigiotask:openpty");
     exit(2);
   }
+  fd = slave;
 
  /*
   * Spawn off the child process to handle the information protocol.
@@ -54,6 +68,14 @@ int main(int argc, char **argv) {
       exit(2);
     }
   }
+
+  /* Allow the child time to start up.
+   * If the fcntls below occurs before child sets up its signal handler
+   * and there is some new data on tty then it will die by SIGIO.
+   * Example 1: fd is /dev/console and kernel prints message to it
+   * Example 2: if you run it through ptrace, ptrace will print to the same fd
+   */
+  sleep(1);
 
   /*
    * parent process
@@ -82,7 +104,6 @@ int main(int argc, char **argv) {
     exit(2);
   }
 
-  sleep(1);          /* Allow the child time to start up */
   rc = ioctl(fd, TIOCSTI, &key);  /* Send a key to the tty device */
   if( rc == -1 ) {
     perror("test_sigiotask:write");
@@ -91,7 +112,8 @@ int main(int argc, char **argv) {
   close(fd);
   wait(&rc);
   if( WIFEXITED(rc) ) {   /* exit status from child is normal? */
-    printf("%s:  exiting with %d\n", argv[0], WIFEXITED(rc));
+    printf("%s:  child exited OK %d\n", argv[0], WIFEXITED(rc));
+    printf("%s:  exiting with %d\n", argv[0], WEXITSTATUS(rc));
     exit(WEXITSTATUS(rc));
   } else {
     printf("%s:  error exit\n", argv[0]);

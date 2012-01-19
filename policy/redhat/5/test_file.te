@@ -19,6 +19,12 @@ domain_obj_id_change_exemption(test_nofileop_t)
 typeattribute test_nofileop_t fileopdomain;
 typeattribute test_nofileop_t testdomain;
 
+require {
+	type ptmx_t;
+	type devpts_t;
+}
+
+
 # Type for temp test files
 type fileop_file_t;
 files_type(fileop_file_t)
@@ -72,13 +78,20 @@ allow test_nofileop_t fileop_t:fd use;
 allow fileop_t test_nofileop_t:fd use;
 allow fileop_t test_nofileop_t:fifo_file rw_file_perms;
 allow fileop_t test_nofileop_t:process sigchld;
+allow fileop_t ptmx_t:chr_file { read write };
 
 # Permissions for the 'good' domain...
 allow test_fileop_t fileop_file_t:file { setattr rw_file_perms};
 allow test_fileop_t fileop_file_t:file { execute relabelfrom relabelto };
 allow test_fileop_t fileop_t:process { signal };
+allow test_fileop_t ptmx_t:chr_file { read write ioctl };
+allow test_fileop_t devpts_t:filesystem getattr;
+allow test_fileop_t self:capability sys_admin;
 
 # Permissions for the 'bad' domain...
 allow test_nofileop_t nofileop_rw_file_t:file { read write append relabelfrom };
 allow test_nofileop_t nofileop_ra_file_t:file { read append };
 allow test_nofileop_t fileop_file_t:file { relabelto };
+allow test_nofileop_t ptmx_t:chr_file { read write ioctl };
+allow test_nofileop_t devpts_t:filesystem getattr;
+allow test_nofileop_t self:capability sys_admin;
