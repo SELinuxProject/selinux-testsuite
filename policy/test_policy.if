@@ -41,6 +41,11 @@ interface(`unconfined_runs_test',`
       allow $1 unconfined_devpts_t:chr_file { read write ioctl getattr };
       allow $1 unconfined_t:fifo_file { read write ioctl getattr };
       allow $1 unconfined_t:process { sigchld };
+
+      # allow to use leaked fd from init/init scripts
+      allow $1 init_t:fd use;
+      allow $1 initrc_t:fd use;
+      allow $1 console_device_t:chr_file { read write ioctl };
 ')
 
 ifdef(`userdom_sysadm_entry_spec_domtrans_to',`', ` dnl

@@ -63,6 +63,9 @@ require {
 	type devtty_t;
 	type null_device_t;
 	type zero_device_t;
+	type init_t;
+	type initrc_t;
+	type console_device_t;
 }
 allow testdomain { root_t etc_t bin_t sbin_t lib_t usr_t devpts_t }:dir list_dir_perms;
 allow testdomain lib_t:file read_file_perms;
