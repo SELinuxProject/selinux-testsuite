@@ -23,7 +23,7 @@ TARGETS+= test_bounds.te
 endif
 
 all: $(TARGETS)
-ifeq (redhat-release-, $(findstring redhat-release-, $(REDHAT_RELEASE)))
+ifeq (x$(REDHAT_VERS),$(filter x$(REDHAT_VERS),x4 x5))
 	$(MAKE) -C redhat/$(REDHAT_VERS) all
 else
 	@if [ -d $(POLICYDEVEL) ]; then \
@@ -37,7 +37,7 @@ else
 endif
 
 load: all
-ifeq (redhat-release-, $(findstring redhat-release-, $(REDHAT_RELEASE)))
+ifeq (x$(REDHAT_VERS),$(filter x$(REDHAT_VERS),x4 x5))
 	$(MAKE) -C redhat/$(REDHAT_VERS) load
 else
 	/usr/sbin/setsebool allow_domain_fd_use=0
@@ -45,7 +45,7 @@ else
 endif
 
 unload:	
-ifeq (redhat-release-, $(findstring redhat-release-, $(REDHAT_RELEASE)))
+ifeq (x$(REDHAT_VERS),$(filter x$(REDHAT_VERS),x4 x5))
 	$(MAKE) -C redhat/$(REDHAT_VERS) unload
 else
 	/usr/sbin/setsebool allow_domain_fd_use=1
