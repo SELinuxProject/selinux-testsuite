@@ -5,8 +5,10 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <linux/fs.h>
-#include <linux/ext2_fs.h>
 #include <unistd.h>
+
+#define EXT2_IOC_GETVERSION FS_IOC_GETVERSION
+#define EXT2_IOC_SETVERSION FS_IOC_SETVERSION
 
 /*
  * Test the ioctl() calls on a file whose name is given as the first
