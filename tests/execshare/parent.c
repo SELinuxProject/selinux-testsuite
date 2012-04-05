@@ -36,7 +36,7 @@ int main(int argc, char **argv)
 		exit(-1);
 	}
 
-	pagesize = getpagesize();
+	pagesize = 16*getpagesize();
 	page = malloc(pagesize);
 	if (!page) {
 		perror("malloc");
