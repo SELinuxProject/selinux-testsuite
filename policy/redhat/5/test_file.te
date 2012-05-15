@@ -38,6 +38,7 @@ type fileop_t;
 domain_type(fileop_t)
 typeattribute fileop_t fileopdomain;
 typeattribute fileop_t testdomain;
+read_files_pattern(fileop_t, fileop_exec_t, fileop_exec_t)
 
 # Type for a temp file that the bad domain has read/write/append
 type nofileop_rw_file_t;
