@@ -88,3 +88,5 @@ selinux_compute_access_vector(testdomain)
 selinux_compute_create_context(testdomain)
 selinux_compute_relabel_context(testdomain)
 selinux_compute_user_contexts(testdomain)
+
+auth_read_passwd(testdomain)
