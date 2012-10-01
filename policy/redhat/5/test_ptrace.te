@@ -36,3 +36,12 @@ allow test_ptrace_traced_t test_ptrace_tracer_t:process sigchld;
 # via a program in the test directory.
 miscfiles_domain_entry_test_files(ptracedomain)
 userdom_sysadm_entry_spec_domtrans_to(ptracedomain)
+
+# Allow execution of helper programs.
+corecmd_exec_bin(ptracedomain)
+domain_exec_all_entry_files(ptracedomain)
+files_exec_etc_files(ptracedomain)
+libs_use_ld_so(ptracedomain)
+libs_use_shared_libs(ptracedomain)
+libs_exec_ld_so(ptracedomain)
+libs_exec_lib_files(ptracedomain)
