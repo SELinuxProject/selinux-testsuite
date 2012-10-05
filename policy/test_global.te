@@ -90,5 +90,7 @@ selinux_compute_relabel_context(testdomain)
 selinux_compute_user_contexts(testdomain)
 
 ifdef(`distro_redhat', `
-auth_read_passwd(testdomain)
+    ifdef(`auth_read_passwd', `
+        auth_read_passwd(testdomain)
+    ')
 ')
