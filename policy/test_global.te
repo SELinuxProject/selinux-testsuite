@@ -5,6 +5,7 @@ policy_module(test_policy,1.0.0)
 #
 # Declarations
 #
+
 attribute testdomain;
 
 gen_require(`
@@ -34,8 +35,8 @@ miscfiles_read_test_files(testdomain)
 
 # Let the test domains set their current, exec and fscreate contexts.
 allow testdomain self:process setcurrent;
-# domain_dyntrans_type(testdomain)
-selinux_get_fs_mount(testdomain)
+#domain_dyntrans_type(testdomain)
+#selinux_get_fs_mount(testdomain)
 allow testdomain self:process setexec;
 allow testdomain self:process setfscreate;
 
