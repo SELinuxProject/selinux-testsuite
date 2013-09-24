@@ -25,7 +25,9 @@ ifeq ($(shell [ $(POL_VERS) -ge 24 ] && echo true),true)
 TARGETS += test_bounds.te
 endif
 
-all: $(TARGETS)
+all: build
+
+build: $(TARGETS)
 ifeq (x$(RHEL_VERS),$(filter x$(RHEL_VERS),x4 x5))
 	# RHEL specific policy build
 	$(MAKE) -C redhat/$(RHEL_VERS) all \
