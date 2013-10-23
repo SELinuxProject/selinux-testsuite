@@ -25,14 +25,28 @@ ifeq ($(shell [ $(POL_VERS) -ge 24 ] && echo true),true)
 TARGETS += test_bounds.te
 endif
 
+
+ifeq (x$(RHEL_VERS),$(filter x$(RHEL_VERS),x4 x5))
+	BUILD_TARGET := build_rhel
+	LOAD_TARGET := load_rhel
+	UNLOAD_TARGET := unload_rhel
+else
+	BUILD_TARGET := build_general
+	LOAD_TARGET := load_general
+	UNLOAD_TARGET := unload_general
+endif
+
 all: build
 
-build: $(TARGETS)
-ifeq (x$(RHEL_VERS),$(filter x$(RHEL_VERS),x4 x5))
+build: $(BUILD_TARGET)
+load: $(LOAD_TARGET)
+unload: $(UNLOAD_TARGET)
+
+build_rhel: $(TARGETS)
 	# RHEL specific policy build
-	$(MAKE) -C redhat/$(RHEL_VERS) all \
-	exit $$?
-endif
+	$(MAKE) -C redhat/$(RHEL_VERS) all
+
+build_general: $(TARGETS)
 	# General policy build
 	@if [ -d $(POLDEV) ]; then \
 		mkdir -p test_policy; \
@@ -44,22 +58,20 @@ endif
 		echo "ERROR: You must have selinux-policy-devel installed."; \
 	fi
 
-load: all
-ifeq (x$(RHEL_VERS),$(filter x$(RHEL_VERS),x4 x5))
+load_rhel: all
 	# RHEL specific policy load
-	$(MAKE) -C redhat/$(RHEL_VERS) load \
-	exit $$?
-endif
+	$(MAKE) -C redhat/$(RHEL_VERS) load
+
+load_general: all
 	# General policy load
 	/usr/sbin/setsebool allow_domain_fd_use=0
 	$(SEMODULE) -i test_policy/test_policy.pp
 
-unload:
-ifeq (x$(RHEL_VERS),$(filter x$(RHEL_VERS),x4 x5))
+unload_rhel:
 	# RHEL specific policy unload
-	$(MAKE) -C redhat/$(RHEL_VERS) unload \
-	exit $$?
-endif
+	$(MAKE) -C redhat/$(RHEL_VERS) unload
+
+unload_general:
 	# General policy unload
 	/usr/sbin/setsebool allow_domain_fd_use=1
 	$(SEMODULE) -r test_policy
