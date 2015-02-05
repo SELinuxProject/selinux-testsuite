@@ -1,0 +1,33 @@
+#################################
+#
+# Policy for testing NO_NEW_PRIVS transitions.
+#
+
+# A domain bounded by the unconfined domain.
+type test_nnp_bounded_t;
+domain_type(test_nnp_bounded_t)
+typeattribute test_nnp_bounded_t testdomain;
+typebounds unconfined_t test_nnp_bounded_t;
+
+# The entrypoint type for this domain.
+type test_nnp_bounded_exec_t;
+files_type(test_nnp_bounded_exec_t)
+domain_entry_file(test_nnp_bounded_t, test_nnp_bounded_exec_t)
+
+# Run it!  This should succeed on v3.18 or later, fail on older kernels.
+unconfined_runs_test(test_nnp_bounded_t)
+unconfined_run_to(test_nnp_bounded_t, test_nnp_bounded_exec_t)
+
+# A domain that is not bounded by the unconfined domain.
+type test_nnp_notbounded_t;
+domain_type(test_nnp_notbounded_t)
+typeattribute test_nnp_notbounded_t testdomain;
+
+# The entrypoint type for this domain.
+type test_nnp_notbounded_exec_t;
+files_type(test_nnp_notbounded_exec_t)
+domain_entry_file(test_nnp_notbounded_t, test_nnp_notbounded_exec_t)
+
+# Run it!  This should fail always.
+unconfined_runs_test(test_nnp_notbounded_t)
+unconfined_run_to(test_nnp_notbounded_t, test_nnp_notbounded_exec_t)
