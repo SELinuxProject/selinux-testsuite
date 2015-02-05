@@ -87,11 +87,11 @@ base selinux-policy package in Fedora 10 and later.
 
 If the base distribution does not include the SELinux userland, then
 the source code for the core SELinux userland packages can be obtained from:
-http://userspace.selinuxproject.org
+https://github.com/SELinuxProject/selinux/wiki/Releases
 
 If the base distribution does not include a policy configuration, then
 the reference policy can be obtained from:
-http://oss.tresys.com/projects/refpolicy
+https://github.com/TresysTechnology/refpolicy/wiki/DownloadRelease
 
 RUNNING THE TESTS
 -----------------
