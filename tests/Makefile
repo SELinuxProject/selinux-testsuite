@@ -1,18 +1,19 @@
-REDHAT_RELEASE=$(shell rpm -q redhat-release)
+RHEL_VER=$(shell cat /etc/redhat-release)
+RHEL_VER_PREFIX=Red Hat Enterprise Linux Server release 
 
 SUBDIRS_COMMON:=domain_trans entrypoint execshare exectrace execute_no_trans fdreceive inherit link mkdir msg open ptrace readlink relabel rename rxdir sem setattr setnice shm sigkill stat sysctl task_create task_setnice task_setscheduler task_getscheduler task_getsid task_getpgid task_setpgid wait file ioctl capable_file capable_net capable_sys
 
 SUBDIRS:= $(SUBDIRS_COMMON) dyntrans dyntrace bounds nnp
 
-ifeq (redhat-release-4, $(findstring redhat-release-4, $(REDHAT_RELEASE)))
+ifeq ($(RHEL_VER_PREFIX)4, $(findstring $(RHEL_VER_PREFIX)4, $(RHEL_VER)))
     SUBDIRS:=$(SUBDIRS_COMMON)
 endif
 
-ifeq (redhat-release-5, $(findstring redhat-release-5, $(REDHAT_RELEASE)))
+ifeq ($(RHEL_VER_PREFIX)5, $(findstring $(RHEL_VER_PREFIX)5, $(RHEL_VER)))
     SUBDIRS:=$(SUBDIRS_COMMON) dyntrace dyntrans
 endif
 
-ifeq (redhat-release-6, $(findstring redhat-release-6, $(REDHAT_RELEASE)))
+ifeq ($(RHEL_VER_PREFIX)6, $(findstring $(RHEL_VER_PREFIX)6, $(RHEL_VER)))
     SUBDIRS:=$(SUBDIRS_COMMON) dyntrace dyntrans bounds
 endif
 
