@@ -13,6 +13,7 @@ typebounds unconfined_t test_nnp_bounded_t;
 type test_nnp_bounded_exec_t;
 files_type(test_nnp_bounded_exec_t)
 domain_entry_file(test_nnp_bounded_t, test_nnp_bounded_exec_t)
+domain_entry_file(unconfined_t, test_nnp_bounded_exec_t)
 
 # Run it!  This should succeed on v3.18 or later, fail on older kernels.
 unconfined_runs_test(test_nnp_bounded_t)
