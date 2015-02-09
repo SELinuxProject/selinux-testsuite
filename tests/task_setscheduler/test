@@ -12,6 +12,15 @@ if ( ($pid = fork()) == 0 ) {
 
 sleep 1; # Give it a second to start
 
+$cgroup_cpu = "/sys/fs/cgroup/cpu/tasks";
+if ( -w $cgroup_cpu ) {
+	# We can only set the scheduler policy fo SCHED_{RR,FIFO} in the root
+	# cgroup so move our target process to the root cgroup.
+	open(my $fd, ">>", $cgroup_cpu);
+	print $fd $pid;
+	close $fd;
+}
+
 # Verify that test_setsched_yes_t can change the scheduling.
 # SCHED_OTHER	0	priority must == 0
 # SCHED_FIFO	1	priority 1..99
