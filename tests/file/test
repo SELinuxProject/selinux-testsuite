@@ -47,7 +47,11 @@ system "chcon -t fileop_exec_t $basedir/wait_io 2>&1 > /dev/null";
 #
 $output = `ls -Z $basedir/temp_file`;
 @arr = split(' ', $output);
-$good_file_sid = $arr[3];
+if (index($arr[0], ":") != -1) {
+	$good_file_sid = $arr[0]
+} else {
+	$good_file_sid = $arr[3]
+}
 
 #
 # Attempt to access a restricted file as the 'good' domain.  The first test
