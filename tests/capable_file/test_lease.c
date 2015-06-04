@@ -1,9 +1,10 @@
-#include<stdio.h>
-#include<stdlib.h>
-#include<sys/types.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <linux/posix_types.h>
-#include<linux/fcntl.h>
 #include <unistd.h>
+#include <fcntl.h>
 
 /*
  * Test the fcntl F_SETLEASE operation on a file whose name is given as 
