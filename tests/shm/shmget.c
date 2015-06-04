@@ -8,17 +8,13 @@
 int main(int argc, char **argv)
 {
 	int ch;
-	int num = 1;
 	int key = 0x8888;
 	int id;
 
-	while ((ch = getopt(argc, argv, "k:-n:")) != -1) {
+	while ((ch = getopt(argc, argv, "k:")) != -1) {
 		switch (ch) {
 		case 'k':
 			key = atoi(optarg);
-			break;
-		case 'n':
-			num = atoi(optarg);
 			break;
 		}
 	}
