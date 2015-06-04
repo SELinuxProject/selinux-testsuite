@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
 	if (context_type_set(context, argv[1])) {
 		fprintf(stderr, "%s: unable to set new type\n", argv[0]);
 		return 1;
-        }
+	}
 
 	freecon(security_context);
 	security_context = context_str(context);

@@ -66,7 +66,7 @@ main(int argc, char **argv)
 		/* printf("connect_secure with peer sid %d\n", peer_sid); */
 	} else {
 		result =
-		    connect(sock, (struct sockaddr *) &sun, sunlen);
+			connect(sock, (struct sockaddr *) &sun, sunlen);
 	}
 	if (result < 0) {
 		if (errno == EINPROGRESS) {
@@ -77,9 +77,9 @@ main(int argc, char **argv)
 				perror("poll: ");
 				return -1;
 			} else if (result == 0) {
-				/* 
-				 * connect is taking too long, 
-				 * it's probably not going to work 
+				/*
+				 * connect is taking too long,
+				 * it's probably not going to work
 				 */
 				printf("poll: no events are ready\n");
 				return -1;
@@ -110,17 +110,17 @@ main(int argc, char **argv)
 	read_sid = atoi(data);
 	if (read_sid != client_sid) {
 		bad++;
-		/* printf("client sid %d, read back sid %d\n", 
+		/* printf("client sid %d, read back sid %d\n",
 		   client_sid, read_sid); */
 	}
 
 	shutdown(sock, 2);
 	close(sock);
 
-	/* 
+	/*
 	 * Return the number of bad connections, where the server
 	 * returned something other than the sid of this client's
-	 * socket 
+	 * socket
 	 */
 	return (bad);
 }

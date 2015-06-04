@@ -20,7 +20,7 @@ int main(int argc, char **argv)
 		}
 	}
 
-	id = msgget(key, IPC_CREAT|0444);
+	id = msgget(key, IPC_CREAT | 0444);
 	if (id == -1)
 		return 1;
 
@@ -31,14 +31,14 @@ int main(int argc, char **argv)
 	error = msgctl(id, IPC_STAT, &buf);
 	printf ("%d", error);
 
-	/* 
+	/*
 	 * Equivalent: IPC_SET
 	 * Tests:      MSGQ__SETATTR
 	 */
 	error = msgctl(id, IPC_SET, &buf);
 	printf (" %d", error);
-	
-	/* 
+
+	/*
 	 * Equivalent: IPC_RMID
 	 * Tests:      MSGQ__DESTROY
 	 */

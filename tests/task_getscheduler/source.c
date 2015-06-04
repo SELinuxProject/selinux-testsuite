@@ -9,15 +9,15 @@ int main(int argc, char *argv[])
 	int policy;
 
 	if (argc != 2) {
-		fprintf(stderr,"Usage: %s pid\n",argv[0]);
+		fprintf(stderr, "Usage: %s pid\n", argv[0]);
 		exit(-1);
 	}
 	pid = (pid_t) atol(argv[1]);
-	printf("pid = %d \n",pid); 
+	printf("pid = %d \n", pid);
 	if ((policy = sched_getscheduler(pid)) < 0) {
 		perror("sched_getscheduler");
 		exit(1);
 	}
-	printf("policy = %d\n",policy);
+	printf("policy = %d\n", policy);
 	exit(0);
 }

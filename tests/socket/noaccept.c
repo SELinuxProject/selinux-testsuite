@@ -78,7 +78,7 @@ main(int argc, char **argv)
 
 	printf("Changing socket sid back to %d\n", outsid);
 	(void)fchsid(sock, outsid);
-	
+
 	printf("remote == %d\n", remote);
 
 	shutdown(sock, 2);

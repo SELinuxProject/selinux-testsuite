@@ -65,9 +65,9 @@ main(int argc, char **argv)
 				perror("poll: ");
 				return -1;
 			} else if (result == 0) {
-				/* 
-				 * connect is taking too long, 
-				 * it's probably not going to work 
+				/*
+				 * connect is taking too long,
+				 * it's probably not going to work
 				 */
 				printf("poll: no events are ready\n");
 				return -1;

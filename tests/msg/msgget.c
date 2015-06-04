@@ -23,9 +23,9 @@ int main(int argc, char **argv)
 
 	}
 
-	id = msgget(key, IPC_CREAT|perms);
+	id = msgget(key, IPC_CREAT | perms);
 	if (id == -1)
-	  return 1;
+		return 1;
 	printf("msgget succeeded: key = %d, id = %d\n", key, id);
 
 	return 0;

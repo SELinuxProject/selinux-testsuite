@@ -37,7 +37,7 @@ int main(int argc, char **argv)
 		}
 	}
 
-	id = semget(key, num, IPC_CREAT|0777);
+	id = semget(key, num, IPC_CREAT | 0777);
 	if (id == -1)
 		return 1;
 
@@ -49,21 +49,21 @@ int main(int argc, char **argv)
 	error = semctl(id, 0, IPC_STAT, arg);
 	printf ("%d", error);
 
-	/* 
-	 * Equivalent: GETPID, GETNCNT, GETZCNT 
+	/*
+	 * Equivalent: GETPID, GETNCNT, GETZCNT
 	 * Tests:      SEM__GETATTR
 	 */
 	error = semctl(id, 0, GETPID, NULL);
 	printf (" %d", error);
 
-	/* 
+	/*
 	 * Equivalent: GETVAL, GETALL
 	 * Tests:      SEM__READ
 	 */
 	error = semctl(id, 0, GETVAL, NULL);
 	printf (" %d", error);
 
-	/* 
+	/*
 	 * Equivalent: SETVAL, SETALL
 	 * Tests:      SEM__WRITE
 	 */
@@ -71,15 +71,15 @@ int main(int argc, char **argv)
 	error = semctl(id, 0, SETVAL, arg);
 	printf (" %d", error);
 
-	/* 
+	/*
 	 * Equivalent: IPC_SET
 	 * Tests:      SEM__SETATTR
 	 */
 	arg.buf = &semid_buf;
 	error = semctl(id, 0, IPC_SET, arg);
 	printf (" %d", error);
-	
-	/* 
+
+	/*
 	 * Equivalent: IPC_RMID
 	 * Tests:      SEM__DESTROY
 	 */

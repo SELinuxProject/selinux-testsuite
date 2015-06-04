@@ -6,17 +6,18 @@
 /*
  * Test the bind() operation for a raw socket.
  */
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
 
-  int fd;
+	int fd;
 
-  fd = socket(PF_INET, SOCK_RAW, IPPROTO_RAW);
-  if(fd == -1) {
-    perror("test_raw:socket");
-    exit(1);
-  }
+	fd = socket(PF_INET, SOCK_RAW, IPPROTO_RAW);
+	if(fd == -1) {
+		perror("test_raw:socket");
+		exit(1);
+	}
 
-  close(fd);
-  exit(0);
+	close(fd);
+	exit(0);
 
 }

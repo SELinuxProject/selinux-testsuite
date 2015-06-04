@@ -27,7 +27,7 @@ int main(int argc, char **argv)
 		}
 	}
 
-	id = msgget(key, IPC_CREAT|0777);
+	id = msgget(key, IPC_CREAT | 0777);
 	if (id == -1)
 		return 1;
 

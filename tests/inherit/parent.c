@@ -6,7 +6,7 @@
 #include <selinux/selinux.h>
 #include <selinux/context.h>
 
-int main(int argc, char **argv) 
+int main(int argc, char **argv)
 {
 	char **childargv;
 	security_context_t context_s;
@@ -30,12 +30,12 @@ int main(int argc, char **argv)
 		fprintf(stderr, "%s:  unable to create context structure\n", argv[0]);
 		exit(-1);
 	}
-	
+
 	if (context_type_set(context, argv[1])) {
 		fprintf(stderr, "%s:  unable to set new type\n", argv[0]);
 		exit(-1);
 	}
-	
+
 	freecon(context_s);
 	context_s = context_str(context);
 	if (!context_s) {
@@ -55,7 +55,7 @@ int main(int argc, char **argv)
 		exit(-1);
 	}
 
-	childargv = malloc(3*sizeof(char*));
+	childargv = malloc(3 * sizeof(char *));
 	if (!childargv) {
 		fprintf(stderr, "%s:  out of memory\n", argv[0]);
 		exit(-1);
@@ -73,7 +73,7 @@ int main(int argc, char **argv)
 	sprintf(childargv[1], "%d", fd);
 	childargv[2] = NULL;
 
-	execv(childargv[0],childargv);
+	execv(childargv[0], childargv);
 	perror(childargv[0]);
 	exit(-1);
 }

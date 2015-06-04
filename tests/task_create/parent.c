@@ -8,9 +8,9 @@ int main(void)
 	int pid;
 
 	if ((pid = fork()) < 0) {
-		perror("fork"); 
+		perror("fork");
 		exit(1);
 	}
-	fprintf(stderr,"%d\n",pid);
+	fprintf(stderr, "%d\n", pid);
 	exit(0);
 }

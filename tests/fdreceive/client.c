@@ -23,7 +23,7 @@ int main(int argc, char **argv)
 	if (argc != 3) {
 		fprintf(stderr, "usage:  %s testfile address\n", argv[0]);
 		exit(-1);
-	}	
+	}
 
 	myfd = open(argv[1], O_RDWR);
 	if (myfd < 0) {
@@ -49,7 +49,7 @@ int main(int argc, char **argv)
 	printf("client: Connected to server via %s\n", sun.sun_path);
 
 	strcpy(buf, "hello world");
-	buflen = strlen(buf)+1;
+	buflen = strlen(buf) + 1;
 	iov.iov_base = buf;
 	iov.iov_len = buflen;
 	msg.msg_name = 0;
@@ -80,10 +80,10 @@ int main(int argc, char **argv)
 		exit(-1);
 	}
 	printf("client: Received reply, code=%d\n", buf[0]);
-	if (buf[0]) 
+	if (buf[0])
 		printf("client: ...This implies the descriptor was not received\n");
 	else
 		printf("client: ...This implies the descriptor was received\n");
-		
+
 	exit(buf[0]);
 }

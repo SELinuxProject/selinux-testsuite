@@ -20,104 +20,104 @@
  * for SIGIO signals for the terminal. The main process forces a SIGIO
  * on the terminal by sending a charcter to that device.
  */
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
 
-  int fd;
-  int rc;
-  int flags;
-  pid_t pid;
-  char key = '\r';
+	int fd;
+	int rc;
+	int flags;
+	pid_t pid;
+	char key = '\r';
 
-  /*
-   * ctermid returns controlling terminal, which could be console, pts,..
-   * It may not be present in some situations, e.g. running in automated test
-   * environment, where init/service spawning this test has not ctty:
-   * if (fork() > 0) {
-   *   _exit(0);
-   * }
-   * setsid();
-   */
-  pid_t ret;
-  int master, slave;
+	/*
+	 * ctermid returns controlling terminal, which could be console, pts,..
+	 * It may not be present in some situations, e.g. running in automated test
+	 * environment, where init/service spawning this test has not ctty:
+	 * if (fork() > 0) {
+	 *   _exit(0);
+	 * }
+	 * setsid();
+	 */
+	pid_t ret;
+	int master, slave;
 
-  ret = openpty(&master, &slave, NULL, NULL, NULL);
-  if (ret == -1)
-  {
-    perror("test_sigiotask:openpty");
-    exit(2);
-  }
-  fd = slave;
+	ret = openpty(&master, &slave, NULL, NULL, NULL);
+	if (ret == -1) {
+		perror("test_sigiotask:openpty");
+		exit(2);
+	}
+	fd = slave;
 
- /*
-  * Spawn off the child process to handle the information protocol.
-  */
-  if( (pid = fork()) < 0 ) {
-     perror("test_sigiotask:fork");
-     exit(2);
-  }
+	/*
+	 * Spawn off the child process to handle the information protocol.
+	 */
+	if( (pid = fork()) < 0 ) {
+		perror("test_sigiotask:fork");
+		exit(2);
+	}
 
- /*
-  * child process
-  */
-  if( pid == 0 ) {
-    char ex_name[255];
-    /* Create the path to the executable the child will run */
-    sprintf(ex_name, "%s/wait_io", dirname(strdup(argv[0])));
-    if( execl(ex_name, "wait_io", (char *) 0) < 0 ) {
-      perror("test_sigiotask:execl");
-      exit(2);
-    }
-  }
+	/*
+	 * child process
+	 */
+	if( pid == 0 ) {
+		char ex_name[255];
+		/* Create the path to the executable the child will run */
+		sprintf(ex_name, "%s/wait_io", dirname(strdup(argv[0])));
+		if( execl(ex_name, "wait_io", (char *) 0) < 0 ) {
+			perror("test_sigiotask:execl");
+			exit(2);
+		}
+	}
 
-  /* Allow the child time to start up.
-   * If the fcntls below occurs before child sets up its signal handler
-   * and there is some new data on tty then it will die by SIGIO.
-   * Example 1: fd is /dev/console and kernel prints message to it
-   * Example 2: if you run it through ptrace, ptrace will print to the same fd
-   */
-  sleep(1);
+	/* Allow the child time to start up.
+	 * If the fcntls below occurs before child sets up its signal handler
+	 * and there is some new data on tty then it will die by SIGIO.
+	 * Example 1: fd is /dev/console and kernel prints message to it
+	 * Example 2: if you run it through ptrace, ptrace will print to the same fd
+	 */
+	sleep(1);
 
-  /*
-   * parent process
-   */
-  rc = fcntl(fd, F_SETSIG, 0);
-  if( rc == -1 ) {
-    perror("test_sigiotask:F_SETSIG");
-    exit(2);
-  }
+	/*
+	 * parent process
+	 */
+	rc = fcntl(fd, F_SETSIG, 0);
+	if( rc == -1 ) {
+		perror("test_sigiotask:F_SETSIG");
+		exit(2);
+	}
 
-  rc = fcntl(fd, F_SETOWN, pid);
-  if( rc == -1 ) {
-    perror("test_sigiotask:F_SETOWN");
-    exit(2);
-  }
+	rc = fcntl(fd, F_SETOWN, pid);
+	if( rc == -1 ) {
+		perror("test_sigiotask:F_SETOWN");
+		exit(2);
+	}
 
-  flags = fcntl(fd, F_GETFL, 0);
-  if( flags < 0 ) {
-    perror("test_sigiotask:F_GETFL");
-    exit(2);
-  }
-  flags |= O_ASYNC;
-  rc = fcntl(fd, F_SETFL, flags);
-  if( rc == -1 ) {
-    perror("test_sigiotask:F_SETFL");
-    exit(2);
-  }
+	flags = fcntl(fd, F_GETFL, 0);
+	if( flags < 0 ) {
+		perror("test_sigiotask:F_GETFL");
+		exit(2);
+	}
+	flags |= O_ASYNC;
+	rc = fcntl(fd, F_SETFL, flags);
+	if( rc == -1 ) {
+		perror("test_sigiotask:F_SETFL");
+		exit(2);
+	}
 
-  rc = ioctl(fd, TIOCSTI, &key);  /* Send a key to the tty device */
-  if( rc == -1 ) {
-    perror("test_sigiotask:write");
-    exit(2);
-  }
-  close(fd);
-  wait(&rc);
-  if( WIFEXITED(rc) ) {   /* exit status from child is normal? */
-    printf("%s:  child exited OK %d\n", argv[0], WIFEXITED(rc));
-    printf("%s:  exiting with %d\n", argv[0], WEXITSTATUS(rc));
-    exit(WEXITSTATUS(rc));
-  } else {
-    printf("%s:  error exit\n", argv[0]);
-    exit(1);
-  }
+	rc = ioctl(fd, TIOCSTI, &key);  /* Send a key to the tty device */
+	if( rc == -1 ) {
+		perror("test_sigiotask:write");
+		exit(2);
+	}
+	close(fd);
+	wait(&rc);
+	if( WIFEXITED(rc) ) {   /* exit status from child is normal? */
+		printf("%s:  child exited OK %d\n", argv[0], WIFEXITED(rc));
+		printf("%s:  exiting with %d\n", argv[0], WEXITSTATUS(rc));
+		exit(WEXITSTATUS(rc));
+	} else {
+		printf("%s:  error exit\n", argv[0]);
+		exit(1);
+	}
 
 }

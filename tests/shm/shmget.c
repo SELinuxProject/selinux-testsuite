@@ -19,9 +19,9 @@ int main(int argc, char **argv)
 		}
 	}
 
-	id = shmget(key, 2048, IPC_CREAT|0777);
+	id = shmget(key, 2048, IPC_CREAT | 0777);
 	if (id == -1)
-	  return 1;
+		return 1;
 	printf("shmget succeeded: key = %d, id = %d\n", key, id);
 
 	return 0;

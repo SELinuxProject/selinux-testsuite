@@ -86,7 +86,7 @@ main(int argc, char **argv)
 		}
 		while (readbytes > currentbytes) {
 			remote =
-			    accept(sock, (struct sockaddr *) &raddr, &rsize);
+				accept(sock, (struct sockaddr *) &raddr, &rsize);
 			if (remote < 0) {
 				perror("accept: ");
 				close(sock);

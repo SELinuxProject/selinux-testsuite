@@ -21,10 +21,10 @@ int main(int argc, char **argv)
 		}
 	}
 
-	id = shmget(key, 2048, IPC_CREAT|0777);
+	id = shmget(key, 2048, IPC_CREAT | 0777);
 	if (id == -1)
-	  return 1;
-	
+		return 1;
+
 	/*
 	 * Equivalent: IPC_STAT, SHM_STAT
 	 * Tests:      SHM__GETATTR | SHM__ASSOCIATE
@@ -32,7 +32,7 @@ int main(int argc, char **argv)
 	error = shmctl(id, IPC_STAT, &buf);
 	printf ("%d", error);
 
-	/* 
+	/*
 	 * Equivalent: IPC_SET
 	 * Tests:      SHM__SETATTR
 	 */
@@ -40,14 +40,14 @@ int main(int argc, char **argv)
 	printf (" %d", error);
 
 
-	/* 
+	/*
 	 * Equivalent: SHM_LOCK, SHM_UNLOCK
 	 * Tests:      SHM__LOCK
 	 */
 	error = shmctl(id, SHM_LOCK, NULL);
 	printf (" %d", error);
 
-	/* 
+	/*
 	 * Equivalent: IPC_RMID
 	 * Tests:      SHM__DESTROY
 	 */

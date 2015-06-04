@@ -6,51 +6,52 @@
 #include <unistd.h>
 
 /*
- * Test the fcntl file operation on a file whose name is given as the first 
+ * Test the fcntl file operation on a file whose name is given as the first
  * argument.
  */
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
 
-  int fd;
-  int rc;
-  struct flock my_lock;
+	int fd;
+	int rc;
+	struct flock my_lock;
 
-  if( argc != 2 ) {
-    printf("usage: %s filename\n", argv[0]);
-    exit(2);
-  }
+	if( argc != 2 ) {
+		printf("usage: %s filename\n", argv[0]);
+		exit(2);
+	}
 
-  fd = open(argv[1], O_RDONLY | O_APPEND, 0);
-  
-  if(fd == -1) {
-    perror("test_fcntl:open");
-    exit(2);
-  }
+	fd = open(argv[1], O_RDONLY | O_APPEND, 0);
 
-  rc = fcntl(fd, F_SETFL, 0);
-  if( rc == -1 ) {
-    perror("test_fcntl:F_SETFL");
-    exit(1);
-  }
+	if(fd == -1) {
+		perror("test_fcntl:open");
+		exit(2);
+	}
 
-  rc = fcntl(fd, F_GETFL);
-  if( rc == -1 ) {
-    perror("test_fcntl:F_GETFL");
-    exit(1);
-  }
+	rc = fcntl(fd, F_SETFL, 0);
+	if( rc == -1 ) {
+		perror("test_fcntl:F_SETFL");
+		exit(1);
+	}
 
-  my_lock.l_type = F_RDLCK;
-  my_lock.l_start = 0;
-  my_lock.l_whence = SEEK_CUR;
-  my_lock.l_len = 0;
+	rc = fcntl(fd, F_GETFL);
+	if( rc == -1 ) {
+		perror("test_fcntl:F_GETFL");
+		exit(1);
+	}
 
-  rc = fcntl(fd, F_GETLK, &my_lock);
-  if( rc == -1 ) {
-    perror("test_fcntl:F_GETLK");
-    exit(1);
-  }
+	my_lock.l_type = F_RDLCK;
+	my_lock.l_start = 0;
+	my_lock.l_whence = SEEK_CUR;
+	my_lock.l_len = 0;
 
-  close(fd);
-  exit(0);
+	rc = fcntl(fd, F_GETLK, &my_lock);
+	if( rc == -1 ) {
+		perror("test_fcntl:F_GETLK");
+		exit(1);
+	}
+
+	close(fd);
+	exit(0);
 
 }

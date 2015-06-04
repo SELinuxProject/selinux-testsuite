@@ -17,8 +17,8 @@ main(int argc, char **argv)
 	if (sock < 0) {
 		perror("socket");
 		if (errno == ENOSYS) {
-		  printf("Extended socket system calls are unimplemented\n");
-		  return -1;
+			printf("Extended socket system calls are unimplemented\n");
+			return -1;
 		}
 		return -2;
 	}

@@ -24,7 +24,7 @@ int main(int argc, char **argv)
 		}
 	}
 
-	id = semget(key, num, IPC_CREAT|0777);
+	id = semget(key, num, IPC_CREAT | 0777);
 	if (id == -1)
 		return 1;
 

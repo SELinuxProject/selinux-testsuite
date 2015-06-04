@@ -9,14 +9,14 @@
 int main(void)
 {
 	pid_t pid, group_id;
-	
+
 	pid = getpid();
 	if ((group_id = getpgid(pid)) < 0) {
 		perror("getpgid");
 		exit(-1);
 	}
-	printf("Group ID = %d\n",group_id);
-	if (setpgid(pid,pid) < 0) {
+	printf("Group ID = %d\n", group_id);
+	if (setpgid(pid, pid) < 0) {
 		perror("setpgid");
 		exit(1);
 	}
@@ -24,7 +24,7 @@ int main(void)
 		perror("getpgid");
 		exit(-1);
 	}
-	printf("Group ID = %d\n",group_id);
-	printf("pid = %d\n",pid);
+	printf("Group ID = %d\n", group_id);
+	printf("pid = %d\n", pid);
 	exit(0);
 }

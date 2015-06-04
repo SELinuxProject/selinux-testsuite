@@ -12,7 +12,7 @@
 int clone_fn(void *arg)
 {
 	char **argv = arg;
-	execv(argv[3], argv+3);
+	execv(argv[3], argv + 3);
 	perror(argv[3]);
 	return -1;
 }
@@ -36,7 +36,7 @@ int main(int argc, char **argv)
 		exit(-1);
 	}
 
-	pagesize = 16*getpagesize();
+	pagesize = 16 * getpagesize();
 	page = malloc(pagesize);
 	if (!page) {
 		perror("malloc");
@@ -56,7 +56,7 @@ int main(int argc, char **argv)
 		fprintf(stderr, "%s:  unable to create context structure\n", argv[0]);
 		exit(-1);
 	}
-	
+
 	if (context_type_set(context, argv[2])) {
 		fprintf(stderr, "%s:  unable to set new type\n", argv[0]);
 		exit(-1);
@@ -78,14 +78,15 @@ int main(int argc, char **argv)
 #if defined(__hppa__)
 	pid = clone(clone_fn, page, cloneflags | SIGCHLD, argv);
 #elif defined(__ia64__)
-	pid = __clone2(clone_fn, page, pagesize, cloneflags | SIGCHLD, argv, NULL, NULL, NULL);
+	pid = __clone2(clone_fn, page, pagesize, cloneflags | SIGCHLD, argv, NULL, NULL,
+		       NULL);
 #else
 	pid = clone(clone_fn, clone_stack, cloneflags | SIGCHLD, argv);
 #endif
 	if (pid < 0) {
 		perror("clone");
 		exit(-1);
-	} 
+	}
 
 	pid = wait(&status);
 	if (pid < 0) {
@@ -102,8 +103,8 @@ int main(int argc, char **argv)
 		fprintf(stderr, "Child stopped by signal %d.\n", WSTOPSIG(status));
 		fprintf(stderr, "..This shouldn't happen.\n");
 		fprintf(stderr, "..Killing the child.\n");
-		rc = kill(pid,SIGKILL);
-		if (rc < 0){
+		rc = kill(pid, SIGKILL);
+		if (rc < 0) {
 			perror("kill");
 			exit(-1);
 		}
@@ -112,7 +113,8 @@ int main(int argc, char **argv)
 
 	if (WIFSIGNALED(status)) {
 		fprintf(stderr, "Child terminated by signal %d.\n", WTERMSIG(status));
-		fprintf(stderr, "..This is consistent with a share permission denial, check the audit message.\n");
+		fprintf(stderr,
+			"..This is consistent with a share permission denial, check the audit message.\n");
 		exit(1);
 	}
 

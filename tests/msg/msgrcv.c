@@ -26,9 +26,9 @@ int main(int argc, char **argv)
 		}
 	}
 
-	id = msgget(key, IPC_CREAT|0777);
+	id = msgget(key, IPC_CREAT | 0777);
 	if (id == -1)
-	  return 1;
+		return 1;
 
 	error = msgrcv(id, &msgp, MSGMAX, 1, IPC_NOWAIT);
 	printf("msgrcv: result = %d\n", error);

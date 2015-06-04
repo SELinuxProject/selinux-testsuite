@@ -29,13 +29,13 @@ int main(int argc, char **argv)
 	if (argc != 2) {
 		fprintf(stderr, "usage:  %s address\n", argv[0]);
 		exit(-1);
-	}	
+	}
 
 	for (i = 0; i < 32; i++) {
 		signal(i, handler);
 	}
 
-	
+
 	s = socket(AF_UNIX, SOCK_STREAM, 0);
 	if (s < 0) {
 		perror("socket");
@@ -47,7 +47,7 @@ int main(int argc, char **argv)
 	strcpy(sun.sun_path, argv[1]);
 	sunlen = strlen(sun.sun_path) + 1 + sizeof(short);
 	strcpy(my_path, sun.sun_path);
-	ret = bind(s, (struct sockaddr*)&sun, sunlen);
+	ret = bind(s, (struct sockaddr *)&sun, sunlen);
 	if (ret < 0) {
 		perror("bind");
 		exit(-1);
@@ -58,10 +58,10 @@ int main(int argc, char **argv)
 		perror("listen");
 		CLEANUP_AND_EXIT;
 	}
-	
+
 	while (1) {
 		sunlen = sizeof(struct sockaddr_un);
-		ctrl = accept(s, (struct sockaddr*)&sun, (socklen_t *)&sunlen);
+		ctrl = accept(s, (struct sockaddr *)&sun, (socklen_t *)&sunlen);
 		if (ctrl < 0) {
 			perror("accept_secure");
 			CLEANUP_AND_EXIT;
@@ -83,12 +83,12 @@ int main(int argc, char **argv)
 		if (ret < 0) {
 			perror("recv");
 			CLEANUP_AND_EXIT;
-		}	
+		}
 
-		for (cmsg = CMSG_FIRSTHDR(&msg); cmsg; cmsg = CMSG_NXTHDR(&msg,cmsg)) {
+		for (cmsg = CMSG_FIRSTHDR(&msg); cmsg; cmsg = CMSG_NXTHDR(&msg, cmsg)) {
 			if (cmsg->cmsg_level == SOL_SOCKET &&
 			    cmsg->cmsg_type == SCM_RIGHTS) {
-				fdptr = (int*)CMSG_DATA(cmsg);
+				fdptr = (int *)CMSG_DATA(cmsg);
 				fd = *fdptr;
 				printf("server:  Received a descriptor, fd=%d, sending back 0\n", fd);
 				buf[0] = 0;

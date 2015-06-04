@@ -25,7 +25,7 @@ int main(int argc, char **argv)
 		exit(-1);
 	}
 
-	nobounded = ((strcmp(argv[argc-1], "test_nnp_bounded_t") == 0) &&
+	nobounded = ((strcmp(argv[argc - 1], "test_nnp_bounded_t") == 0) &&
 		     (strverscmp(uts.release, "3.18") < 0));
 
 	rc = prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0);
@@ -51,7 +51,8 @@ int main(int argc, char **argv)
 		if (nobounded) {
 			if (!WEXITSTATUS(status))
 				exit(-1);
-			printf("%s:  Kernels < v3.18 do not support bounded transitions under NNP.\n", argv[0]);
+			printf("%s:  Kernels < v3.18 do not support bounded transitions under NNP.\n",
+			       argv[0]);
 			/* pass the test */
 			exit(0);
 		}
