@@ -6,10 +6,9 @@
 #include <string.h>
 
 #define MSGMAX 1024
-
-struct msgbuf {
-  long mtype;     /* message type, must be > 0 */
-  char mtext[1024];  /* message data */
+struct msgbuf_test {
+	long mtype;
+	char mtext[MSGMAX];
 };
 
 int main(int argc, char **argv)
@@ -18,7 +17,7 @@ int main(int argc, char **argv)
 	int key = 0x8888;
 	int id;
 	int error;
-	struct msgbuf msgp;
+	struct msgbuf_test msgp;
 
 	while ((ch = getopt(argc, argv, "k:")) != EOF) {
 		switch (ch) {
@@ -32,7 +31,7 @@ int main(int argc, char **argv)
 	if (id == -1)
 		return 1;
 
-	memset(&msgp, 'z', sizeof(struct msgbuf));
+	memset(&msgp, 'z', sizeof(msgp));
 	msgp.mtype = 1;
 
 	error = msgsnd(id, &msgp, MSGMAX, IPC_NOWAIT);
