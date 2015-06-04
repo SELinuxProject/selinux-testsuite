@@ -1,5 +1,5 @@
 
-export CFLAGS+=-D_GNU_SOURCE
+export CFLAGS+=-g -O0 -Wall -D_GNU_SOURCE
 
 DISTRO=$(shell ./os_detect)
 
