@@ -1,4 +1,7 @@
-CFLAGS+=-Wall
-all: $(ctargets)
+TARGETS=client server
+
+LDLIBS+= -lselinux
+
+all: $(TARGETS)
 clean:
-	rm -f $(ctargets) *.o *~
+	rm -f $(TARGETS)

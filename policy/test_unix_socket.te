@@ -1,0 +1,37 @@
+#################################
+#
+# Policy for testing Unix/local domain sockets.
+#
+
+attribute unixsocketdomain;
+
+# Domain for server process.
+type test_unix_server_t;
+domain_type(test_unix_server_t)
+unconfined_runs_test(test_unix_server_t)
+typeattribute test_unix_server_t testdomain;
+typeattribute test_unix_server_t unixsocketdomain;
+
+# Domain for stream client process.
+type test_unix_stream_client_t;
+domain_type(test_unix_stream_client_t)
+unconfined_runs_test(test_unix_stream_client_t)
+typeattribute test_unix_stream_client_t testdomain;
+typeattribute test_unix_stream_client_t unixsocketdomain;
+# It can connectto the server.
+allow test_unix_stream_client_t test_unix_server_t:unix_stream_socket connectto;
+
+# Domain for dgram client process.
+type test_unix_dgram_client_t;
+domain_type(test_unix_dgram_client_t)
+unconfined_runs_test(test_unix_dgram_client_t)
+typeattribute test_unix_dgram_client_t testdomain;
+typeattribute test_unix_dgram_client_t unixsocketdomain;
+# It can sendto the server.
+allow test_unix_dgram_client_t test_unix_server_t:unix_dgram_socket sendto;
+# And the server can sendto it in order to reply.
+allow test_unix_server_t test_unix_dgram_client_t:unix_dgram_socket sendto;
+
+# Allow all of these domains to be entered from the sysadm domain.
+miscfiles_domain_entry_test_files(unixsocketdomain)
+userdom_sysadm_entry_spec_domtrans_to(unixsocketdomain)

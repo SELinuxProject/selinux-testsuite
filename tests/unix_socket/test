@@ -1,64 +1,44 @@
 #!/usr/bin/perl
 
 use Test;
-BEGIN { plan tests => 8}
-
-$UNIX_SOCKET_NAME = "unix_test_socket";
+BEGIN { plan tests => 4}
 
 $basedir = $0;  $basedir =~ s|(.*)/[^/]*|$1|;
 
-# Just in case, remove any old files.
-unlink $UNIX_SOCKET_NAME;
-
+# Start the stream server.
 if (($pid = fork()) == 0) {
-    $result = system "runas -t test_socket_base_t $basedir/unix_sink stream";
-    exit;
+    exec "runcon -t test_unix_server_t $basedir/server stream test_server_sock";
 }
 
-sleep 1; # Need to slow down and give the server time to start...
+sleep 1; # Give it a moment to initialize.
 
-# Check permissions for basic socket operations
-$output = `runas -t test_socket_base_t -- $basedir/unix_options stream`;
-&reformat_results($output, 0);
-
-# Try to connect to the server from a domain that doesn't have connectto
-# permission (this should fail).
-$result = system "runas -t test_socket_noconnect_t -- $basedir/unix_source stream";
-ok($result);
-
-# Default policy allows domains to perform any access on 
-# sockets that they created.
-$result = system "runas -t test_socket_base_t -- $basedir/unix_source stream";
+# Verify that stream client can connectto server.
+$result = system "runcon -t test_unix_stream_client_t $basedir/client stream test_client_sock test_server_sock";
 ok($result, 0);
 
-unlink $UNIX_SOCKET_NAME;
+# Verify that dgram client cannot connectto to server.
+$result = system "runcon -t test_unix_dgram_client_t -- $basedir/client stream test_client_sock test_server_sock 2>&1";
+ok($result);
 
+# Kill the server.
+kill TERM, $pid;
+
+# Start the dgram server.
 if (($pid = fork()) == 0) {
-    $result = system "runas -t test_socket_base_t $basedir/unix_sink udp";
-    exit;
+    exec "runcon -t test_unix_server_t $basedir/server dgram test_server_sock";
 }
 
-sleep 1; # Need to slow down and give the server time to start...
+sleep 1; # Give it a moment to initialize
 
-# Domain can't send messages socket; fails sendto check
-$result = system "runas -t test_socket_none_t -- $basedir/unix_source udp";
+# Verify that dgram client can sendto server.
+$result = system "runcon -t test_unix_dgram_client_t $basedir/client dgram test_client_sock test_server_sock";
+ok($result, 0);
+
+# Verify that stream client cannot sendto server.
+$result = system "runcon -t test_unix_stream_client_t -- $basedir/client dgram test_client_sock test_server_sock 2>&1";
 ok($result);
 
-$result = system "runas -t test_socket_base_t -- $basedir/unix_source udp";
-ok($result, 0);
-#print "test1: $result\n";
-
-unlink $UNIX_SOCKET_NAME;
+# Kill the server.
+kill TERM, $pid;
 
 exit;
-
-# ================================================================= #
-# Miscellaneous Routines                                            #
-# ================================================================= #
-sub reformat_results {
-	$list = shift;
-	$expected = shift;
-	for (split (' ', $list)) {
-		ok($_, $expected);
-	}
-}
