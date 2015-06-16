@@ -71,7 +71,7 @@ package, with support for the chcon and runcon commands as well as the
 SELinux options to existing utilities such as ls and mkdir.
 
 The inet_socket test depends on netlabel_tools being installed in
-order to label NetLabel configuration.
+order to load NetLabel configuration.
 
 In addition to the libselinux shared library, the libselinux headers
 are required in order to build certain testcases.  These can be found in 
