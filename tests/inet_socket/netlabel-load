@@ -1,0 +1,11 @@
+#!/bin/sh
+# Define a localhost/loopback doi and apply it to the loopback address
+# so that we get full SELinux labels over loopback connections.
+netlabelctl cipsov4 add local doi:1
+netlabelctl map del default
+netlabelctl map add default address:0.0.0.0/0 protocol:unlbl
+netlabelctl map add default address:::/0 protocol:unlbl
+netlabelctl map add default address:127.0.0.1 protocol:cipsov4,1
+# Display the configuration.
+netlabelctl -p cipsov4 list
+netlabelctl -p map list

@@ -1,0 +1,60 @@
+#################################
+#
+# Policy for testing INET domain sockets.
+#
+
+attribute inetsocketdomain;
+
+# Do not break NFS when we load NetLabel configuration.
+gen_require(`
+	type kernel_t;
+')
+corenet_all_recvfrom_unlabeled(kernel_t)
+
+# Domain for server process.
+type test_inet_server_t;
+domain_type(test_inet_server_t)
+unconfined_runs_test(test_inet_server_t)
+typeattribute test_inet_server_t testdomain;
+typeattribute test_inet_server_t inetsocketdomain;
+allow test_inet_server_t self:tcp_socket create_stream_socket_perms;
+allow test_inet_server_t self:udp_socket create_socket_perms;
+corenet_tcp_bind_generic_port(test_inet_server_t)
+corenet_udp_bind_generic_port(test_inet_server_t)
+corenet_tcp_bind_all_nodes(test_inet_server_t)
+corenet_udp_bind_all_nodes(test_inet_server_t)
+corenet_inout_generic_if(test_inet_server_t)
+corenet_inout_generic_node(test_inet_server_t)
+
+# Domain for client process.
+type test_inet_client_t;
+domain_type(test_inet_client_t)
+unconfined_runs_test(test_inet_client_t)
+typeattribute test_inet_client_t testdomain;
+typeattribute test_inet_client_t inetsocketdomain;
+allow test_inet_client_t self:tcp_socket create_stream_socket_perms;
+allow test_inet_client_t self:udp_socket create_socket_perms;
+corenet_tcp_connect_generic_port(test_inet_client_t)
+corenet_inout_generic_if(test_inet_client_t)
+corenet_inout_generic_node(test_inet_client_t)
+
+# The server can receive labeled packets from the client.
+allow test_inet_server_t test_inet_client_t:peer recv;
+# And vice versa.
+allow test_inet_client_t test_inet_server_t:peer recv;
+
+# Domain for a client process not authorized to communicate with the server.
+type test_inet_bad_client_t;
+domain_type(test_inet_bad_client_t)
+unconfined_runs_test(test_inet_bad_client_t)
+typeattribute test_inet_bad_client_t testdomain;
+typeattribute test_inet_bad_client_t inetsocketdomain;
+allow test_inet_bad_client_t self:tcp_socket create_stream_socket_perms;
+allow test_inet_bad_client_t self:udp_socket create_socket_perms;
+corenet_tcp_connect_generic_port(test_inet_bad_client_t)
+corenet_inout_generic_if(test_inet_bad_client_t)
+corenet_inout_generic_node(test_inet_bad_client_t)
+
+# Allow all of these domains to be entered from the sysadm domain.
+miscfiles_domain_entry_test_files(inetsocketdomain)
+userdom_sysadm_entry_spec_domtrans_to(inetsocketdomain)

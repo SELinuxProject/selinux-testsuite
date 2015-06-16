@@ -1,0 +1,50 @@
+#!/usr/bin/perl
+
+use Test;
+BEGIN { plan tests => 4}
+
+$basedir = $0;  $basedir =~ s|(.*)/[^/]*|$1|;
+
+# Load NetLabel configuration.
+system "$basedir/netlabel-load";
+
+# Start the stream server.
+if (($pid = fork()) == 0) {
+    exec "runcon -t test_inet_server_t $basedir/server stream 65535";
+}
+
+sleep 1; # Give it a moment to initialize.
+
+# Verify that authorized client can communicate with the server.
+$result = system "runcon -t test_inet_client_t $basedir/client stream 65535";
+ok($result, 0);
+
+# Verify that unauthorized client cannot communicate with the server.
+$result = system "runcon -t test_inet_bad_client_t -- $basedir/client stream 65535 2>&1";
+ok($result);
+
+# Kill the server.
+kill TERM, $pid;
+
+# Start the dgram server.
+if (($pid = fork()) == 0) {
+    exec "runcon -t test_inet_server_t $basedir/server dgram 65535";
+}
+
+sleep 1; # Give it a moment to initialize
+
+# Verify that authorized client can communicate with the server.
+$result = system "runcon -t test_inet_client_t $basedir/client dgram 65535";
+ok($result, 0);
+
+# Verify that unauthorized client cannot communicate with the server.
+$result = system "runcon -t test_inet_bad_client_t -- $basedir/client dgram 65535 2>&1";
+ok($result);
+
+# Kill the server.
+kill TERM, $pid;
+
+# Flush NetLabel configuration.
+system "$basedir/netlabel-flush";
+
+exit;

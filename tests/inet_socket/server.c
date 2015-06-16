@@ -1,6 +1,6 @@
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <sys/un.h>
+#include <netinet/in.h>
 #include <stdlib.h>
 #include <stddef.h>
 #include <string.h>
@@ -17,7 +17,7 @@
 
 void usage(char *progname)
 {
-	fprintf(stderr, "usage:  %s [stream|dgram] socket-name\n", progname);
+	fprintf(stderr, "usage:  %s [stream|dgram] port\n", progname);
 	exit(1);
 }
 
@@ -28,10 +28,11 @@ main(int argc, char **argv)
 {
 	int sock;
 	int result;
-	struct sockaddr_un sun, remotesun;
-	socklen_t sunlen, remotesunlen;
+	struct sockaddr_in sin;
+	socklen_t sinlen;
 	int type;
 	char byte;
+	unsigned short port;
 
 	if (argc != 3)
 		usage(argv[0]);
@@ -43,27 +44,36 @@ main(int argc, char **argv)
 	else
 		usage(argv[0]);
 
-	sock = socket(AF_UNIX, type, 0);
+	port = atoi(argv[2]);
+	if (!port)
+		usage(argv[0]);
+
+	sock = socket(AF_INET, type, 0);
 	if (sock < 0) {
 		perror("socket");
 		exit(1);
 	}
 
-	result = setsockopt(sock, SOL_SOCKET, SO_PASSSEC, &on, sizeof(on));
+	result = setsockopt(sock, SOL_IP, IP_PASSSEC, &on, sizeof(on));
 	if (result < 0) {
 		perror("setsockopt: SO_PASSSEC");
 		close(sock);
 		exit(1);
 	}
 
-	bzero(&sun, sizeof(struct sockaddr_un));
-	sun.sun_family = AF_UNIX;
-	sun.sun_path[0] = 0;
-	strcpy(&sun.sun_path[1], argv[2]);
-	sunlen = offsetof(struct sockaddr_un, sun_path) +
-		 strlen(&sun.sun_path[1]) + 1;
+	result = setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
+	if (result < 0) {
+		perror("setsockopt: SO_PASSSEC");
+		close(sock);
+		exit(1);
+	}
 
-	if (bind(sock, (struct sockaddr *) &sun, sunlen) < 0) {
+	bzero(&sin, sizeof(struct sockaddr_in));
+	sin.sin_family = AF_INET;
+	sin.sin_port = htons(port);
+	sin.sin_addr.s_addr = INADDR_ANY;
+	sinlen = sizeof(sin);
+	if (bind(sock, (struct sockaddr *) &sin, sinlen) < 0) {
 		perror("bind");
 		close(sock);
 		exit(1);
@@ -80,8 +90,9 @@ main(int argc, char **argv)
 			exit(1);
 		}
 
-		newsock = accept(sock, (struct sockaddr *)&remotesun,
-				 &remotesunlen);
+		sinlen = sizeof(sin);
+		newsock = accept(sock, (struct sockaddr *)&sin,
+				 &sinlen);
 		if (newsock < 0) {
 			perror("accept");
 			close(sock);
@@ -124,8 +135,8 @@ main(int argc, char **argv)
 		iov.iov_len = 1;
 		memset(&msg, 0, sizeof(msg));
 		msglabel[0] = 0;
-		msg.msg_name = &remotesun;
-		msg.msg_namelen = remotesunlen;
+		msg.msg_name = &sin;
+		msg.msg_namelen = sizeof(sin);
 		msg.msg_iov = &iov;
 		msg.msg_iovlen = 1;
 		msg.msg_control = &control;
@@ -137,7 +148,7 @@ main(int argc, char **argv)
 		}
 		for (cmsg = CMSG_FIRSTHDR(&msg); cmsg;
 		     cmsg = CMSG_NXTHDR(&msg, cmsg)) {
-			if (cmsg->cmsg_level == SOL_SOCKET &&
+			if (cmsg->cmsg_level == SOL_IP &&
 			    cmsg->cmsg_type == SCM_SECURITY) {
 				size_t len = cmsg->cmsg_len - CMSG_LEN(0);
 
