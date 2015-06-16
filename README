@@ -19,6 +19,7 @@ CONFIG_INET=y
 CONFIG_SECURITY=y
 CONFIG_SECURITY_NETWORK=y
 CONFIG_SECURITY_SELINUX=y
+CONFIG_NETLABEL=y
 
 # Filesystem security labeling support.
 # Only need to enable the ones for the filesystems on which you are testing.
@@ -33,13 +34,11 @@ CONFIG_JFFS2_FS_SECURITY=y
 The following config options are not required by the tests but
 are typical settings for SELinux kernel configuration:
 CONFIG_SECURITY_NETWORK_XFRM=y
-CONFIG_NETLABEL=y
 CONFIG_SECURITY_SELINUX_BOOTPARAM=y
 CONFIG_SECURITY_SELINUX_BOOTPARAM_VALUE=1
 CONFIG_SECURITY_SELINUX_DISABLE=y
 CONFIG_SECURITY_SELINUX_DEVELOP=y
 CONFIG_SECURITY_SELINUX_CHECKREQPROT_VALUE=1
-CONFIG_SECURITY_SELINUX_ENABLE_SECMARK_DEFAULT=y
 CONFIG_SECURITY_SELINUX_AVC_STATS=y
 
 Do not set CONFIG_SECURITY_SELINUX_POLICYDB_VERSION_MAX; it is an
@@ -70,6 +69,9 @@ modular policy, libsemanage) to be installed.  The test scripts also
 rely upon the SELinux extensions being integrated into the coreutils
 package, with support for the chcon and runcon commands as well as the
 SELinux options to existing utilities such as ls and mkdir.
+
+The inet_socket test depends on netlabel_tools being installed in
+order to label NetLabel configuration.
 
 In addition to the libselinux shared library, the libselinux headers
 are required in order to build certain testcases.  These can be found in 
