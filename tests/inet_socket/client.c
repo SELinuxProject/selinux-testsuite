@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <poll.h>
 #include <selinux/selinux.h>
 
 void usage(char *progname)
@@ -76,6 +77,23 @@ main(int argc, char **argv)
 		close(sock);
 		exit(1);
 	}
+
+	if (type == SOCK_DGRAM) {
+		struct pollfd fds;
+
+		fds.fd = sock;
+		fds.events = POLLIN;
+		result = poll(&fds, 1, 1000);
+		if (result < 0) {
+			perror("poll");
+			close(sock);
+			exit(1);
+		} else if (result == 0) {
+			fprintf(stderr, "%s: no reply from server\n", argv[0]);
+			exit(1);
+		}
+	}
+
 	result = read(sock, label, sizeof(label));
 	if (result < 0) {
 		perror("read");

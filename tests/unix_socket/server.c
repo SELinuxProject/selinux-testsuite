@@ -70,45 +70,47 @@ main(int argc, char **argv)
 	}
 
 	if (type == SOCK_STREAM) {
-		int newsock;
-		char peerlabel[256];
-		socklen_t labellen = sizeof(peerlabel);
-
 		if (listen(sock, SOMAXCONN)) {
 			perror("listen");
 			close(sock);
 			exit(1);
 		}
 
-		newsock = accept(sock, (struct sockaddr *)&remotesun,
-				 &remotesunlen);
-		if (newsock < 0) {
-			perror("accept");
-			close(sock);
-			exit(1);
-		}
+		do {
+			int newsock;
+			char peerlabel[256];
+			socklen_t labellen = sizeof(peerlabel);
 
-		peerlabel[0] = 0;
-		result = getsockopt(newsock, SOL_SOCKET, SO_PEERSEC, peerlabel,
-				    &labellen);
-		if (result < 0) {
-			perror("getsockopt: SO_PEERSEC");
-			exit(1);
-		}
-		printf("%s:  Got peer label=%s\n", argv[0], peerlabel);
+			newsock = accept(sock, (struct sockaddr *)&remotesun,
+					 &remotesunlen);
+			if (newsock < 0) {
+				perror("accept");
+				close(sock);
+				exit(1);
+			}
 
-		result = read(newsock, &byte, 1);
-		if (result < 0) {
-			perror("read");
-			exit(1);
-		}
+			peerlabel[0] = 0;
+			result = getsockopt(newsock, SOL_SOCKET, SO_PEERSEC, peerlabel,
+					    &labellen);
+			if (result < 0) {
+				perror("getsockopt: SO_PEERSEC");
+				exit(1);
+			}
+			printf("%s:  Got peer label=%s\n", argv[0], peerlabel);
 
-		result = write(newsock, peerlabel, strlen(peerlabel));
-		if (result < 0) {
-			perror("write");
-			exit(1);
-		}
-		close(newsock);
+			result = read(newsock, &byte, 1);
+			if (result < 0) {
+				perror("read");
+				exit(1);
+			}
+
+			result = write(newsock, peerlabel, strlen(peerlabel));
+			if (result < 0) {
+				perror("write");
+				exit(1);
+			}
+			close(newsock);
+		} while (1);
 	} else {
 		struct iovec iov;
 		struct msghdr msg;
@@ -119,43 +121,45 @@ main(int argc, char **argv)
 			char buf[CMSG_SPACE(sizeof(msglabel))];
 		} control;
 
-		memset(&iov, 0, sizeof(iov));
-		iov.iov_base = &byte;
-		iov.iov_len = 1;
-		memset(&msg, 0, sizeof(msg));
-		msglabel[0] = 0;
-		msg.msg_name = &remotesun;
-		msg.msg_namelen = remotesunlen;
-		msg.msg_iov = &iov;
-		msg.msg_iovlen = 1;
-		msg.msg_control = &control;
-		msg.msg_controllen = sizeof(control);
-		result = recvmsg(sock, &msg, 0);
-		if (result < 0) {
-			perror("recvmsg");
-			exit(1);
-		}
-		for (cmsg = CMSG_FIRSTHDR(&msg); cmsg;
-		     cmsg = CMSG_NXTHDR(&msg, cmsg)) {
-			if (cmsg->cmsg_level == SOL_SOCKET &&
-			    cmsg->cmsg_type == SCM_SECURITY) {
-				size_t len = cmsg->cmsg_len - CMSG_LEN(0);
+		do {
+			memset(&iov, 0, sizeof(iov));
+			iov.iov_base = &byte;
+			iov.iov_len = 1;
+			memset(&msg, 0, sizeof(msg));
+			msglabel[0] = 0;
+			msg.msg_name = &remotesun;
+			msg.msg_namelen = remotesunlen;
+			msg.msg_iov = &iov;
+			msg.msg_iovlen = 1;
+			msg.msg_control = &control;
+			msg.msg_controllen = sizeof(control);
+			result = recvmsg(sock, &msg, 0);
+			if (result < 0) {
+				perror("recvmsg");
+				exit(1);
+			}
+			for (cmsg = CMSG_FIRSTHDR(&msg); cmsg;
+			     cmsg = CMSG_NXTHDR(&msg, cmsg)) {
+				if (cmsg->cmsg_level == SOL_SOCKET &&
+				    cmsg->cmsg_type == SCM_SECURITY) {
+					size_t len = cmsg->cmsg_len - CMSG_LEN(0);
 
-				if (len > 0 && len < sizeof(msglabel)) {
-					memcpy(msglabel, CMSG_DATA(cmsg), len);
-					msglabel[len] = 0;
-					printf("%s: Got SCM_SECURITY=%s\n",
-					       argv[0], msglabel);
+					if (len > 0 && len < sizeof(msglabel)) {
+						memcpy(msglabel, CMSG_DATA(cmsg), len);
+						msglabel[len] = 0;
+						printf("%s: Got SCM_SECURITY=%s\n",
+						       argv[0], msglabel);
+					}
 				}
 			}
-		}
 
-		result = sendto(sock, msglabel, strlen(msglabel), 0,
-				msg.msg_name, msg.msg_namelen);
-		if (result < 0) {
-			perror("sendto");
-			exit(1);
-		}
+			result = sendto(sock, msglabel, strlen(msglabel), 0,
+					msg.msg_name, msg.msg_namelen);
+			if (result < 0) {
+				perror("sendto");
+				exit(1);
+			}
+		} while (1);
 	}
 
 	close(sock);
