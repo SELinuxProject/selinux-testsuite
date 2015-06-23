@@ -55,6 +55,64 @@ corenet_tcp_connect_generic_port(test_inet_bad_client_t)
 corenet_inout_generic_if(test_inet_bad_client_t)
 corenet_inout_generic_node(test_inet_bad_client_t)
 
+# Domain for a process allowed to bind(2).
+type test_inet_bind_t;
+domain_type(test_inet_bind_t)
+unconfined_runs_test(test_inet_bind_t)
+typeattribute test_inet_bind_t testdomain;
+typeattribute test_inet_bind_t inetsocketdomain;
+allow test_inet_bind_t self:tcp_socket create_stream_socket_perms;
+allow test_inet_bind_t self:udp_socket create_socket_perms;
+corenet_tcp_bind_generic_port(test_inet_bind_t)
+corenet_udp_bind_generic_port(test_inet_bind_t)
+corenet_tcp_bind_all_nodes(test_inet_bind_t)
+corenet_udp_bind_all_nodes(test_inet_bind_t)
+
+# Domain for a process not allowed name_bind permission to the port.
+type test_inet_no_name_bind_t;
+domain_type(test_inet_no_name_bind_t)
+unconfined_runs_test(test_inet_no_name_bind_t)
+typeattribute test_inet_no_name_bind_t testdomain;
+typeattribute test_inet_no_name_bind_t inetsocketdomain;
+allow test_inet_no_name_bind_t self:tcp_socket create_stream_socket_perms;
+allow test_inet_no_name_bind_t self:udp_socket create_socket_perms;
+corenet_tcp_bind_all_nodes(test_inet_no_name_bind_t)
+corenet_udp_bind_all_nodes(test_inet_no_name_bind_t)
+
+# Domain for a process not allowed node_bind permission to the node.
+type test_inet_no_node_bind_t;
+domain_type(test_inet_no_node_bind_t)
+unconfined_runs_test(test_inet_no_node_bind_t)
+typeattribute test_inet_no_node_bind_t testdomain;
+typeattribute test_inet_no_node_bind_t inetsocketdomain;
+allow test_inet_no_node_bind_t self:tcp_socket create_stream_socket_perms;
+allow test_inet_no_node_bind_t self:udp_socket create_socket_perms;
+corenet_tcp_bind_generic_port(test_inet_no_node_bind_t)
+corenet_udp_bind_generic_port(test_inet_no_node_bind_t)
+
+# Domain for a process allowed to connect(2).
+type test_inet_connect_t;
+domain_type(test_inet_connect_t)
+unconfined_runs_test(test_inet_connect_t)
+typeattribute test_inet_connect_t testdomain;
+typeattribute test_inet_connect_t inetsocketdomain;
+allow test_inet_connect_t self:tcp_socket create_stream_socket_perms;
+allow test_inet_connect_t self:udp_socket create_socket_perms;
+corenet_tcp_connect_generic_port(test_inet_connect_t)
+corenet_tcp_bind_generic_port(test_inet_connect_t)
+corenet_tcp_bind_all_nodes(test_inet_connect_t)
+
+# Domain for a process not allowed name_connect permission.
+type test_inet_no_name_connect_t;
+domain_type(test_inet_no_name_connect_t)
+unconfined_runs_test(test_inet_no_name_connect_t)
+typeattribute test_inet_no_name_connect_t testdomain;
+typeattribute test_inet_no_name_connect_t inetsocketdomain;
+allow test_inet_no_name_connect_t self:tcp_socket create_stream_socket_perms;
+allow test_inet_no_name_connect_t self:udp_socket create_socket_perms;
+corenet_tcp_bind_generic_port(test_inet_no_name_connect_t)
+corenet_tcp_bind_all_nodes(test_inet_no_name_connect_t)
+
 # Allow all of these domains to be entered from the sysadm domain.
 miscfiles_domain_entry_test_files(inetsocketdomain)
 userdom_sysadm_entry_spec_domtrans_to(inetsocketdomain)

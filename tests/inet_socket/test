@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 
 use Test;
-BEGIN { plan tests => 4}
+BEGIN { plan tests => 12}
 
 $basedir = $0;  $basedir =~ s|(.*)/[^/]*|$1|;
 
@@ -46,5 +46,37 @@ kill TERM, $pid;
 
 # Flush NetLabel configuration.
 system "$basedir/netlabel-flush";
+
+# Verify that authorized domain can bind UDP sockets.
+$result = system "runcon -t test_inet_bind_t -- $basedir/bind dgram 65535 2>&1";
+ok($result, 0);
+
+# Verify that authorized domain can bind TCP sockets.
+$result = system "runcon -t test_inet_bind_t -- $basedir/bind stream 65535 2>&1";
+ok($result, 0);
+
+# Verify that domain without name_bind cannot bind UDP sockets.
+$result = system "runcon -t test_inet_no_name_bind_t -- $basedir/bind dgram 65535 2>&1";
+ok($result);
+
+# Verify that domain without name_bind cannot bind TCP sockets.
+$result = system "runcon -t test_inet_no_name_bind_t -- $basedir/bind stream 65535 2>&1";
+ok($result);
+
+# Verify that domain without node_bind cannot bind UDP sockets.
+$result = system "runcon -t test_inet_no_node_bind_t -- $basedir/bind dgram 65535 2>&1";
+ok($result);
+
+# Verify that domain without node_bind cannot bind TCP sockets.
+$result = system "runcon -t test_inet_no_node_bind_t -- $basedir/bind stream 65535 2>&1";
+ok($result);
+
+# Verify that authorized domain can connect to TCP socket.
+$result = system "runcon -t test_inet_connect_t -- $basedir/connect 65535 2>&1";
+ok($result, 0);
+
+# Verify that domain without name_connect cannot connect to TCP socket.
+$result = system "runcon -t test_inet_no_name_connect_t -- $basedir/connect 65535 2>&1";
+ok($result);
 
 exit;

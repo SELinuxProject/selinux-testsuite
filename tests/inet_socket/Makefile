@@ -1,4 +1,4 @@
-TARGETS=client server
+TARGETS=client server bind connect
 
 LDLIBS+= -lselinux
 
