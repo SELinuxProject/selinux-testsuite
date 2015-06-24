@@ -1,4 +1,5 @@
 #include <sys/types.h>
+#include <sys/time.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -32,6 +33,7 @@ main(int argc, char **argv)
 	int type;
 	char *mycon;
 	unsigned short port;
+	struct timeval tm;
 
 	if (argc != 3)
 		usage(argv[0]);
@@ -50,6 +52,14 @@ main(int argc, char **argv)
 	sock = socket(AF_INET, type, 0);
 	if (sock < 0) {
 		perror("socket");
+		exit(1);
+	}
+
+	tm.tv_sec = 5;
+	tm.tv_usec = 0;
+	result = setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, &tm, sizeof tm);
+	if (result < 0) {
+		perror("setsockopt: SO_SNDTIMEO");
 		exit(1);
 	}
 

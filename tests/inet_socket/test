@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 
 use Test;
-BEGIN { plan tests => 12}
+BEGIN { plan tests => 16}
 
 $basedir = $0;  $basedir =~ s|(.*)/[^/]*|$1|;
 
@@ -78,5 +78,47 @@ ok($result, 0);
 # Verify that domain without name_connect cannot connect to TCP socket.
 $result = system "runcon -t test_inet_no_name_connect_t -- $basedir/connect 65535 2>&1";
 ok($result);
+
+# Load IPSEC configuration.
+system "$basedir/ipsec-load $basedir/ipsec_manual_SA";
+
+# Start the stream server.
+if (($pid = fork()) == 0) {
+    exec "runcon -t test_inet_server_t $basedir/server stream 65535";
+}
+
+sleep 1; # Give it a moment to initialize.
+
+# Verify that authorized client can communicate with the server.
+$result = system "runcon -t test_inet_client_t $basedir/client stream 65535";
+ok($result, 0);
+
+# Verify that unauthorized client cannot communicate with the server.
+$result = system "runcon -t test_inet_bad_client_t -- $basedir/client stream 65535 2>&1";
+ok($result);
+
+# Kill the server.
+kill TERM, $pid;
+
+# Start the dgram server.
+if (($pid = fork()) == 0) {
+    exec "runcon -t test_inet_server_t $basedir/server dgram 65535";
+}
+
+sleep 1; # Give it a moment to initialize
+
+# Verify that authorized client can communicate with the server.
+$result = system "runcon -t test_inet_client_t $basedir/client dgram 65535";
+ok($result, 0);
+
+# Verify that unauthorized client cannot communicate with the server.
+$result = system "runcon -t test_inet_bad_client_t -- $basedir/client dgram 65535 2>&1";
+ok($result);
+
+# Kill the server.
+kill TERM, $pid;
+
+# Flush IPSEC configuration.
+system "$basedir/ipsec-flush";
 
 exit;

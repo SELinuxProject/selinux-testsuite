@@ -1,0 +1,51 @@
+# setkey -f configuration file entries for MANUAL SA configuration
+#
+# Based on the file:
+#     notebook-source/basic-selinux-policy/CIL/message-filter/ipsec_manual_SA
+# taken from The SELinux Notebook 4th Edition source code tarball,
+# by Richard Haines.
+#
+# Modifications:
+# - Replaced security contexts with the ones used by the tests.
+# - Dropped the ESP entries; just use AH for testing purposes.
+# - Only define a single spd context and entry (no need for separate ones
+#   unless you truly want a different policy).
+# - Define a spd entry for udp traffic for testing SCM_SECURITY.
+
+#
+# Flush the SAD and SPD
+flush;
+spdflush;
+
+#
+########## Security Association Database entries #################
+#
+# Important notes:
+# 1) The security context (-ctx) entries MUST match
+#    the actual running context of the process or it will fail to
+#    match (therefore racoon is the best configuration option as
+#    these are automatically exchanged).
+# 2) If the manual configuration is used in a live environment,
+#    then DO NOT use these encryption keys, generate your own.
+#
+# Authentication Header info
+# AH SAs using 128 bit long keys
+add 127.0.0.1 127.0.0.1 ah 0x200
+-ctx 1 1 "unconfined_u:unconfined_r:test_inet_client_t:s0-s0:c0.c1023"
+-A hmac-md5 0xc0291ff014dccdd03874d9e8e4cdf3e6;
+
+add 127.0.0.1 127.0.0.1 ah 0x250
+-ctx 1 1 "unconfined_u:unconfined_r:test_inet_bad_client_t:s0-s0:c0.c1023"
+-A hmac-md5 0xc0291ff014dccdd03874d9e8e4cdf3e6;
+
+#
+########### Security Policy Database entries ##########################
+#
+
+spdadd 127.0.0.1 127.0.0.1 tcp
+-ctx 1 1 "system_u:object_r:test_spd_t:s0"
+-P out ipsec ah/transport//require;
+
+spdadd 127.0.0.1 127.0.0.1 udp
+-ctx 1 1 "system_u:object_r:test_spd_t:s0"
+-P out ipsec ah/transport//require;

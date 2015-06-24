@@ -55,6 +55,10 @@ corenet_tcp_connect_generic_port(test_inet_bad_client_t)
 corenet_inout_generic_if(test_inet_bad_client_t)
 corenet_inout_generic_node(test_inet_bad_client_t)
 
+#
+# Policy for testing bind(2) and connect(2) checks.
+#
+
 # Domain for a process allowed to bind(2).
 type test_inet_bind_t;
 domain_type(test_inet_bind_t)
@@ -101,6 +105,8 @@ allow test_inet_connect_t self:udp_socket create_socket_perms;
 corenet_tcp_connect_generic_port(test_inet_connect_t)
 corenet_tcp_bind_generic_port(test_inet_connect_t)
 corenet_tcp_bind_all_nodes(test_inet_connect_t)
+corenet_inout_generic_if(test_inet_connect_t)
+corenet_inout_generic_node(test_inet_connect_t)
 
 # Domain for a process not allowed name_connect permission.
 type test_inet_no_name_connect_t;
@@ -112,6 +118,29 @@ allow test_inet_no_name_connect_t self:tcp_socket create_stream_socket_perms;
 allow test_inet_no_name_connect_t self:udp_socket create_socket_perms;
 corenet_tcp_bind_generic_port(test_inet_no_name_connect_t)
 corenet_tcp_bind_all_nodes(test_inet_no_name_connect_t)
+corenet_inout_generic_if(test_inet_no_name_connect_t)
+corenet_inout_generic_node(test_inet_no_name_connect_t)
+
+#
+# Labeled IPSEC-specific policy.
+#
+
+# For ipsec-load/ipsec-flush.
+gen_require(`
+	type unconfined_t;
+')
+type test_spd_t;
+allow unconfined_t inetsocketdomain:association setcontext;
+allow unconfined_t test_spd_t:association setcontext;
+
+# Each of the test client domains must match against the SPD entry
+# in order to use labeled IPSEC.
+allow test_inet_client_t test_spd_t:association polmatch;
+allow test_inet_bad_client_t test_spd_t:association polmatch;
+
+#
+# Common rules for all inet socket test domains.
+#
 
 # Allow all of these domains to be entered from the sysadm domain.
 miscfiles_domain_entry_test_files(inetsocketdomain)
