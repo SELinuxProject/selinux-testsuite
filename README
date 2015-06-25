@@ -21,6 +21,10 @@ CONFIG_SECURITY_NETWORK=y
 CONFIG_SECURITY_NETWORK_XFRM=y
 CONFIG_SECURITY_SELINUX=y
 CONFIG_NETLABEL=y
+CONFIG_NETWORK_SECMARK=y
+CONFIG_NF_CONNTRACK_SECMARK=y
+CONFIG_NETFILTER_XT_TARGET_CONNSECMARK=m
+CONFIG_NETFILTER_XT_TARGET_SECMARK=m
 
 # Filesystem security labeling support.
 # Only need to enable the ones for the filesystems on which you are testing.
@@ -70,9 +74,10 @@ rely upon the SELinux extensions being integrated into the coreutils
 package, with support for the chcon and runcon commands as well as the
 SELinux options to existing utilities such as ls and mkdir.
 
-The inet_socket tests depend on netlabel_tools being installed in
-order to load NetLabel configuration, and on ipsec-tools being installed
-in order to load labeled IPSEC configuration.
+The inet_socket tests depend on netlabel_tools, ipsec-tools, and
+iptables in order to load the relevant configurations for testing
+netlabel peer labeling, labeled IPSEC peer labeling, and SECMARK
+packet labeling.
 
 In addition to the libselinux shared library, the libselinux headers
 are required in order to build certain testcases.  These can be found in 

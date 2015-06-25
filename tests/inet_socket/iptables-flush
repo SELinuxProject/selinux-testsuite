@@ -1,0 +1,4 @@
+#!/bin/sh
+# Flush the security table.
+iptables -t security -F
+iptables -t security -X NEWCONN

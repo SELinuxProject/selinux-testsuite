@@ -139,6 +139,15 @@ allow test_inet_client_t test_spd_t:association polmatch;
 allow test_inet_bad_client_t test_spd_t:association polmatch;
 
 #
+# SECMARK-specific policy
+#
+
+type test_server_packet_t;
+allow unconfined_t test_server_packet_t:packet relabelto;
+allow test_inet_server_t test_server_packet_t:packet { send recv };
+allow test_inet_client_t test_server_packet_t:packet { send recv };
+
+#
 # Common rules for all inet socket test domains.
 #
 

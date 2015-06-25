@@ -12,12 +12,13 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <poll.h>
+#include <stdbool.h>
 #include <selinux/selinux.h>
 
 void usage(char *progname)
 {
 	fprintf(stderr,
-		"usage:  %s [stream|dgram] port\n",
+		"usage:  %s [-n] [stream|dgram] port\n",
 		progname);
 	exit(1);
 }
@@ -34,18 +35,30 @@ main(int argc, char **argv)
 	char *mycon;
 	unsigned short port;
 	struct timeval tm;
+	int opt;
+	bool nopeer = false;
 
-	if (argc != 3)
+	while ((opt = getopt(argc, argv, "n")) != -1) {
+		switch (opt) {
+		case 'n':
+			nopeer = true;
+			break;
+		default:
+			usage(argv[0]);
+		}
+	}
+
+	if ((argc - optind) != 2)
 		usage(argv[0]);
 
-	if (!strcmp(argv[1], "stream"))
+	if (!strcmp(argv[optind], "stream"))
 		type = SOCK_STREAM;
-	else if (!strcmp(argv[1], "dgram"))
+	else if (!strcmp(argv[optind], "dgram"))
 		type = SOCK_DGRAM;
 	else
 		usage(argv[0]);
 
-	port = atoi(argv[2]);
+	port = atoi(argv[optind + 1]);
 	if (!port)
 		usage(argv[0]);
 
@@ -112,11 +125,20 @@ main(int argc, char **argv)
 	}
 	label[result] = 0;
 
-	result = getcon(&mycon);
-	if (result < 0) {
-		perror("getcon");
-		close(sock);
-		exit(1);
+	if (nopeer) {
+		mycon = strdup("nopeer");
+		if (!mycon) {
+			perror("strdup");
+			close(sock);
+			exit(1);
+		}
+	} else {
+		result = getcon(&mycon);
+		if (result < 0) {
+			perror("getcon");
+			close(sock);
+			exit(1);
+		}
 	}
 
 	if (strcmp(mycon, label)) {

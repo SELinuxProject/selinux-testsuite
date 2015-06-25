@@ -1,0 +1,29 @@
+#!/bin/sh
+# Based on http://james-morris.livejournal.com/11010.html.
+#
+# Modifications:
+# - Changed to use the security table, which was created for SECMARK to
+#   avoid conflicts with other users of the mangle table.
+# - Added entries for udp traffic for testing udp as well.
+# - Specified the interface since the tests are only performed over loopback.
+# - Set the port number and context to the values used by the test script and policy.
+
+# Flush the security table.
+iptables -t security -F
+
+# Create a chain for new connection marking.
+iptables -t security -N NEWCONN
+
+# Accept incoming connections, label SYN packets, and copy labels to connections.
+iptables -t security -A INPUT -i lo -p tcp --dport 65535 -m state --state NEW -j NEWCONN
+iptables -t security -A NEWCONN -j SECMARK --selctx system_u:object_r:test_server_packet_t:s0
+iptables -t security -A NEWCONN -j CONNSECMARK --save
+iptables -t security -A NEWCONN -j ACCEPT
+
+# Common rules which copy connection labels to established and related packets.
+iptables -t security -A INPUT -m state --state ESTABLISHED,RELATED -j CONNSECMARK --restore
+iptables -t security -A OUTPUT -m state --state ESTABLISHED,RELATED -j CONNSECMARK --restore
+
+# Label UDP packets similarly.
+iptables -t security -A INPUT -i lo -p udp --dport 65535 -j SECMARK --selctx system_u:object_r:test_server_packet_t:s0
+iptables -t security -A OUTPUT -o lo -p udp --sport 65535 -j SECMARK --selctx system_u:object_r:test_server_packet_t:s0

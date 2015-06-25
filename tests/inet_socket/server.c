@@ -6,6 +6,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <stdbool.h>
 
 #ifndef SO_PEERSEC
 #define SO_PEERSEC 31
@@ -17,7 +18,7 @@
 
 void usage(char *progname)
 {
-	fprintf(stderr, "usage:  %s [stream|dgram] port\n", progname);
+	fprintf(stderr, "usage:  %s [-n] [stream|dgram] port\n", progname);
 	exit(1);
 }
 
@@ -33,18 +34,30 @@ main(int argc, char **argv)
 	int type;
 	char byte;
 	unsigned short port;
+	int opt;
+	bool nopeer = false;
 
-	if (argc != 3)
+	while ((opt = getopt(argc, argv, "n")) != -1) {
+		switch (opt) {
+		case 'n':
+			nopeer = true;
+			break;
+		default:
+			usage(argv[0]);
+		}
+	}
+
+	if ((argc - optind) != 2)
 		usage(argv[0]);
 
-	if (!strcmp(argv[1], "stream"))
+	if (!strcmp(argv[optind], "stream"))
 		type = SOCK_STREAM;
-	else if (!strcmp(argv[1], "dgram"))
+	else if (!strcmp(argv[optind], "dgram"))
 		type = SOCK_DGRAM;
 	else
 		usage(argv[0]);
 
-	port = atoi(argv[2]);
+	port = atoi(argv[optind + 1]);
 	if (!port)
 		usage(argv[0]);
 
@@ -100,14 +113,18 @@ main(int argc, char **argv)
 				exit(1);
 			}
 
-			peerlabel[0] = 0;
-			result = getsockopt(newsock, SOL_SOCKET, SO_PEERSEC, peerlabel,
-					    &labellen);
-			if (result < 0) {
-				perror("getsockopt: SO_PEERSEC");
-				exit(1);
+			if (nopeer) {
+				strcpy(peerlabel, "nopeer");
+			} else {
+				peerlabel[0] = 0;
+				result = getsockopt(newsock, SOL_SOCKET, SO_PEERSEC, peerlabel,
+						    &labellen);
+				if (result < 0) {
+					perror("getsockopt: SO_PEERSEC");
+					exit(1);
+				}
+				printf("%s:  Got peer label=%s\n", argv[0], peerlabel);
 			}
-			printf("%s:  Got peer label=%s\n", argv[0], peerlabel);
 
 			result = read(newsock, &byte, 1);
 			if (result < 0) {
@@ -148,6 +165,9 @@ main(int argc, char **argv)
 			if (result < 0) {
 				perror("recvmsg");
 				exit(1);
+			}
+			if (nopeer) {
+				strcpy(msglabel, "nopeer");
 			}
 			for (cmsg = CMSG_FIRSTHDR(&msg); cmsg;
 			     cmsg = CMSG_NXTHDR(&msg, cmsg)) {
