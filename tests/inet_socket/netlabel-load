@@ -6,6 +6,3 @@ netlabelctl map del default
 netlabelctl map add default address:0.0.0.0/0 protocol:unlbl
 netlabelctl map add default address:::/0 protocol:unlbl
 netlabelctl map add default address:127.0.0.1 protocol:cipsov4,1
-# Display the configuration.
-netlabelctl -p cipsov4 list
-netlabelctl -p map list

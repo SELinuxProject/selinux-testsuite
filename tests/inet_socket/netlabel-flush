@@ -3,6 +3,3 @@
 netlabelctl map del default
 netlabelctl cipsov4 del doi:1
 netlabelctl map add default protocol:unlbl
-# Display the configuration.
-netlabelctl -p map list
-netlabelctl -p cipsov4 list
