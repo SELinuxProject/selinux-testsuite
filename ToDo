@@ -11,7 +11,6 @@ Add tests for netlink sockets, including nlmsg_read/write/... permissions.
 ioctl: Test new ioctl whitelisting feature.
 Generalize or duplicate nnp tests for nosuid mount case.
 Add tests for mount and umount, including permission checks and context-related mount options.
-Add tests for mmap/mprotect for execmem, execstack, execheap, execmod, mmap_zero.
 Add tests for CAP_MAC_ADMIN/mac_admin and its effect on setting/getting security contexts unknown to the currently loaded policy.
 Add tests for new file labeling: type_transition, setfscreatecon, context mounts.
 Add tests for inheritance across domain-changing exec: noatsecure, siginh, rlimitinh.

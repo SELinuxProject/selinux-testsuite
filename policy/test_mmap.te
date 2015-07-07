@@ -1,0 +1,116 @@
+#################################
+#
+# Policy for testing mmap/mprotect
+#
+
+attribute mmaptestdomain;
+
+type test_mmap_zero_t;
+domain_type(test_mmap_zero_t)
+unconfined_runs_test(test_mmap_zero_t)
+typeattribute test_mmap_zero_t testdomain;
+typeattribute test_mmap_zero_t mmaptestdomain;
+allow test_mmap_zero_t self:memprotect mmap_zero;
+
+type test_no_mmap_zero_t;
+domain_type(test_no_mmap_zero_t)
+unconfined_runs_test(test_no_mmap_zero_t)
+typeattribute test_no_mmap_zero_t testdomain;
+typeattribute test_no_mmap_zero_t mmaptestdomain;
+
+type test_mmap_file_t;
+files_type(test_mmap_file_t)
+
+type test_execmem_t;
+domain_type(test_execmem_t)
+unconfined_runs_test(test_execmem_t)
+typeattribute test_execmem_t testdomain;
+typeattribute test_execmem_t mmaptestdomain;
+allow test_execmem_t self:process execmem;
+# For mprotect_file_private test.
+allow test_execmem_t test_mmap_file_t:file { open read execute };
+
+type test_no_execmem_t;
+domain_type(test_no_execmem_t)
+unconfined_runs_test(test_no_execmem_t)
+typeattribute test_no_execmem_t testdomain;
+typeattribute test_no_execmem_t mmaptestdomain;
+# For mprotect_file_private test.
+allow test_no_execmem_t test_mmap_file_t:file { open read };
+
+type test_tmpfs_execute_t;
+domain_type(test_tmpfs_execute_t)
+unconfined_runs_test(test_tmpfs_execute_t)
+typeattribute test_tmpfs_execute_t testdomain;
+typeattribute test_tmpfs_execute_t mmaptestdomain;
+
+gen_require(`
+	type tmpfs_t;
+')
+allow test_tmpfs_execute_t tmpfs_t:file { read write execute };
+
+type test_no_tmpfs_execute_t;
+domain_type(test_no_tmpfs_execute_t)
+unconfined_runs_test(test_no_tmpfs_execute_t)
+typeattribute test_no_tmpfs_execute_t testdomain;
+typeattribute test_no_tmpfs_execute_t mmaptestdomain;
+allow test_no_tmpfs_execute_t tmpfs_t:file { read write };
+
+type test_file_rwx_t;
+domain_type(test_file_rwx_t)
+unconfined_runs_test(test_file_rwx_t)
+typeattribute test_file_rwx_t testdomain;
+typeattribute test_file_rwx_t mmaptestdomain;
+allow test_file_rwx_t test_mmap_file_t:file { open read write execute };
+
+type test_file_rx_t;
+domain_type(test_file_rx_t)
+unconfined_runs_test(test_file_rx_t)
+typeattribute test_file_rx_t testdomain;
+typeattribute test_file_rx_t mmaptestdomain;
+allow test_file_rx_t test_mmap_file_t:file { open read execute };
+
+type test_file_rw_t;
+domain_type(test_file_rw_t)
+unconfined_runs_test(test_file_rw_t)
+typeattribute test_file_rw_t testdomain;
+typeattribute test_file_rw_t mmaptestdomain;
+allow test_file_rw_t test_mmap_file_t:file { open read write };
+
+type test_file_r_t;
+domain_type(test_file_r_t)
+unconfined_runs_test(test_file_r_t)
+typeattribute test_file_r_t testdomain;
+typeattribute test_file_r_t mmaptestdomain;
+allow test_file_r_t test_mmap_file_t:file { open read };
+
+type test_execstack_t;
+domain_type(test_execstack_t)
+unconfined_runs_test(test_execstack_t)
+typeattribute test_execstack_t testdomain;
+typeattribute test_execstack_t mmaptestdomain;
+allow test_execstack_t self:process { execmem execstack };
+
+type test_execheap_t;
+domain_type(test_execheap_t)
+unconfined_runs_test(test_execheap_t)
+typeattribute test_execheap_t testdomain;
+typeattribute test_execheap_t mmaptestdomain;
+allow test_execheap_t self:process { execmem execheap };
+
+type test_execmod_t;
+domain_type(test_execmod_t)
+unconfined_runs_test(test_execmod_t)
+typeattribute test_execmod_t testdomain;
+typeattribute test_execmod_t mmaptestdomain;
+allow test_execmod_t test_mmap_file_t:file { open read execute execmod };
+
+type test_no_execmod_t;
+domain_type(test_no_execmod_t)
+unconfined_runs_test(test_no_execmod_t)
+typeattribute test_no_execmod_t testdomain;
+typeattribute test_no_execmod_t mmaptestdomain;
+allow test_no_execmod_t test_mmap_file_t:file { open read execute };
+
+# Allow entrypoint via the test programs.
+miscfiles_domain_entry_test_files(mmaptestdomain)

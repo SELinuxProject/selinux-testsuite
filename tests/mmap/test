@@ -1,0 +1,96 @@
+#!/usr/bin/perl
+
+use Test;
+BEGIN { plan tests => 26}
+
+$basedir = $0;  $basedir =~ s|(.*)/[^/]*|$1|;
+
+# Clean up from prior runs.
+system "rm -f $basedir/temp_file";
+
+# Create temporary file.
+system "dd if=/dev/zero of=$basedir/temp_file count=8 2>&1 > /dev/null";
+system "chcon -t test_mmap_file_t $basedir/temp_file";
+
+# Test success and failure for mmap_zero.
+$result = system "runcon -t test_mmap_zero_t $basedir/mmap_zero";
+ok($result, 0);
+$result = system "runcon -t test_no_mmap_zero_t $basedir/mmap_zero 2>&1";
+ok($result);
+
+# Test success and failure for execmem on mmap w/ anonymous private memory.
+$result = system "runcon -t test_execmem_t $basedir/mmap_anon_private";
+ok($result, 0);
+$result = system "runcon -t test_no_execmem_t $basedir/mmap_anon_private 2>&1";
+ok($result);
+
+# Test success and failure for execmem on mprotect w/ anonymous private memory.
+$result = system "runcon -t test_execmem_t $basedir/mprotect_anon_private";
+ok($result, 0);
+$result = system "runcon -t test_no_execmem_t $basedir/mprotect_anon_private 2>&1";
+ok($result);
+
+# Test success and failure for execmem on mmap w/ anonymous shared memory.
+$result = system "runcon -t test_execmem_t $basedir/mmap_anon_shared";
+ok($result, 0);
+$result = system "runcon -t test_no_execmem_t $basedir/mmap_anon_shared 2>&1";
+ok($result);
+
+# Test success and failure for tmpfs execute on mprotect w/ anonymous shared memory.
+$result = system "runcon -t test_tmpfs_execute_t $basedir/mprotect_anon_shared";
+ok($result, 0);
+$result = system "runcon -t test_no_tmpfs_execute_t $basedir/mprotect_anon_shared 2>&1";
+ok($result);
+
+# Test success and failure for execheap, independent of execmem.
+$result = system "runcon -t test_execheap_t $basedir/mprotect_heap";
+ok($result, 0);
+$result = system "runcon -t test_execmem_t $basedir/mprotect_heap 2>&1";
+ok($result);
+
+# Test success and failure for execstack, independent of execmem.
+$result = system "runcon -t test_execstack_t $basedir/mprotect_stack";
+ok($result, 0);
+$result = system "runcon -t test_execmem_t $basedir/mprotect_stack 2>&1";
+ok($result);
+
+# Test success and failure for file execute on mmap w/ file shared mapping.
+$result = system "runcon -t test_file_rwx_t $basedir/mmap_file_shared $basedir/temp_file";
+ok($result, 0);
+$result = system "runcon -t test_file_rw_t $basedir/mmap_file_shared $basedir/temp_file 2>&1";
+ok($result);
+
+# Test success and failure for file execute on mprotect w/ file shared mapping.
+$result = system "runcon -t test_file_rwx_t $basedir/mprotect_file_shared $basedir/temp_file";
+ok($result, 0);
+$result = system "runcon -t test_file_rw_t $basedir/mprotect_file_shared $basedir/temp_file 2>&1";
+ok($result);
+
+# Test success and failure for execmem on mmap w/ file private mapping.
+$result = system "runcon -t test_execmem_t $basedir/mmap_file_private $basedir/temp_file";
+ok($result, 0);
+$result = system "runcon -t test_no_execmem_t $basedir/mmap_file_private $basedir/temp_file 2>&1";
+ok($result);
+
+# Test success and failure for file execute on mprotect w/ file private mapping.
+$result = system "runcon -t test_file_rx_t $basedir/mprotect_file_private_rx $basedir/temp_file";
+ok($result, 0);
+$result = system "runcon -t test_file_r_t $basedir/mprotect_file_private_rx $basedir/temp_file 2>&1";
+ok($result);
+
+# Test success and failure for execmem on mprotect w/ file private mapping.
+$result = system "runcon -t test_execmem_t $basedir/mprotect_file_private_rwx $basedir/temp_file";
+ok($result, 0);
+$result = system "runcon -t test_no_execmem_t $basedir/mprotect_file_private_rwx $basedir/temp_file 2>&1";
+ok($result);
+
+# Test success and failure for file execmod on mprotect w/ file private mapping.
+$result = system "runcon -t test_execmod_t $basedir/mprotect_file_private_execmod $basedir/temp_file";
+ok($result, 0);
+$result = system "runcon -t test_no_execmod_t $basedir/mprotect_file_private_execmod $basedir/temp_file 2>&1";
+ok($result);
+
+# Clean up from prior runs.
+system "rm -f $basedir/temp_file";
+
+exit;
