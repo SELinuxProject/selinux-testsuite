@@ -2,6 +2,7 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <stddef.h>
 #include <string.h>
 #include <unistd.h>
@@ -17,7 +18,7 @@
 
 void usage(char *progname)
 {
-	fprintf(stderr, "usage:  %s [stream|dgram] socket-name\n", progname);
+	fprintf(stderr, "usage:  %s [-a] [stream|dgram] socket-name\n", progname);
 	exit(1);
 }
 
@@ -32,13 +33,26 @@ main(int argc, char **argv)
 	socklen_t sunlen, remotesunlen;
 	int type;
 	char byte;
+	int opt;
+	bool abstract = false;
 
-	if (argc != 3)
+	while ((opt = getopt(argc, argv, "a")) != -1) {
+		switch (opt) {
+		case 'a':
+			abstract = true;
+			break;
+		default:
+			usage(argv[0]);
+			break;
+		}
+	}
+
+	if ((argc - optind) != 2)
 		usage(argv[0]);
 
-	if (!strcmp(argv[1], "stream"))
+	if (!strcmp(argv[optind], "stream"))
 		type = SOCK_STREAM;
-	else if (!strcmp(argv[1], "dgram"))
+	else if (!strcmp(argv[optind], "dgram"))
 		type = SOCK_DGRAM;
 	else
 		usage(argv[0]);
@@ -58,10 +72,17 @@ main(int argc, char **argv)
 
 	bzero(&sun, sizeof(struct sockaddr_un));
 	sun.sun_family = AF_UNIX;
-	sun.sun_path[0] = 0;
-	strcpy(&sun.sun_path[1], argv[2]);
-	sunlen = offsetof(struct sockaddr_un, sun_path) +
-		 strlen(&sun.sun_path[1]) + 1;
+	if (abstract) {
+		sun.sun_path[0] = 0;
+		strcpy(&sun.sun_path[1], argv[optind+1]);
+		sunlen = offsetof(struct sockaddr_un, sun_path) +
+			strlen(&sun.sun_path[1]) + 1;
+	} else {
+		strcpy(sun.sun_path, argv[optind+1]);
+		unlink(sun.sun_path);
+		sunlen = offsetof(struct sockaddr_un, sun_path) +
+			strlen(sun.sun_path) + 1;
+	}
 
 	if (bind(sock, (struct sockaddr *) &sun, sunlen) < 0) {
 		perror("bind");
@@ -163,5 +184,7 @@ main(int argc, char **argv)
 	}
 
 	close(sock);
+	if (!abstract)
+		unlink(sun.sun_path);
 	exit(0);
 }

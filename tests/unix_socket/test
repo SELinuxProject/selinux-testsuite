@@ -1,23 +1,27 @@
 #!/usr/bin/perl
 
 use Test;
-BEGIN { plan tests => 4}
+BEGIN { plan tests => 8}
 
 $basedir = $0;  $basedir =~ s|(.*)/[^/]*|$1|;
 
+#
+# Tests for sockets in the abstract namespace.
+#
+
 # Start the stream server.
 if (($pid = fork()) == 0) {
-    exec "runcon -t test_unix_server_t $basedir/server stream test_server_sock";
+    exec "runcon -t test_unix_server_t $basedir/server -a stream test_server_sock";
 }
 
 sleep 1; # Give it a moment to initialize.
 
 # Verify that stream client can connectto server.
-$result = system "runcon -t test_unix_stream_client_t $basedir/client stream test_client_sock test_server_sock";
+$result = system "runcon -t test_unix_stream_client_t $basedir/client -a stream test_client_sock test_server_sock";
 ok($result, 0);
 
 # Verify that dgram client cannot connectto to server.
-$result = system "runcon -t test_unix_dgram_client_t -- $basedir/client stream test_client_sock test_server_sock 2>&1";
+$result = system "runcon -t test_unix_dgram_client_t -- $basedir/client -a stream test_client_sock test_server_sock 2>&1";
 ok($result);
 
 # Kill the server.
@@ -25,20 +29,63 @@ kill TERM, $pid;
 
 # Start the dgram server.
 if (($pid = fork()) == 0) {
-    exec "runcon -t test_unix_server_t $basedir/server dgram test_server_sock";
+    exec "runcon -t test_unix_server_t $basedir/server -a dgram test_server_sock";
 }
 
 sleep 1; # Give it a moment to initialize
 
 # Verify that dgram client can sendto server.
-$result = system "runcon -t test_unix_dgram_client_t $basedir/client dgram test_client_sock test_server_sock";
+$result = system "runcon -t test_unix_dgram_client_t $basedir/client -a dgram test_client_sock test_server_sock";
 ok($result, 0);
 
 # Verify that stream client cannot sendto server.
-$result = system "runcon -t test_unix_stream_client_t -- $basedir/client dgram test_client_sock test_server_sock 2>&1";
+$result = system "runcon -t test_unix_stream_client_t -- $basedir/client -a dgram test_client_sock test_server_sock 2>&1";
 ok($result);
 
 # Kill the server.
 kill TERM, $pid;
+
+#
+# Tests for sockets in the file namespace.
+#
+
+# Start the stream server.
+if (($pid = fork()) == 0) {
+    exec "runcon -t test_unix_server_t $basedir/server stream $basedir/test_server_sock";
+}
+
+sleep 1; # Give it a moment to initialize.
+
+# Verify that stream client can connectto server.
+$result = system "runcon -t test_unix_stream_client_t $basedir/client stream $basedir/test_client_sock $basedir/test_server_sock";
+ok($result, 0);
+
+# Verify that dgram client cannot connectto to server.
+$result = system "runcon -t test_unix_dgram_client_t -- $basedir/client stream $basedir/test_client_sock $basedir/test_server_sock 2>&1";
+ok($result);
+
+# Kill the server.
+kill TERM, $pid;
+
+# Start the dgram server.
+if (($pid = fork()) == 0) {
+    exec "runcon -t test_unix_server_t $basedir/server dgram $basedir/test_server_sock";
+}
+
+sleep 1; # Give it a moment to initialize
+
+# Verify that dgram client can sendto server.
+$result = system "runcon -t test_unix_dgram_client_t $basedir/client dgram $basedir/test_client_sock $basedir/test_server_sock";
+ok($result, 0);
+
+# Verify that stream client cannot sendto server.
+$result = system "runcon -t test_unix_stream_client_t -- $basedir/client dgram $basedir/test_client_sock $basedir/test_server_sock 2>&1";
+ok($result);
+
+# Kill the server.
+kill TERM, $pid;
+
+# Clean up.
+system "rm -f $basedir/test_client_sock $basedir/test_server_sock";
 
 exit;
