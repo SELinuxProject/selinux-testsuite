@@ -1,4 +1,11 @@
 #!/bin/sh
+# Based on http://paulmoore.livejournal.com/7234.html.
+#
+# Modifications:
+# - Only defined the local doi since we are only testing loopback and
+#   since NetLabel only supports full labeling over loopback (NetLabel
+#   CIPSOv4 only supports passing MLS labels across the network).
+
 # Define a localhost/loopback doi and apply it to the loopback address
 # so that we get full SELinux labels over loopback connections.
 netlabelctl cipsov4 add local doi:1
