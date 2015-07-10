@@ -38,23 +38,64 @@ typeattribute test_no_execmem_t mmaptestdomain;
 # For mprotect_file_private test.
 allow test_no_execmem_t test_mmap_file_t:file { open read };
 
-type test_tmpfs_execute_t;
-domain_type(test_tmpfs_execute_t)
-unconfined_runs_test(test_tmpfs_execute_t)
-typeattribute test_tmpfs_execute_t testdomain;
-typeattribute test_tmpfs_execute_t mmaptestdomain;
+type test_mprotect_anon_shared_t;
+domain_type(test_mprotect_anon_shared_t)
+unconfined_runs_test(test_mprotect_anon_shared_t)
+typeattribute test_mprotect_anon_shared_t testdomain;
+typeattribute test_mprotect_anon_shared_t mmaptestdomain;
 
 gen_require(`
 	type tmpfs_t;
 ')
-allow test_tmpfs_execute_t tmpfs_t:file { read write execute };
+# In old kernels, mprotect PROT_EXEC on an anonymous shared mapping
+# triggers a tmpfs file execute check on the kernel-internal shmem /dev/zero
+# inode.  In new kernels, mprotect PROT_EXEC will instead trigger an
+# execmem check, making it consistent with the mmap PROT_EXEC case.
+# We allow both permissions here so that the test passes regardless.
+allow test_mprotect_anon_shared_t tmpfs_t:file { read execute };
+allow test_mprotect_anon_shared_t self:process execmem;
 
-type test_no_tmpfs_execute_t;
-domain_type(test_no_tmpfs_execute_t)
-unconfined_runs_test(test_no_tmpfs_execute_t)
-typeattribute test_no_tmpfs_execute_t testdomain;
-typeattribute test_no_tmpfs_execute_t mmaptestdomain;
-allow test_no_tmpfs_execute_t tmpfs_t:file { read write };
+type test_no_mprotect_anon_shared_t;
+domain_type(test_no_mprotect_anon_shared_t)
+unconfined_runs_test(test_no_mprotect_anon_shared_t)
+typeattribute test_no_mprotect_anon_shared_t testdomain;
+typeattribute test_no_mprotect_anon_shared_t mmaptestdomain;
+allow test_no_mprotect_anon_shared_t tmpfs_t:file read;
+
+type test_mmap_dev_zero_t;
+domain_type(test_mmap_dev_zero_t)
+unconfined_runs_test(test_mmap_dev_zero_t)
+typeattribute test_mmap_dev_zero_t testdomain;
+typeattribute test_mmap_dev_zero_t mmaptestdomain;
+dev_rwx_zero(test_mmap_dev_zero_t)
+
+type test_no_mmap_dev_zero_t;
+domain_type(test_no_mmap_dev_zero_t)
+unconfined_runs_test(test_no_mmap_dev_zero_t)
+typeattribute test_no_mmap_dev_zero_t testdomain;
+typeattribute test_no_mmap_dev_zero_t mmaptestdomain;
+dev_rw_zero(test_no_mmap_dev_zero_t)
+
+type test_mprotect_dev_zero_t;
+domain_type(test_mprotect_dev_zero_t)
+unconfined_runs_test(test_mprotect_dev_zero_t)
+typeattribute test_mprotect_dev_zero_t testdomain;
+typeattribute test_mprotect_dev_zero_t mmaptestdomain;
+dev_rw_zero(test_mprotect_dev_zero_t)
+# In old kernels, mprotect PROT_EXEC on /dev/zero
+# triggers a tmpfs file execute check on the kernel-internal shmem /dev/zero
+# inode.  In new kernels, mprotect PROT_EXEC will instead trigger an
+# execmem check, making it consistent with the mmap PROT_EXEC case.
+# We allow both permissions here so that the test passes regardless.
+allow test_mprotect_dev_zero_t tmpfs_t:file { read execute };
+allow test_mprotect_dev_zero_t self:process execmem;
+
+type test_no_mprotect_dev_zero_t;
+domain_type(test_no_mprotect_dev_zero_t)
+unconfined_runs_test(test_no_mprotect_dev_zero_t)
+typeattribute test_no_mprotect_dev_zero_t testdomain;
+typeattribute test_no_mprotect_dev_zero_t mmaptestdomain;
+dev_rw_zero(test_no_mprotect_dev_zero_t)
 
 type test_file_rwx_t;
 domain_type(test_file_rwx_t)
