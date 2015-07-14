@@ -51,9 +51,10 @@ The testsuite has the following userspace dependencies on Fedora
 or RHEL beyond a minimal install:
 perl-Test-Harness # test harness used by the testsuite
 selinux-policy-devel # to build the test policy
+gcc # to build the test programs
 libselinux-devel # to build some of the test programs
+net-tools # for ifconfig, used by capable_net/test
 netlabel_tools # to load NetLabel configuration during inet_socket tests
-ipsec-tools # to load IPSEC configuration during inet_socket tests
 iptables # to load iptables SECMARK rules during inet_socket tests
 
 The testsuite requires a pre-existing base policy configuration of

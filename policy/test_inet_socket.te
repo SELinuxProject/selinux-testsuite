@@ -151,6 +151,10 @@ allow test_inet_client_t test_server_packet_t:packet { send recv };
 # Common rules for all inet socket test domains.
 #
 
+# Send/recv unlabeled packets.
+kernel_sendrecv_unlabeled_packets(inetsocketdomain)
+kernel_recvfrom_unlabeled_peer(inetsocketdomain)
+
 # Allow all of these domains to be entered from the sysadm domain.
 miscfiles_domain_entry_test_files(inetsocketdomain)
 userdom_sysadm_entry_spec_domtrans_to(inetsocketdomain)

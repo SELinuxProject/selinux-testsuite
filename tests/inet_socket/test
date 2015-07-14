@@ -80,7 +80,7 @@ $result = system "runcon -t test_inet_no_name_connect_t -- $basedir/connect 6553
 ok($result);
 
 # Load IPSEC configuration.
-system "$basedir/ipsec-load $basedir/ipsec_manual_SA";
+system "$basedir/ipsec-load";
 
 # Start the stream server.
 if (($pid = fork()) == 0) {
