@@ -4,25 +4,44 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <sys/mman.h>
+#include <sys/personality.h>
+
+void usage(const char *progname)
+{
+	fprintf(stderr, "usage: %s [-r] file\n", progname);
+	exit(1);
+}
 
 int main(int argc, char **argv)
 {
 	char *ptr;
-	int fd;
+	int fd, opt, prot = PROT_READ | PROT_WRITE | PROT_EXEC;
 
-	if (argc != 2) {
-		fprintf(stderr, "usage: %s file\n", argv[0]);
-		exit(1);
+	while ((opt = getopt(argc, argv, "r")) != -1) {
+		switch (opt) {
+		case 'r':
+			if (personality(READ_IMPLIES_EXEC) == -1) {
+				perror("personality");
+				exit(1);
+			}
+			prot &= ~PROT_EXEC;
+			break;
+		default:
+			usage(argv[0]);
+			break;
+		}
 	}
 
-	fd = open(argv[1], O_RDWR);
+	if ((argc - optind) != 1)
+		usage(argv[0]);
+
+	fd = open(argv[optind], O_RDWR);
 	if (fd < 0) {
-		perror(argv[1]);
+		perror(argv[optind]);
 		exit(1);
 	}
 
-	ptr = mmap(NULL, 4096, PROT_READ | PROT_WRITE | PROT_EXEC,
-		   MAP_SHARED, fd, 0);
+	ptr = mmap(NULL, 4096, prot, MAP_SHARED, fd, 0);
 	if (ptr == MAP_FAILED) {
 		perror("mmap");
 		close(fd);
