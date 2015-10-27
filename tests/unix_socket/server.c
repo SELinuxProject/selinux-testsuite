@@ -102,6 +102,7 @@ main(int argc, char **argv)
 			char peerlabel[256];
 			socklen_t labellen = sizeof(peerlabel);
 
+			remotesunlen = sizeof(remotesun);
 			newsock = accept(sock, (struct sockaddr *)&remotesun,
 					 &remotesunlen);
 			if (newsock < 0) {
@@ -149,7 +150,7 @@ main(int argc, char **argv)
 			memset(&msg, 0, sizeof(msg));
 			msglabel[0] = 0;
 			msg.msg_name = &remotesun;
-			msg.msg_namelen = remotesunlen;
+			msg.msg_namelen = sizeof(remotesun);
 			msg.msg_iov = &iov;
 			msg.msg_iovlen = 1;
 			msg.msg_control = &control;
