@@ -4,6 +4,11 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <sys/mman.h>
+#include <sys/personality.h>
+
+#ifndef READ_IMPLIES_EXEC
+#define READ_IMPLIES_EXEC 0x0400000
+#endif
 
 int main(int argc, char **argv)
 {
@@ -14,6 +19,14 @@ int main(int argc, char **argv)
 	if (argc != 2) {
 		fprintf(stderr, "usage: %s file\n", argv[0]);
 		exit(1);
+	}
+
+	/* clear READ_IMPLIES_EXEC if present, because it skips
+	 * check for FILE__EXECMOD in selinux_file_mprotect() */
+	rc = personality(0xffffffff);
+	if ((rc != -1) && (rc & READ_IMPLIES_EXEC)) {
+		rc &= ~READ_IMPLIES_EXEC;
+		personality(rc);
 	}
 
 	fd = open(argv[1], O_RDONLY);
