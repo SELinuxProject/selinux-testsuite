@@ -51,6 +51,7 @@ The testsuite has the following userspace dependencies on Fedora
 or RHEL beyond a minimal install:
 perl-Test # test harness used by the testsuite
 perl-Test-Harness # test harness used by the testsuite
+perl-Test-Simple # for Test::More
 selinux-policy-devel # to build the test policy
 gcc # to build the test programs
 libselinux-devel # to build some of the test programs
@@ -58,7 +59,7 @@ net-tools # for ifconfig, used by capable_net/test
 netlabel_tools # to load NetLabel configuration during inet_socket tests
 iptables # to load iptables SECMARK rules during inet_socket tests
 
-yum install perl-Test perl-Test-Harness selinux-policy-devel gcc libselinux-devel net-tools netlabel_tools iptables
+yum install perl-Test perl-Test-Harness perl-Test-Simple selinux-policy-devel gcc libselinux-devel net-tools netlabel_tools iptables
 
 The testsuite requires a pre-existing base policy configuration of
 SELinux, using either the old example policy or the reference policy
@@ -87,6 +88,9 @@ identity, e.g.:
 Check whether the SELinux kernel is in enforcing mode by running
 'getenforce'.  If it is in permissive mode, toggle it into enforcing
 mode by running 'setenforce 1'.
+
+Ensure that expand-check = 0 in /etc/selinux/semanage.conf; if not,
+edit it accordingly.
 
 To run the test suite, you can just do a 'make test' from the top-level
 directory or you can follow these broken-out steps:
