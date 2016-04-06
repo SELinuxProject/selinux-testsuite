@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 
 use Test;
-BEGIN { plan tests => 30}
+BEGIN { plan tests => 32}
 
 $basedir = $0;  $basedir =~ s|(.*)/[^/]*|$1|;
 
@@ -66,6 +66,12 @@ ok($result);
 $result = system "runcon -t test_execstack_t $basedir/mprotect_stack";
 ok($result, 0);
 $result = system "runcon -t test_execmem_t $basedir/mprotect_stack 2>&1";
+ok($result);
+
+# Test success and failure for thread execstack, independent of execmem.
+$result = system "runcon -t test_execstack_t $basedir/mprotect_stack_thread pass";
+ok($result, 0);
+$result = system "runcon -t test_execmem_t $basedir/mprotect_stack_thread fail 2>&1";
 ok($result);
 
 # Test success and failure for file execute on mmap w/ file shared mapping.
