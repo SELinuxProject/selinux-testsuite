@@ -1,5 +1,5 @@
 
-POLDEV = /usr/share/selinux/devel
+POLDEV ?= /usr/share/selinux/devel
 SEMODULE = /usr/sbin/semodule
 CHECKPOLICY = /usr/bin/checkpolicy
 
@@ -26,6 +26,9 @@ ifeq ($(shell [ $(POL_VERS) -ge 24 ] && echo true),true)
 TARGETS += test_bounds.te
 endif
 
+ifeq ($(shell grep -q cap_userns $(POLDEV)/include/support/all_perms.spt && echo true),true)
+TARGETS += test_cap_userns.te
+endif
 
 ifeq (x$(RHEL_VERS),$(filter x$(RHEL_VERS),x4 x5))
 	BUILD_TARGET := build_rhel
