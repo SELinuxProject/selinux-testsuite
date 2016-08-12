@@ -3,7 +3,7 @@ use Test::More;
 
 BEGIN {
     # check if ip xfrm supports ctx parameter
-    if (system("ip xfrm policy help 2>&1 | grep ctx") != 0) {
+    if (system("ip xfrm policy help 2>&1 | grep -q ctx") != 0) {
         plan skip_all => "ctx not supported in ip xfrm policy";
     } else {
         plan tests => 20;
