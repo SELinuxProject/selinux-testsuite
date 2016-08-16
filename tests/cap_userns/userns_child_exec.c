@@ -8,7 +8,11 @@
    namespace(s); allow UID and GID mappings to be specified when
    creating a user namespace.
 */
+
+#ifndef _GNU_SOURCE
 #define _GNU_SOURCE
+#endif
+
 #include <sched.h>
 #include <unistd.h>
 #include <stdlib.h>
