@@ -68,7 +68,7 @@ load_rhel: all
 
 load_general: all
 	# General policy load
-	/usr/sbin/setsebool allow_domain_fd_use=0
+	@-/usr/sbin/setsebool allow_domain_fd_use=0
 	$(SEMODULE) -i test_policy/test_policy.pp
 
 unload_rhel:
@@ -77,7 +77,7 @@ unload_rhel:
 
 unload_general:
 	# General policy unload
-	/usr/sbin/setsebool allow_domain_fd_use=1
+	@-/usr/sbin/setsebool allow_domain_fd_use=1
 	$(SEMODULE) -r test_policy
 
 clean:
