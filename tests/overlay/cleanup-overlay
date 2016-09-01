@@ -1,0 +1,12 @@
+#!/bin/bash
+
+BASEDIR=$1
+
+cleanup (){
+  umount $BASEDIR/container1/merged 2> /dev/null
+  rm -rf $BASEDIR/container1/ $BASEDIR/lower/
+}
+
+#Main script
+[ -z "$BASEDIR" ] && BASEDIR=$PWD
+cleanup
