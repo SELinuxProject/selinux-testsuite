@@ -6,7 +6,7 @@ BEGIN {
     if (system("grep -q security_inode_copy_up /proc/kallsyms")) {
         plan skip_all => "overlayfs not supported with SELinux in this kernel";
     } else {
-        plan tests => 101;
+        plan tests => 107;
     }
 }
 
@@ -460,6 +460,44 @@ sub test_72_ctx {
 	return;
 }
 
+sub test_80 {
+	print "Check unlink access on mounterfile, should fail.\n";
+	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 unlink $basedir/container1/merged/mounterfile 2>/dev/null");
+	ok($result);
+	return;
+}
+
+sub test_80_ctx {
+	print "Check unlink access on mounterfile, should succeed.\n";
+	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 unlink $basedir/container1/merged/mounterfile >/dev/null");
+	ok($result == 0);
+	return;
+}
+
+sub test_81 {
+	print "Attempting to create file inside mounterdir should fail.\n";
+	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 touch $basedir/container1/merged/mounterdir/bar >/dev/null 2>&1");
+	ok($result);
+	return;
+}
+
+# For context mounts, attempt to create file inside mounterdir should succeed.
+# Copy up will take place and mounterdir will have a writable label on upper
+# And dir creation should succeed.
+sub test_81_ctx {
+	print "Attempting to create file inside mounterdir should succeed.\n";
+	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 touch $basedir/container1/merged/mounterdir/bar >/dev/null");
+	ok($result eq 0);
+	return;
+}
+
+sub test_82 {
+	print "Attempting to write to mounter null device should fail\n";
+	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 $basedir/append $basedir/container1/merged/null_mounter >/dev/null 2>&1");
+	ok($result);
+	return;
+}
+
 $basedir = $0;  $basedir =~ s|(.*)/[^/]*|$1|;
 
 cleanup();
@@ -559,6 +597,9 @@ print "=====================================================\n";
 test_70();
 test_71();
 test_72();
+test_80();
+test_81();
+test_82();
 }
 
 sub context_test {
@@ -660,6 +701,13 @@ print "=====================================================\n";
 test_70_ctx();
 test_71();
 test_72_ctx();
+
+print "=====================================================\n";
+print "Mounter tests.\n";
+print "=====================================================\n";
+test_80_ctx();
+test_81_ctx();
+test_82();
 }
 
 nocontext_test();
