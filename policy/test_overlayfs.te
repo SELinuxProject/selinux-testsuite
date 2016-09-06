@@ -114,7 +114,7 @@ unconfined_runs_test(test_overlay_client_t)
 mcs_constrained(test_overlay_client_t)
 
 corecmd_shell_entry_type(test_overlay_client_t)
-corecmd_entrypoint_all_executables(test_overlay_client_t)
+corecmd_bin_entry_type(test_overlay_client_t)
 corecmd_exec_bin(test_overlay_client_t)
 
 kernel_search_proc(test_overlay_client_t)
