@@ -6,7 +6,7 @@ BEGIN {
     if (system("grep -q security_inode_copy_up /proc/kallsyms")) {
         plan skip_all => "overlayfs not supported with SELinux in this kernel";
     } else {
-        plan tests => 107;
+        plan tests => 121;
     }
 }
 
@@ -29,6 +29,13 @@ sub access {
 	return $output;
 }
 
+sub xattr_test_setup {
+	print "Setting up xattr test\n";
+	system ("touch $basedir/container1/merged/writefile >/dev/null");
+	system ("unlink $basedir/container1/upper/readfile >/dev/null 2>/dev/null");
+	system ("unlink $basedir/container1/upper/noaccessfile >/dev/null 2> /dev/null");
+	return;
+}
 # Tests
 sub test_1 {
 	print "Attempting to cat readfile should succeed.\n";
@@ -498,6 +505,63 @@ sub test_82 {
 	return;
 }
 
+sub test_90_1 {
+	print "Attempting to enter domain with bad entrypoint, should fail.\n";
+	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 $basedir/container1/merged/badentrypoint >/dev/null 2>&1");
+	ok($result);
+	return;
+}
+
+sub test_90_2 {
+	print "Attempting to enter domain with good entrypoint, should succeed.\n";
+	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 $basedir/container1/merged/goodentrypoint >/dev/null");
+	ok($result eq 0);
+	return;
+}
+
+sub test_91_1 {
+	print "Attempting to setfattr on writefile, should succeed.\n";
+	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 setfattr -n user.foo -v bar $basedir/container1/merged/writefile >/dev/null");
+	ok($result eq 0);
+	return;
+}
+
+sub test_91_2 {
+	print "Attempting to getfattr on writefile, should succeed.\n";
+	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 getfattr -n user.foo $basedir/container1/merged/writefile >/dev/null");
+	ok($result eq 0);
+	return;
+}
+
+sub test_91_3 {
+	print "Attempting to remove xattr on writefile, should succeed.\n";
+	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 setfattr -x user.foo $basedir/container1/merged/writefile >/dev/null");
+	ok($result eq 0);
+	return;
+}
+
+sub test_92_1 {
+	print "Attempting to setfattr on readfile, should fail.\n";
+	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 setfattr -n user.foo -v bar $basedir/container1/merged/readfile >/dev/null 2>/dev/null");
+	ok($result);
+	return;
+}
+
+sub test_92_1_ctx {
+	print "Attempting to setfattr on readfile, should succeed.\n";
+	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 setfattr -n user.foo -v bar $basedir/container1/merged/readfile >/dev/null");
+	ok($result eq 0);
+	return;
+}
+
+sub test_93_1 {
+	print "Attempting to setfattr on noaccessfile, should fail.\n";
+	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 setfattr -n user.foo -v bar $basedir/container1/merged/noaccessfile >/dev/null 2>/dev/null");
+	ok($result);
+	return;
+}
+
+
 $basedir = $0;  $basedir =~ s|(.*)/[^/]*|$1|;
 
 cleanup();
@@ -600,6 +664,20 @@ test_72();
 test_80();
 test_81();
 test_82();
+print "=====================================================\n";
+print "Entrypoint tests.\n";
+print "=====================================================\n";
+test_90_1();
+test_90_2();
+print "=====================================================\n";
+print "xattr tests.\n";
+print "=====================================================\n";
+xattr_test_setup();
+test_91_1();
+test_91_2();
+test_91_3();
+test_92_1();
+test_93_1();
 }
 
 sub context_test {
@@ -708,6 +786,20 @@ print "=====================================================\n";
 test_80_ctx();
 test_81_ctx();
 test_82();
+print "=====================================================\n";
+print "Bad Entrypoint tests.\n";
+print "=====================================================\n";
+test_90_1();
+test_90_2();
+print "=====================================================\n";
+print "xattr tests.\n";
+print "=====================================================\n";
+xattr_test_setup();
+test_91_1();
+test_91_2();
+test_91_3();
+test_92_1_ctx();
+test_93_1();
 }
 
 nocontext_test();
