@@ -17,8 +17,8 @@ sub cleanup() {
 
 sub getfilecon {
         my ($filename) = @_;
-	$output = `ls -dZ $filename | cut -f1 -d' '`;
-	$output =~ s/\n//g;
+	$output = `getfattr -d -n security.selinux $filename --only-values 2> /dev/null`;
+	chop($output);
 	return $output;
 }
 
