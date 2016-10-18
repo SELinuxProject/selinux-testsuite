@@ -9,15 +9,19 @@ setup () {
     chcon -t shell_exec_t $BASEDIR/append $BASEDIR/access
     # Create and populate the lower directory.
     # This would be e.g. a Fedora image in the container scenario.
-    mkdir -p $BASEDIR/lower/readdir $BASEDIR/lower/writedir $BASEDIR/lower/noaccessdir
+    mkdir -p $BASEDIR/lower/readdir $BASEDIR/lower/writedir $BASEDIR/lower/noaccessdir $BASEDIR/lower/mounterdir
     echo read > $BASEDIR/lower/readfile
     echo write > $BASEDIR/lower/writefile
     echo noaccess > $BASEDIR/lower/noaccessfile
+    echo mounter > $BASEDIR/lower/mounterfile
     echo transition > $BASEDIR/lower/transition
+    cp $BASEDIR/badentrypoint $BASEDIR/lower/
+    cp $BASEDIR/goodentrypoint $BASEDIR/lower/
 
     mknod $BASEDIR/lower/null_read c 1 3
     mknod $BASEDIR/lower/null_write c 1 3
     mknod $BASEDIR/lower/null_noaccess c 1 3
+    mknod $BASEDIR/lower/null_mounter c 1 3
 
     # Label the lower directory with a read/only type (test_overlay_files_ro_t)
     # not writable by overlay process types
@@ -27,9 +31,10 @@ setup () {
     # Label noaccessfile and noaccessdir, with types not accessable to either the
     # mounter or the client types
     chcon -t test_overlay_files_noaccess_t $BASEDIR/lower/noaccessfile $BASEDIR/lower/noaccessdir $BASEDIR/lower/null_noaccess
+    chcon -t test_overlay_mounter_files_t $BASEDIR/lower/mounterfile $BASEDIR/lower/mounterdir $BASEDIR/lower/null_mounter
     # Label writefile on lower with a type that is writable by the client which
     # should allow copy up and write.
-    chcon -t test_overlay_files_rwx_t $BASEDIR/lower/writefile $BASEDIR/lower/writedir $BASEDIR/lower/null_write $BASEDIR/lower/transition
+    chcon -t test_overlay_files_rwx_t $BASEDIR/lower/writefile $BASEDIR/lower/writedir $BASEDIR/lower/null_write $BASEDIR/lower/transition $BASEDIR/lower/goodentrypoint
     # Create a directory per container.
     mkdir -p $BASEDIR/container1
 

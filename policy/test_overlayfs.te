@@ -68,6 +68,7 @@ selinux_getattr_fs(test_overlay_mounter_t)
 allow test_overlay_mounter_t test_overlay_files_ro_t:file mounton;
 allow test_overlay_mounter_t test_overlay_files_rwx_t:{dir file} mounton;
 allow test_overlay_mounter_t test_overlay_files_rwx_t:filesystem { mount relabelfrom relabelto };
+can_exec(test_overlay_mounter_t, test_overlay_files_ro_t)
 
 #
 # Mounter should be allowed to search/read r/o directories and files
@@ -148,6 +149,7 @@ manage_lnk_files_pattern(test_overlay_client_t, test_overlay_files_rwx_t, test_o
 rw_chr_files_pattern(test_overlay_client_t, test_overlay_files_rwx_t, test_overlay_files_rwx_t)
 manage_sock_files_pattern(test_overlay_client_t, test_overlay_files_rwx_t, test_overlay_files_rwx_t)
 can_exec(test_overlay_client_t, test_overlay_files_rwx_t)
+allow test_overlay_client_t test_overlay_files_rwx_t:file entrypoint;
 
 #
 # Client needs to manage test_overlay_transition_files_t and transition on file named "transition"
@@ -168,6 +170,7 @@ can_exec(test_overlay_client_t,test_file_t)
 #
 allow test_overlay_client_t test_overlay_files_rwx_t:file { relabelto relabelfrom };
 allow test_overlay_mounter_t test_overlay_files_rwx_t:file { relabelto relabelfrom };
+can_exec(test_overlay_mounter_t, test_overlay_files_rwx_t)
 
 #
 # Server needs to manage socket files
