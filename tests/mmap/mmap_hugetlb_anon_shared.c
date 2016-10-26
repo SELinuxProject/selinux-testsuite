@@ -4,6 +4,10 @@
 #include <errno.h>
 #include <sys/mman.h>
 
+#ifndef MAP_HUGETLB
+# define MAP_HUGETLB 0x40000
+#endif
+
 #define LENGTH (2*1024*1024)
 
 int main(void)
