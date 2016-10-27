@@ -31,6 +31,8 @@ allow test_execmem_t self:process execmem;
 allow test_execmem_t test_mmap_file_t:file { open read execute };
 # For mmap_hugetlb_anon_shared test.
 allow test_execmem_t hugetlbfs_t:file { read write execute };
+# For shmat test.
+allow test_execmem_t self:shm create_shm_perms;
 # For shmat test on old kernels.
 allow test_execmem_t tmpfs_t:file { read write execute };
 
@@ -43,6 +45,8 @@ typeattribute test_no_execmem_t mmaptestdomain;
 allow test_no_execmem_t test_mmap_file_t:file { open read };
 # For mmap_hugetlb_anon_shared test.
 allow test_no_execmem_t hugetlbfs_t:file { read write };
+# For shmat test.
+allow test_no_execmem_t self:shm create_shm_perms;
 # For shmat test on old kernels: no execmem check, only tmpfs write+execute.
 allow test_no_execmem_t tmpfs_t:file { read write };
 
