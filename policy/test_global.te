@@ -54,7 +54,7 @@ files_search_tmp(testdomain)
 libs_use_ld_so(testdomain)
 libs_use_shared_libs(testdomain)
 
-allow testdomain proc_t:file { getattr read };
+allow testdomain proc_t:file { getattr read open };
 files_list_var(testdomain)
 files_list_home(testdomain)
 dev_read_rand(testdomain)
