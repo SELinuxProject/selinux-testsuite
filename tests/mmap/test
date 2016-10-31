@@ -2,14 +2,21 @@
 
 use Test;
 BEGIN {
-	$test_count = 38;
+	$test_count = 34;
 	$test_hugepages = 0;
+	$test_exec_checking = 0;
 
 	system("echo 1 > /proc/sys/vm/nr_hugepages 2> /dev/null");
 	if (system("grep -q 1 /proc/sys/vm/nr_hugepages 2> /dev/null") == 0) {
 		$test_hugepages = 1;
 		$test_count += 8;
 	}
+
+	if (system("grep -q 0 /sys/fs/selinux/checkreqprot 2> /dev/null") == 0) {
+		$test_exec_checking = 1;
+		$test_count += 4;
+	}
+
 	plan tests => $test_count
 }
 
@@ -78,11 +85,13 @@ ok($result, 0);
 $result = system "runcon -t test_execmem_t $basedir/mprotect_stack 2>&1";
 ok($result);
 
-# Repeat tests using personality(READ_IMPLIES_EXEC) instead of explicit PROT_EXEC.
-$result = system "runcon -t test_execstack_t -- $basedir/mprotect_stack -r";
-ok($result, 0);
-$result = system "runcon -t test_execmem_t -- $basedir/mprotect_stack -r 2>&1";
-ok($result);
+if ($test_exec_checking) {
+	# Repeat tests using personality(READ_IMPLIES_EXEC) instead of explicit PROT_EXEC.
+	$result = system "runcon -t test_execstack_t -- $basedir/mprotect_stack -r";
+	ok($result, 0);
+	$result = system "runcon -t test_execmem_t -- $basedir/mprotect_stack -r 2>&1";
+	ok($result);
+}
 
 # Test success and failure for thread execstack, independent of execmem.
 $result = system "runcon -t test_execstack_t $basedir/mprotect_stack_thread pass";
@@ -96,11 +105,13 @@ ok($result, 0);
 $result = system "runcon -t test_file_rw_t $basedir/mmap_file_shared $basedir/temp_file 2>&1";
 ok($result);
 
-# Repeat tests using personality(READ_IMPLIES_EXEC) instead of explicit PROT_EXEC.
-$result = system "runcon -t test_file_rwx_t -- $basedir/mmap_file_shared -r $basedir/temp_file";
-ok($result, 0);
-$result = system "runcon -t test_file_rw_t -- $basedir/mmap_file_shared -r $basedir/temp_file 2>&1";
-ok($result);
+if ($test_exec_checking) {
+	# Repeat tests using personality(READ_IMPLIES_EXEC) instead of explicit PROT_EXEC.
+	$result = system "runcon -t test_file_rwx_t -- $basedir/mmap_file_shared -r $basedir/temp_file";
+	ok($result, 0);
+	$result = system "runcon -t test_file_rw_t -- $basedir/mmap_file_shared -r $basedir/temp_file 2>&1";
+	ok($result);
+}
 
 # Test success and failure for file execute on mprotect w/ file shared mapping.
 $result = system "runcon -t test_file_rwx_t $basedir/mprotect_file_shared $basedir/temp_file";
