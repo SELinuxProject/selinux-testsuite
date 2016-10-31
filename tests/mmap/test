@@ -1,7 +1,17 @@
 #!/usr/bin/perl
 
 use Test;
-BEGIN { plan tests => 46}
+BEGIN {
+	$test_count = 38;
+	$test_hugepages = 0;
+
+	system("echo 1 > /proc/sys/vm/nr_hugepages 2> /dev/null");
+	if (system("grep -q 1 /proc/sys/vm/nr_hugepages 2> /dev/null") == 0) {
+		$test_hugepages = 1;
+		$test_count += 8;
+	}
+	plan tests => $test_count
+}
 
 $basedir = $0;  $basedir =~ s|(.*)/[^/]*|$1|;
 
@@ -122,33 +132,33 @@ ok($result, 0);
 $result = system "runcon -t test_no_execmod_t $basedir/mprotect_file_private_execmod $basedir/temp_file 2>&1";
 ok($result);
 
-system "echo 1 > /proc/sys/vm/nr_hugepages";
+if ($test_hugepages) {
+	# Test success and failure for execmem on mmap w/ hugetlb anonymous shared memory.
+	$result = system "runcon -t test_execmem_t $basedir/mmap_hugetlb_anon_shared";
+	ok($result, 0);
+	$result = system "runcon -t test_no_execmem_t $basedir/mmap_hugetlb_anon_shared 2>&1";
+	ok($result);
 
-# Test success and failure for execmem on mmap w/ hugetlb anonymous shared memory.
-$result = system "runcon -t test_execmem_t $basedir/mmap_hugetlb_anon_shared";
-ok($result, 0);
-$result = system "runcon -t test_no_execmem_t $basedir/mmap_hugetlb_anon_shared 2>&1";
-ok($result);
+	# Test success and failure for execmem on mprotect w/ hugetlb anonymous shared memory.
+	$result = system "runcon -t test_mprotect_anon_shared_t $basedir/mprotect_hugetlb_anon_shared";
+	ok($result, 0);
+	$result = system "runcon -t test_no_mprotect_anon_shared_t $basedir/mprotect_hugetlb_anon_shared 2>&1";
+	ok($result);
 
-# Test success and failure for execmem on mprotect w/ hugetlb anonymous shared memory.
-$result = system "runcon -t test_mprotect_anon_shared_t $basedir/mprotect_hugetlb_anon_shared";
-ok($result, 0);
-$result = system "runcon -t test_no_mprotect_anon_shared_t $basedir/mprotect_hugetlb_anon_shared 2>&1";
-ok($result);
+	# Test success and failure for execmem on mmap w/ hugetlb anonymous private memory.
+	$result = system "runcon -t test_execmem_t $basedir/mmap_hugetlb_anon_private";
+	ok($result, 0);
+	$result = system "runcon -t test_no_execmem_t $basedir/mmap_hugetlb_anon_private 2>&1";
+	ok($result);
 
-# Test success and failure for execmem on mmap w/ hugetlb anonymous private memory.
-$result = system "runcon -t test_execmem_t $basedir/mmap_hugetlb_anon_private";
-ok($result, 0);
-$result = system "runcon -t test_no_execmem_t $basedir/mmap_hugetlb_anon_private 2>&1";
-ok($result);
+	# Test success and failure for execmem on mprotect w/ hugetlb anonymous private memory.
+	$result = system "runcon -t test_mprotect_anon_shared_t $basedir/mprotect_hugetlb_anon_private";
+	ok($result, 0);
+	$result = system "runcon -t test_no_mprotect_anon_shared_t $basedir/mprotect_hugetlb_anon_private 2>&1";
+	ok($result);
 
-# Test success and failure for execmem on mprotect w/ hugetlb anonymous private memory.
-$result = system "runcon -t test_mprotect_anon_shared_t $basedir/mprotect_hugetlb_anon_private";
-ok($result, 0);
-$result = system "runcon -t test_no_mprotect_anon_shared_t $basedir/mprotect_hugetlb_anon_private 2>&1";
-ok($result);
-
-system "echo 0 > /proc/sys/vm/nr_hugepages";
+	system "echo 0 > /proc/sys/vm/nr_hugepages";
+}
 
 # Test success and failure for execmem on shmat SHM_EXEC.
 $result = system "runcon -t test_execmem_t $basedir/shmat";
