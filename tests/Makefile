@@ -4,24 +4,28 @@ export CFLAGS+=-g -O0 -Wall -D_GNU_SOURCE
 
 DISTRO=$(shell ./os_detect)
 
-SUBDIRS_COMMON:=domain_trans entrypoint execshare exectrace execute_no_trans fdreceive inherit link mkdir msg open ptrace readlink relabel rename rxdir sem setattr setnice shm sigkill stat sysctl task_create task_setnice task_setscheduler task_getscheduler task_getsid task_getpgid task_setpgid wait file ioctl capable_file capable_net capable_sys
-
-SUBDIRS:= $(SUBDIRS_COMMON) dyntrans dyntrace bounds nnp mmap unix_socket inet_socket overlay
+SUBDIRS:=domain_trans entrypoint execshare exectrace execute_no_trans \
+	fdreceive inherit link mkdir msg open ptrace readlink relabel rename \
+	rxdir sem setattr setnice shm sigkill stat sysctl task_create \
+	task_setnice task_setscheduler task_getscheduler task_getsid \
+	task_getpgid task_setpgid wait file ioctl capable_file capable_net \
+	capable_sys dyntrans dyntrace bounds nnp mmap unix_socket inet_socket \
+	overlay checkreqprot
 
 ifeq ($(shell grep -q cap_userns $(POLDEV)/include/support/all_perms.spt && echo true),true)
 SUBDIRS += cap_userns
 endif
 
 ifeq ($(DISTRO),RHEL4)
-    SUBDIRS:=$(SUBDIRS_COMMON)
+    SUBDIRS:=$(filter-out bounds dyntrace dyntrans inet_socket mmap nnp overlay unix_socket, $(SUBDIRS))
 endif
 
 ifeq ($(DISTRO),RHEL5)
-    SUBDIRS:=$(SUBDIRS_COMMON) dyntrace dyntrans
+    SUBDIRS:=$(filter-out bounds inet_socket mmap nnp overlay unix_socket, $(SUBDIRS))
 endif
 
 ifeq ($(DISTRO),RHEL6)
-    SUBDIRS:=$(SUBDIRS_COMMON) dyntrace dyntrans bounds mmap unix_socket inet_socket
+    SUBDIRS:=$(filter-out nnp overlay, $(SUBDIRS))
 endif
 
 .PHONY: all test clean

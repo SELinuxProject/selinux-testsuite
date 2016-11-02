@@ -1,0 +1,13 @@
+#!/usr/bin/perl
+
+use Test;
+BEGIN {
+	plan tests => 1
+}
+
+$basedir = $0;  $basedir =~ s|(.*)/[^/]*|$1|;
+
+$result = system("$basedir/default_value.sh");
+ok($result, 0);
+
+exit;

@@ -3,8 +3,8 @@ POLDEV ?= /usr/share/selinux/devel
 SEMODULE = /usr/sbin/semodule
 CHECKPOLICY = /usr/bin/checkpolicy
 
-RHEL_REL=$(shell rpm -q redhat-release)
-RHEL_VERS=$(shell echo $(RHEL_REL) | cut -f3 -d"-" | sed -e "s/[^0-9]*//g")
+DISTRO=$(shell ../tests/os_detect)
+RHEL_VERS=$(shell echo $(DISTRO) | sed 's/RHEL//')
 
 POL_VERS := $(shell $(CHECKPOLICY) -V |cut -f 1 -d ' ')
 
@@ -30,7 +30,11 @@ ifeq ($(shell grep -q cap_userns $(POLDEV)/include/support/all_perms.spt && echo
 TARGETS += test_cap_userns.te
 endif
 
-ifeq (x$(RHEL_VERS),$(filter x$(RHEL_VERS),x4 x5))
+ifeq (x$(DISTRO),$(filter x$(DISTRO),xRHEL4 xRHEL5 xRHEL6))
+TARGETS:=$(filter-out test_overlayfs.te, $(TARGETS))
+endif
+
+ifeq (x$(DISTRO),$(filter x$(DISTRO),xRHEL4 xRHEL5))
 	BUILD_TARGET := build_rhel
 	LOAD_TARGET := load_rhel
 	UNLOAD_TARGET := unload_rhel
