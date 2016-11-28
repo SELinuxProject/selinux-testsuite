@@ -36,3 +36,4 @@ attribute waitdomain;
 attribute test_getpgid_d;
 attribute dyntracedomain;
 attribute dyntransdomain;
+attribute mqopdomain;

@@ -1,0 +1,99 @@
+#################################
+#
+# Policy for testing posix mqueue operations
+#
+
+attribute mqopdomain;
+
+# Domain for process that is allowed to create and fully
+# access all of the  posix mqueues.
+type test_mqmanageop_t;
+domain_type(test_mqmanageop_t)
+unconfined_runs_test(test_mqmanageop_t)
+domain_obj_id_change_exemption(test_mqmanageop_t)
+typeattribute test_mqmanageop_t mqopdomain;
+typeattribute test_mqmanageop_t testdomain;
+
+# Domain for process that is allowed to read the read posix mqueues
+type test_mqreadop_t;
+domain_type(test_mqreadop_t)
+unconfined_runs_test(test_mqreadop_t)
+domain_obj_id_change_exemption(test_mqreadop_t)
+typeattribute test_mqreadop_t mqopdomain;
+typeattribute test_mqreadop_t testdomain;
+
+# Domain for process that is allowed to wirte to write posix mqueues
+type test_mqwriteop_t;
+domain_type(test_mqwriteop_t)
+unconfined_runs_test(test_mqwriteop_t)
+domain_obj_id_change_exemption(test_mqwriteop_t)
+typeattribute test_mqwriteop_t mqopdomain;
+typeattribute test_mqwriteop_t testdomain;
+
+require {
+	type device_t;
+	type tmpfs_t;
+}
+
+
+# Type for test files
+type mqop_file_t;
+files_type(mqop_file_t)
+
+# Type for executable test files
+type mqop_exec_t;
+files_type(mqop_exec_t)
+
+# Type for mqueue files for regular file transitions
+type mqop_mqbase_t;
+files_type(mqop_mqbase_t)
+
+# type for a named type transitions for read queue
+type mqop_mqread_t;
+files_type(mqop_mqread_t)
+
+# type for a named type transitions for write queue
+type mqop_mqwrite_t;
+files_type(mqop_mqwrite_t)
+
+# type for a named type transitions for read/write queue
+type mqop_mqrw_t;
+files_type(mqop_mqrw_t)
+
+
+# basic permision for all mqopdomains
+miscfiles_domain_entry_test_files(mqopdomain)
+userdom_sysadm_entry_spec_domtrans_to(mqopdomain)
+
+corecmd_bin_entry_type(mqopdomain)
+sysadm_bin_spec_domtrans_to(mqopdomain)
+
+allow mqopdomain device_t:dir search_dir_perms;
+allow mqopdomain tmpfs_t:dir search_dir_perms;
+
+# domain entry for the three test domains
+domain_entry_file(test_mqmanageop_t, mqop_exec_t)
+domain_entry_file(test_mqreadop_t, mqop_exec_t)
+domain_entry_file(test_mqwriteop_t, mqop_exec_t)
+
+# permissions for create/manager domain to manage the queues
+allow test_mqmanageop_t tmpfs_t:dir manage_dir_perms;
+allow test_mqmanageop_t mqop_mqbase_t:file manage_file_perms;
+allow test_mqmanageop_t mqop_mqread_t:file manage_file_perms;
+allow test_mqmanageop_t mqop_mqwrite_t:file manage_file_perms;
+allow test_mqmanageop_t mqop_mqrw_t:file manage_file_perms;
+
+# type transitions for new queues
+type_transition test_mqmanageop_t tmpfs_t:file mqop_mqbase_t;
+type_transition test_mqmanageop_t tmpfs_t:file mqop_mqread_t "mqread";
+type_transition test_mqmanageop_t tmpfs_t:file mqop_mqwrite_t "mqwrite";
+type_transition test_mqmanageop_t tmpfs_t:file mqop_mqrw_t "mqrw";
+
+# permissions for the read domain to read from the read and r/w queues
+allow test_mqreadop_t mqop_mqread_t:file read_file_perms;
+allow test_mqreadop_t mqop_mqrw_t:file read_file_perms;
+
+# permissions for the write domain to write from the write and r/w queue
+allow test_mqwriteop_t mqop_mqwrite_t:file write_file_perms;
+allow test_mqwriteop_t mqop_mqrw_t:file write_file_perms;
+
