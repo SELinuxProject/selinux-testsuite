@@ -39,10 +39,10 @@ int main(int argc, char **argv)
 		mq_unlink(argv[1]);
 	} else if(argv[2][0] == '1') {
 		fd = mq_open(argv[1], O_CREAT, 0664, &attr);
-		if (fd != -1){
+		if (fd != -1) {
 			mq_close(fd);
-		}else{
-			printf("mqmgr:create:errno = %d\n",errno);
+		} else {
+			printf("mqmgr:create:errno = %d\n", errno);
 			exit(2);
 		}
 	} else {

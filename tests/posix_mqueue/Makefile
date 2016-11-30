@@ -1,6 +1,5 @@
 TARGETS=$(patsubst %.c,%,$(wildcard *.c))
-LDLIBS += -lselinux -lrt
-test_sigiotask: LDLIBS += -lutil
+LDLIBS += -lrt
 all: $(TARGETS)
 clean:
 	rm -f $(TARGETS)

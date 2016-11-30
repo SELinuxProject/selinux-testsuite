@@ -20,15 +20,15 @@ int main(int argc, char **argv)
 		return 2;
 	}
 
-	fd = mq_open(argv[1], O_RDONLY|O_NONBLOCK);
+	fd = mq_open(argv[1], O_RDONLY | O_NONBLOCK);
 	if (fd == -1) {
-		printf("mqrcv: mq_open: errno = %d\n",errno);
+		printf("mqrcv: mq_open: errno = %d\n", errno);
 		return 2;
 	}
 
-	size = mq_receive(fd, buffer, 20,NULL);
+	size = mq_receive(fd, buffer, 20, NULL);
 	if (size == -1) {
-		printf("mqrcv: mq_receive: errno = %d\n",errno);
+		printf("mqrcv: mq_receive: errno = %d\n", errno);
 		return 2;
 	}
 
