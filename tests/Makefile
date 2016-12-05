@@ -10,7 +10,7 @@ SUBDIRS:=domain_trans entrypoint execshare exectrace execute_no_trans \
 	task_setnice task_setscheduler task_getscheduler task_getsid \
 	task_getpgid task_setpgid wait file ioctl capable_file capable_net \
 	capable_sys dyntrans dyntrace bounds nnp mmap unix_socket inet_socket \
-	overlay checkreqprot posix_mqueue
+	overlay checkreqprot mqueue
 
 ifeq ($(shell grep -q cap_userns $(POLDEV)/include/support/all_perms.spt && echo true),true)
 SUBDIRS += cap_userns
@@ -30,7 +30,7 @@ endif
 
 .PHONY: all test clean
 
-all: 
+all:
 	@for subdir in $(SUBDIRS); do \
 		(cd $$subdir && $(MAKE) $@) || exit 1; \
 	done
@@ -40,7 +40,7 @@ test: all
 	chcon -R -t test_file_t .
 	@SUBDIRS="$(SUBDIRS)" PATH=/usr/bin:/bin:/usr/sbin:/sbin ./runtests.pl
 
-clean: 
+clean:
 	@for subdir in $(SUBDIRS); do \
 		(cd $$subdir && $(MAKE) $@) || exit 1; \
 	done
