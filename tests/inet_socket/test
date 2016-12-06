@@ -6,14 +6,14 @@ BEGIN {
     if (system("ip xfrm policy help 2>&1 | grep -q ctx") != 0) {
         plan skip_all => "ctx not supported in ip xfrm policy";
     } else {
-        plan tests => 20;
+        plan tests => 33;
     }
 }
 
 $basedir = $0;  $basedir =~ s|(.*)/[^/]*|$1|;
 
-# Load NetLabel configuration.
-system "$basedir/netlabel-load";
+# Load NetLabel configuration for full CIPSO4 labeling over loopback.
+system "$basedir/cipso-fl-load";
 
 # Start the stream server.
 if (($pid = fork()) == 0) {
@@ -23,11 +23,11 @@ if (($pid = fork()) == 0) {
 sleep 1; # Give it a moment to initialize.
 
 # Verify that authorized client can communicate with the server.
-$result = system "runcon -t test_inet_client_t $basedir/client stream 65535";
+$result = system "runcon -t test_inet_client_t $basedir/client stream 127.0.0.1 65535";
 ok($result eq 0);
 
 # Verify that unauthorized client cannot communicate with the server.
-$result = system "runcon -t test_inet_bad_client_t -- $basedir/client stream 65535 2>&1";
+$result = system "runcon -t test_inet_bad_client_t -- $basedir/client stream 127.0.0.1 65535 2>&1";
 ok($result);
 
 # Kill the server.
@@ -41,18 +41,64 @@ if (($pid = fork()) == 0) {
 sleep 1; # Give it a moment to initialize
 
 # Verify that authorized client can communicate with the server.
-$result = system "runcon -t test_inet_client_t $basedir/client dgram 65535";
+$result = system "runcon -t test_inet_client_t $basedir/client dgram 127.0.0.1 65535";
 ok($result eq 0);
 
 # Verify that unauthorized client cannot communicate with the server.
-$result = system "runcon -t test_inet_bad_client_t -- $basedir/client dgram 65535 2>&1";
+$result = system "runcon -t test_inet_bad_client_t -- $basedir/client dgram 127.0.0.1 65535 2>&1";
 ok($result);
 
 # Kill the server.
 kill TERM, $pid;
 
 # Flush NetLabel configuration.
-system "$basedir/netlabel-flush";
+system "$basedir/cipso-fl-flush";
+
+# Load NetLabel configuration for CIPSO4 over loopback.
+system "$basedir/cipso-load";
+
+# Start the stream server with a defined level.
+if (($pid = fork()) == 0) {
+    exec "runcon -t test_inet_server_t -l s0:c0.c10 $basedir/server stream 65535";
+}
+
+sleep 1; # Give it a moment to initialize.
+
+# Verify that authorized client can communicate with the server using level.
+$result = system "runcon -t test_inet_client_t -l s0:c0.c10 $basedir/client -e system_u:object_r:netlabel_peer_t:s0:c0.c10 stream 127.0.0.1 65535";
+ok($result eq 0);
+
+# Verify that authorized client can communicate with the server using level.
+$result = system "runcon -t test_inet_client_t -l s0:c8.c10 $basedir/client -e system_u:object_r:netlabel_peer_t:s0:c8.c10 stream 127.0.0.1 65535";
+ok($result eq 0);
+
+# Verify that authorized client cannot communicate with the server using different level.
+$result = system "runcon -t test_inet_client_t -l s0:c8.c12 $basedir/client stream 127.0.0.1 65535 2>&1";
+ok($result);
+
+# Kill the server.
+kill TERM, $pid;
+
+# Start the dgram server with a defined level.
+if (($pid = fork()) == 0) {
+    exec "runcon -t test_inet_server_t -l s0:c20.c50 $basedir/server dgram 65535";
+}
+
+sleep 1; # Give it a moment to initialize.
+
+# Verify that authorized client can communicate with the server using same levels.
+$result = system "runcon -t test_inet_client_t -l s0:c20.c50 $basedir/client -e system_u:object_r:netlabel_peer_t:s0:c20.c50 dgram 127.0.0.1 65535";
+ok($result eq 0);
+
+# Verify that authorized client cannot communicate with the server using levels dominating the server.
+$result = system "runcon -t test_inet_client_t -l s0:c40.c51 $basedir/client dgram 127.0.0.1 65535 2>&1";
+ok($result);
+
+# Kill the server.
+kill TERM, $pid;
+
+# Flush NetLabel configuration.
+system "$basedir/cipso-flush";
 
 # Verify that authorized domain can bind UDP sockets.
 $result = system "runcon -t test_inet_bind_t -- $basedir/bind dgram 65535 2>&1";
@@ -97,11 +143,19 @@ if (($pid = fork()) == 0) {
 sleep 1; # Give it a moment to initialize.
 
 # Verify that authorized client can communicate with the server.
-$result = system "runcon -t test_inet_client_t $basedir/client stream 65535";
+$result = system "runcon -t test_inet_client_t $basedir/client stream 127.0.0.1 65535";
 ok($result eq 0);
 
 # Verify that unauthorized client cannot communicate with the server.
-$result = system "runcon -t test_inet_bad_client_t -- $basedir/client stream 65535 2>&1";
+$result = system "runcon -t test_inet_bad_client_t -- $basedir/client stream 127.0.0.1 65535 2>&1";
+ok($result);
+
+# Verify that authorized client can communicate with the server.
+$result = system "runcon -t test_inet_client_t $basedir/client stream ::1 65535";
+ok($result eq 0);
+
+# Verify that unauthorized client cannot communicate with the server.
+$result = system "runcon -t test_inet_bad_client_t -- $basedir/client stream ::1 65535 2>&1";
 ok($result);
 
 # Kill the server.
@@ -115,12 +169,30 @@ if (($pid = fork()) == 0) {
 sleep 1; # Give it a moment to initialize
 
 # Verify that authorized client can communicate with the server.
-$result = system "runcon -t test_inet_client_t $basedir/client dgram 65535";
+$result = system "runcon -t test_inet_client_t $basedir/client dgram 127.0.0.1 65535";
 ok($result eq 0);
 
 # Verify that unauthorized client cannot communicate with the server.
-$result = system "runcon -t test_inet_bad_client_t -- $basedir/client dgram 65535 2>&1";
+$result = system "runcon -t test_inet_bad_client_t -- $basedir/client dgram 127.0.0.1 65535 2>&1";
 ok($result);
+
+# Verify that unauthorized client cannot communicate with the server.
+$result = system "runcon -t test_inet_bad_client_t -- $basedir/client dgram ::1 65535 2>&1";
+ok($result);
+
+# Kill the server.
+kill TERM, $pid;
+
+# Start the dgram server for IPSEC test using IPv6 but do not request peer context.
+if (($pid = fork()) == 0) {
+    exec "runcon -t test_inet_server_t $basedir/server -n dgram 65535";
+}
+
+sleep 1; # Give it a moment to initialize
+
+# This test now passes.
+$result = system "runcon -t test_inet_client_t $basedir/client -e nopeer dgram ::1 65535";
+ok($result eq 0);
 
 # Kill the server.
 kill TERM, $pid;
@@ -128,7 +200,7 @@ kill TERM, $pid;
 # Flush IPSEC configuration.
 system "$basedir/ipsec-flush";
 
-# Load iptables configuration.
+# Load iptables (IPv4 & IPv6) configuration.
 system "$basedir/iptables-load";
 
 # Start the stream server.
@@ -139,11 +211,19 @@ if (($pid = fork()) == 0) {
 sleep 1; # Give it a moment to initialize.
 
 # Verify that authorized client can communicate with the server.
-$result = system "runcon -t test_inet_client_t -- $basedir/client -n stream 65535";
+$result = system "runcon -t test_inet_client_t -- $basedir/client -e nopeer stream 127.0.0.1 65535";
 ok($result eq 0);
 
 # Verify that unauthorized client cannot communicate with the server.
-$result = system "runcon -t test_inet_bad_client_t -- $basedir/client -n stream 65535 2>&1";
+$result = system "runcon -t test_inet_bad_client_t -- $basedir/client -e nopeer stream 127.0.0.1 65535 2>&1";
+ok($result);
+
+# Verify that authorized client can communicate with the server.
+$result = system "runcon -t test_inet_client_t -- $basedir/client -e nopeer stream ::1 65535";
+ok($result eq 0);
+
+# Verify that unauthorized client cannot communicate with the server.
+$result = system "runcon -t test_inet_bad_client_t -- $basedir/client -e nopeer stream ::1 65535 2>&1";
 ok($result);
 
 # Kill the server.
@@ -157,11 +237,19 @@ if (($pid = fork()) == 0) {
 sleep 1; # Give it a moment to initialize
 
 # Verify that authorized client can communicate with the server.
-$result = system "runcon -t test_inet_client_t $basedir/client -n dgram 65535";
+$result = system "runcon -t test_inet_client_t $basedir/client -e nopeer dgram 127.0.0.1 65535";
 ok($result eq 0);
 
 # Verify that unauthorized client cannot communicate with the server.
-$result = system "runcon -t test_inet_bad_client_t -- $basedir/client -n dgram 65535 2>&1";
+$result = system "runcon -t test_inet_bad_client_t -- $basedir/client -e nopeer dgram 127.0.0.1 65535 2>&1";
+ok($result);
+
+# Verify that authorized client can communicate with the server.
+$result = system "runcon -t test_inet_client_t $basedir/client -e nopeer dgram ::1 65535";
+ok($result eq 0);
+
+# Verify that unauthorized client cannot communicate with the server.
+$result = system "runcon -t test_inet_bad_client_t -- $basedir/client -e nopeer dgram ::1 65535 2>&1";
 ok($result);
 
 # Kill the server.

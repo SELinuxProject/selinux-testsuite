@@ -7,7 +7,7 @@
 #   CIPSOv4 only supports passing MLS labels across the network).
 
 # Define a localhost/loopback doi and apply it to the loopback address
-# so that we get full SELinux labels over loopback connections.
+# so that we get full SELinux labels over IPv4 loopback connections.
 netlabelctl cipsov4 add local doi:1
 netlabelctl map del default
 netlabelctl map add default address:0.0.0.0/0 protocol:unlbl

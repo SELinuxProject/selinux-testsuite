@@ -2,6 +2,7 @@
 #include <sys/time.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <netdb.h>
 #include <arpa/inet.h>
 #include <sys/un.h>
 #include <stdlib.h>
@@ -18,51 +19,59 @@
 void usage(char *progname)
 {
 	fprintf(stderr,
-		"usage:  %s [-n] [stream|dgram] port\n",
-		progname);
+		"usage:  %s [-e expected_msg] [stream|dgram] addr port\n"
+		"\nWhere:\n\t"
+		"-e      Optional expected message from server e.g. \"nopeer\".\n\t"
+		"        If not present the client context will be used as a\n\t"
+		"        comparison with the servers reply.\n\t"
+		"stream  Use TCP protocol or:\n\t"
+		"dgram   use UDP protocol.\n\t"
+		"addr    IPv4 or IPv6 address (e.g. 127.0.0.1 or ::1)\n\t"
+		"port    Port for accessing server.\n", progname);
 	exit(1);
 }
 
-int
-main(int argc, char **argv)
+int main(int argc, char **argv)
 {
-	char byte, label[256];
-	int sock;
-	int result;
-	struct sockaddr_in sin;
-	socklen_t sinlen;
-	int type;
-	char *mycon;
-	unsigned short port;
+	char byte, label[256], *expected = NULL;
+	int sock, result, opt;
+	struct addrinfo hints, *serverinfo;
 	struct timeval tm;
-	int opt;
-	bool nopeer = false;
 
-	while ((opt = getopt(argc, argv, "n")) != -1) {
+	while ((opt = getopt(argc, argv, "e:")) != -1) {
 		switch (opt) {
-		case 'n':
-			nopeer = true;
+		case 'e':
+			expected = optarg;
 			break;
 		default:
 			usage(argv[0]);
 		}
 	}
 
-	if ((argc - optind) != 2)
+	if ((argc - optind) != 3)
 		usage(argv[0]);
 
-	if (!strcmp(argv[optind], "stream"))
-		type = SOCK_STREAM;
-	else if (!strcmp(argv[optind], "dgram"))
-		type = SOCK_DGRAM;
-	else
-		usage(argv[0]);
+	memset(&hints, 0, sizeof(struct addrinfo));
 
-	port = atoi(argv[optind + 1]);
-	if (!port)
+	if (!strcmp(argv[optind], "stream")) {
+		hints.ai_socktype = SOCK_STREAM;
+		hints.ai_protocol = IPPROTO_TCP;
+	} else if (!strcmp(argv[optind], "dgram")) {
+		hints.ai_socktype = SOCK_DGRAM;
+		hints.ai_protocol = IPPROTO_UDP;
+	} else {
 		usage(argv[0]);
+	}
 
-	sock = socket(AF_INET, type, 0);
+	result = getaddrinfo(argv[optind + 1], argv[optind + 2], &hints,
+			     &serverinfo);
+	if (result < 0) {
+		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(result));
+		exit(1);
+	}
+
+	sock = socket(serverinfo->ai_family, serverinfo->ai_socktype,
+		      serverinfo->ai_protocol);
 	if (sock < 0) {
 		perror("socket");
 		exit(1);
@@ -70,23 +79,13 @@ main(int argc, char **argv)
 
 	tm.tv_sec = 5;
 	tm.tv_usec = 0;
-	result = setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, &tm, sizeof tm);
+	result = setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, &tm, sizeof(tm));
 	if (result < 0) {
 		perror("setsockopt: SO_SNDTIMEO");
 		exit(1);
 	}
 
-	bzero(&sin, sizeof(struct sockaddr_in));
-	sin.sin_family = AF_INET;
-	sin.sin_port = htons(port);
-	if (inet_aton("127.0.0.1", &sin.sin_addr) == 0) {
-		fprintf(stderr, "%s: inet_ntoa: invalid address\n", argv[0]);
-		close(sock);
-		exit(1);
-	}
-
-	sinlen = sizeof(sin);
-	result = connect(sock, (struct sockaddr *) &sin, sinlen);
+	result = connect(sock, serverinfo->ai_addr, serverinfo->ai_addrlen);
 	if (result < 0) {
 		perror("connect");
 		close(sock);
@@ -101,7 +100,7 @@ main(int argc, char **argv)
 		exit(1);
 	}
 
-	if (type == SOCK_DGRAM) {
+	if (hints.ai_socktype == SOCK_DGRAM) {
 		struct pollfd fds;
 
 		fds.fd = sock;
@@ -125,15 +124,8 @@ main(int argc, char **argv)
 	}
 	label[result] = 0;
 
-	if (nopeer) {
-		mycon = strdup("nopeer");
-		if (!mycon) {
-			perror("strdup");
-			close(sock);
-			exit(1);
-		}
-	} else {
-		result = getcon(&mycon);
+	if (!expected) {
+		result = getcon(&expected);
 		if (result < 0) {
 			perror("getcon");
 			close(sock);
@@ -141,9 +133,9 @@ main(int argc, char **argv)
 		}
 	}
 
-	if (strcmp(mycon, label)) {
+	if (strcmp(expected, label)) {
 		fprintf(stderr, "%s:  expected %s, got %s\n",
-			argv[0], mycon, label);
+			argv[0], expected, label);
 		exit(1);
 	}
 

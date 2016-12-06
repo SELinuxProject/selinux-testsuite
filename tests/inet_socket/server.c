@@ -1,6 +1,8 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
 #include <stdlib.h>
 #include <stddef.h>
 #include <string.h>
@@ -18,23 +20,25 @@
 
 void usage(char *progname)
 {
-	fprintf(stderr, "usage:  %s [-n] [stream|dgram] port\n", progname);
+	fprintf(stderr,
+		"usage:  %s [-n] [stream|dgram] port\n"
+		"\nWhere:\n\t"
+		"-n      No peer context will be available therefore send\n\t"
+		"        \"nopeer\" message to client, otherwise the peer context\n\t"
+		"        will be retrieved and sent to client.\n\t"
+		"stream  Use TCP protocol or:\n\t"
+		"dgram   use UDP protocol.\n\t"
+		"port    Listening port\n", progname);
 	exit(1);
 }
 
-static const int on = 1;
-
-int
-main(int argc, char **argv)
+int main(int argc, char **argv)
 {
-	int sock;
-	int result;
-	struct sockaddr_in sin;
+	int sock, result, opt, on = 1;
 	socklen_t sinlen;
-	int type;
+	struct sockaddr_storage sin;
+	struct addrinfo hints, *res;
 	char byte;
-	unsigned short port;
-	int opt;
 	bool nopeer = false;
 
 	while ((opt = getopt(argc, argv, "n")) != -1) {
@@ -50,23 +54,31 @@ main(int argc, char **argv)
 	if ((argc - optind) != 2)
 		usage(argv[0]);
 
-	if (!strcmp(argv[optind], "stream"))
-		type = SOCK_STREAM;
-	else if (!strcmp(argv[optind], "dgram"))
-		type = SOCK_DGRAM;
-	else
-		usage(argv[0]);
+	memset(&hints, 0, sizeof(struct addrinfo));
+	hints.ai_flags = AI_PASSIVE;
+	hints.ai_family = AF_INET6;
 
-	port = atoi(argv[optind + 1]);
-	if (!port)
+	if (!strcmp(argv[optind], "stream")) {
+		hints.ai_socktype = SOCK_STREAM;
+		hints.ai_protocol = IPPROTO_TCP;
+	} else if (!strcmp(argv[optind], "dgram")) {
+		hints.ai_socktype = SOCK_DGRAM;
+		hints.ai_protocol = IPPROTO_UDP;
+	} else {
 		usage(argv[0]);
+	}
 
-	sock = socket(AF_INET, type, 0);
+	result = getaddrinfo(NULL, argv[optind + 1], &hints, &res);
+	if (result < 0) {
+		printf("getaddrinfo: %s\n", gai_strerror(result));
+		exit(1);
+	}
+
+	sock = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
 	if (sock < 0) {
 		perror("socket");
 		exit(1);
 	}
-
 	result = setsockopt(sock, SOL_IP, IP_PASSSEC, &on, sizeof(on));
 	if (result < 0) {
 		perror("setsockopt: SO_PASSSEC");
@@ -76,23 +88,18 @@ main(int argc, char **argv)
 
 	result = setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
 	if (result < 0) {
-		perror("setsockopt: SO_PASSSEC");
+		perror("setsockopt: SO_REUSEADDR");
 		close(sock);
 		exit(1);
 	}
 
-	bzero(&sin, sizeof(struct sockaddr_in));
-	sin.sin_family = AF_INET;
-	sin.sin_port = htons(port);
-	sin.sin_addr.s_addr = INADDR_ANY;
-	sinlen = sizeof(sin);
-	if (bind(sock, (struct sockaddr *) &sin, sinlen) < 0) {
+	if (bind(sock, res->ai_addr, res->ai_addrlen) < 0) {
 		perror("bind");
 		close(sock);
 		exit(1);
 	}
 
-	if (type == SOCK_STREAM) {
+	if (hints.ai_socktype == SOCK_STREAM) {
 		if (listen(sock, SOMAXCONN)) {
 			perror("listen");
 			close(sock);
@@ -105,8 +112,7 @@ main(int argc, char **argv)
 			socklen_t labellen = sizeof(peerlabel);
 
 			sinlen = sizeof(sin);
-			newsock = accept(sock, (struct sockaddr *)&sin,
-					 &sinlen);
+			newsock = accept(sock, (struct sockaddr *)&sin, &sinlen);
 			if (newsock < 0) {
 				perror("accept");
 				close(sock);
@@ -117,12 +123,14 @@ main(int argc, char **argv)
 				strcpy(peerlabel, "nopeer");
 			} else {
 				peerlabel[0] = 0;
-				result = getsockopt(newsock, SOL_SOCKET, SO_PEERSEC, peerlabel,
+				result = getsockopt(newsock, SOL_SOCKET,
+						    SO_PEERSEC, peerlabel,
 						    &labellen);
 				if (result < 0) {
 					perror("getsockopt: SO_PEERSEC");
 					exit(1);
 				}
+
 				printf("%s:  Got peer label=%s\n", argv[0], peerlabel);
 			}
 
@@ -183,7 +191,6 @@ main(int argc, char **argv)
 					}
 				}
 			}
-
 			result = sendto(sock, msglabel, strlen(msglabel), 0,
 					msg.msg_name, msg.msg_namelen);
 			if (result < 0) {

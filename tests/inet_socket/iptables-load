@@ -27,3 +27,23 @@ iptables -t security -A OUTPUT -m state --state ESTABLISHED,RELATED -j CONNSECMA
 # Label UDP packets similarly.
 iptables -t security -A INPUT -i lo -p udp --dport 65535 -j SECMARK --selctx system_u:object_r:test_server_packet_t:s0
 iptables -t security -A OUTPUT -o lo -p udp --sport 65535 -j SECMARK --selctx system_u:object_r:test_server_packet_t:s0
+
+##### IPv6 entries
+ip6tables -t security -F
+
+# Create a chain for new connection marking.
+ip6tables -t security -N NEWCONN
+
+# Accept incoming connections, label SYN packets, and copy labels to connections.
+ip6tables -t security -A INPUT -i lo -p tcp --dport 65535 -m state --state NEW -j NEWCONN
+ip6tables -t security -A NEWCONN -j SECMARK --selctx system_u:object_r:test_server_packet_t:s0
+ip6tables -t security -A NEWCONN -j CONNSECMARK --save
+ip6tables -t security -A NEWCONN -j ACCEPT
+
+# Common rules which copy connection labels to established and related packets.
+ip6tables -t security -A INPUT -m state --state ESTABLISHED,RELATED -j CONNSECMARK --restore
+ip6tables -t security -A OUTPUT -m state --state ESTABLISHED,RELATED -j CONNSECMARK --restore
+
+# Label UDP packets similarly.
+ip6tables -t security -A INPUT -i lo -p udp --dport 65535 -j SECMARK --selctx system_u:object_r:test_server_packet_t:s0
+ip6tables -t security -A OUTPUT -o lo -p udp --sport 65535 -j SECMARK --selctx system_u:object_r:test_server_packet_t:s0

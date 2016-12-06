@@ -1,6 +1,5 @@
 unix_socket, inet_socket: test individual failure (denial) of common socket permissions (create, bind, ...).
 unix_socket, inet_socket: test setsockcreatecon.
-inet_socket: generalize tests to cover INET6 as well as INET.
 inet_socket: test individual failure of netif ingress/egress.
 inet_socket: test individual failure of node recvfrom/sendto.
 inet_socket: test packet forward_in/forward_out (requires peer labeling + secmark configuration).
