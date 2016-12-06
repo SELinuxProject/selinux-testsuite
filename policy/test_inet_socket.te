@@ -5,6 +5,13 @@
 
 attribute inetsocketdomain;
 
+# Allow NetLabel traffic to be sent/received.
+gen_require(`
+	type netlabel_peer_t;
+')
+corenet_inout_generic_if(netlabel_peer_t)
+corenet_inout_generic_node(netlabel_peer_t)
+
 # Do not break NFS when we load NetLabel configuration.
 gen_require(`
 	type kernel_t;
