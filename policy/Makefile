@@ -31,7 +31,7 @@ TARGETS += test_cap_userns.te
 endif
 
 ifeq (x$(DISTRO),$(filter x$(DISTRO),xRHEL4 xRHEL5 xRHEL6))
-TARGETS:=$(filter-out test_overlayfs.te, $(TARGETS))
+TARGETS:=$(filter-out test_overlayfs.te test_mqueue.te, $(TARGETS))
 endif
 
 ifeq (x$(DISTRO),$(filter x$(DISTRO),xRHEL4 xRHEL5))
