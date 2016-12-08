@@ -16,6 +16,10 @@ ifeq ($(shell grep -q cap_userns $(POLDEV)/include/support/all_perms.spt && echo
 SUBDIRS += cap_userns
 endif
 
+ifeq ($(shell grep -q icmp_socket $(POLDEV)/include/support/all_perms.spt && grep -q 1 /sys/fs/selinux/policy_capabilities/extended_socket_class && echo true),true)
+SUBDIRS += extended_socket_class
+endif
+
 ifeq ($(DISTRO),RHEL4)
     SUBDIRS:=$(filter-out bounds dyntrace dyntrans inet_socket mmap nnp overlay unix_socket, $(SUBDIRS))
 endif

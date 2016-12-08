@@ -30,6 +30,10 @@ ifeq ($(shell grep -q cap_userns $(POLDEV)/include/support/all_perms.spt && echo
 TARGETS += test_cap_userns.te
 endif
 
+ifeq ($(shell grep -q icmp_socket $(POLDEV)/include/support/all_perms.spt && echo true),true)
+TARGETS += test_extended_socket_class.te
+endif
+
 ifeq (x$(DISTRO),$(filter x$(DISTRO),xRHEL4 xRHEL5 xRHEL6))
 TARGETS:=$(filter-out test_overlayfs.te test_mqueue.te, $(TARGETS))
 endif

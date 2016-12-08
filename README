@@ -39,6 +39,14 @@ CONFIG_JFS_SECURITY=y
 CONFIG_XFS_SECURITY=y
 CONFIG_JFFS2_FS_SECURITY=y
 
+# Network protocol implementations.
+# These are enabled to test the extended socket classes in
+# tests/extended_socket_class; they are not required
+# for SELinux operation itself.
+CONFIG_IP_SCTP=m
+CONFIG_BT=m
+CONFIG_CRYPTO_USER_API=m
+
 Do not set CONFIG_SECURITY_SELINUX_POLICYDB_VERSION_MAX; it is an
 option for legacy distributions (Fedora 3 and 4).
 

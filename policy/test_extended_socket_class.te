@@ -1,0 +1,64 @@
+########################################
+#
+# Policy for testing the new socket classes
+# introduced when the extended_socket_class
+# policy capability is enabled in policy and
+# supported by the kernel.
+
+attribute extsocktestdomain;
+
+#
+# extended_socket_test(newclass, oldclass)
+#
+# Generate a pair of test domains and rules to test
+# that when the extended_socket_class policy capability
+# is enabled, the kernel checks permission against the
+# 'newclass' security class rather than the 'oldclass'
+# security class.
+#
+define(`extended_socket_class_test', `
+# Domain that is allowed to create $1_socket.
+type test_$1_t;
+domain_type(test_$1_t)
+unconfined_runs_test(test_$1_t)
+typeattribute test_$1_t extsocktestdomain;
+typeattribute test_$1_t testdomain;
+
+# Allow $1 but not $2.
+# This is to ensure that the kernel is checking the right class.
+allow test_$1_t self:$1 create_socket_perms;
+
+# Domain that is not allowed to create $1.
+type test_no_$1_t;
+domain_type(test_no_$1_t)
+unconfined_runs_test(test_no_$1_t)
+typeattribute test_no_$1_t extsocktestdomain;
+typeattribute test_no_$1_t testdomain;
+
+# Allow $2 but not $1.
+# This is to ensure that the kernel is checking the right class.
+allow test_no_$1_t self:$2 create_socket_perms;
+')
+
+# Test use of icmp_socket class for ICMP datagram sockets instead of rawip_socket.
+extended_socket_class_test(icmp_socket, rawip_socket)
+
+# Test use of sctp_socket class for SCTP sockets instead of rawip_socket.
+extended_socket_class_test(sctp_socket, rawip_socket)
+
+# Test use of bluetooth_socket for Bluetooth sockets instead of socket.
+extended_socket_class_test(bluetooth_socket, socket)
+
+# Test use of alg_socket for Alg (Crypto API) sockets instead of socket.
+extended_socket_class_test(alg_socket, socket)
+
+#
+# Common rules for all extended_socket_class test domains.
+#
+
+# Trigger kernel module auto-loading of the network protocol implementations.
+kernel_request_load_module(extsocktestdomain)
+
+# Entry into the test domains via the test program.
+miscfiles_domain_entry_test_files(extsocktestdomain)
+userdom_sysadm_entry_spec_domtrans_to(extsocktestdomain)
