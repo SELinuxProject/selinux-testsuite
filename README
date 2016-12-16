@@ -157,8 +157,9 @@ particular release of SELinux that you are using.
 ADDING NEW TESTS
 ----------------
 The functional test suite is not yet complete, so we still need
-additional tests to be written.  See the test report for the current
-coverage.  
+additional tests to be written.  See the GitHub issues tracker
+for the list of tests that still need to be written,
+https://github.com/SELinuxProject/selinux-testsuite/issues
 
 To add a new test, create a new test policy file and a new test
 script.  The new test policy file should be added to the
