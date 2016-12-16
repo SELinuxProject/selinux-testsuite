@@ -1,18 +1,3 @@
-unix_socket, inet_socket: test individual failure (denial) of common socket permissions (create, bind, ...).
-unix_socket, inet_socket: test setsockcreatecon.
-inet_socket: test individual failure of netif ingress/egress.
-inet_socket: test individual failure of node recvfrom/sendto.
-inet_socket: test packet forward_in/forward_out (requires peer labeling + secmark configuration).
-inet_socket: test labeling of new connection sockets, esp. MLS attributes.
-Add tests for tun_socket permission checks.
-Add tests for netlink sockets, including nlmsg_read/write/... permissions.
-ioctl: Test new ioctl whitelisting feature.
-Generalize or duplicate nnp tests for nosuid mount case.
-Add tests for mount and umount, including permission checks and context-related mount options.
-Add tests for CAP_MAC_ADMIN/mac_admin and its effect on setting/getting security contexts unknown to the currently loaded policy.
-Add tests for new file labeling: type_transition, setfscreatecon, context mounts.
-Add tests for inheritance across domain-changing exec: noatsecure, siginh, rlimitinh.
-Add tests for kernel keyring labeling and permission checks, including setkeycreatecon.
-Add test for system permission checks: ipc_info, syslog_read, syslog_mod, syslog_console, module_request.
-Add tests for quotactl for filesystem quotamod, quotaget permissions and file quotaon checks.
-Add optional tests for binder permission checks, if kernel supports it.
+This ToDo list has moved to the GitHub issues tracker for selinux-testsuite,
+see:
+https://github.com/SELinuxProject/selinux-testsuite/issues
