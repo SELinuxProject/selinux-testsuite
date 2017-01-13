@@ -17,6 +17,36 @@ static struct nameval domains[] = {
 	{ "inet6", AF_INET6 },
 	{ "bluetooth", AF_BLUETOOTH },
 	{ "alg", AF_ALG },
+	{ "ax25", AF_AX25 },
+	{ "ipx", AF_IPX },
+	{ "netrom", AF_NETROM },
+	{ "atmpvc", AF_ATMPVC },
+	{ "x25", AF_X25 },
+	{ "rose", AF_ROSE },
+	{ "decnet", AF_DECnet },
+	{ "atmsvc", AF_ATMSVC },
+	{ "rds", AF_RDS },
+	{ "irda", AF_IRDA },
+	{ "pppox", AF_PPPOX },
+	{ "llc", AF_LLC },
+	{ "can", AF_CAN },
+	{ "tipc", AF_TIPC },
+	{ "iucv", AF_IUCV },
+	{ "rxrpc", AF_RXRPC },
+	{ "isdn", AF_ISDN },
+	{ "phonet", AF_PHONET },
+	{ "ieee802154", AF_IEEE802154 },
+	{ "caif", AF_CAIF },
+	{ "nfc", AF_NFC },
+	{ "vsock", AF_VSOCK },
+#ifndef AF_KCM
+#define AF_KCM 41
+#endif
+	{ "kcm", AF_KCM },
+#ifndef AF_QIPCRTR
+#define AF_QIPCRTR 42
+#endif
+	{ "qipcrtr", AF_QIPCRTR },
 	{ NULL, 0 }
 };
 
@@ -32,6 +62,10 @@ static struct nameval protocols[] = {
 	{ "icmp", IPPROTO_ICMP },
 	{ "icmpv6", IPPROTO_ICMPV6 },
 	{ "sctp", IPPROTO_SCTP },
+#ifndef CAN_RAW
+#define CAN_RAW 1
+#endif
+	{ "can_raw", CAN_RAW },
 	{ "default", 0 },
 	{ NULL, 0 }
 };
