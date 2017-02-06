@@ -34,6 +34,10 @@ ifeq ($(shell grep -q icmp_socket $(POLDEV)/include/support/all_perms.spt && ech
 TARGETS += test_extended_socket_class.te
 endif
 
+ifeq ($(shell grep -q netlink_iscsi_socket $(POLDEV)/include/support/all_perms.spt && echo true),true)
+TARGETS += test_netlink_socket.te
+endif
+
 ifeq (x$(DISTRO),$(filter x$(DISTRO),xRHEL4 xRHEL5 xRHEL6))
 TARGETS:=$(filter-out test_overlayfs.te test_mqueue.te, $(TARGETS))
 endif
