@@ -48,3 +48,6 @@ netlink_socket_test(netlink_crypto_socket)
 # Entry into the test domains via the test program.
 miscfiles_domain_entry_test_files(netlinksocktestdomain)
 userdom_sysadm_entry_spec_domtrans_to(netlinksocktestdomain)
+
+# Trigger kernel module auto-loading of the protocol implementations.
+kernel_request_load_module(netlinksocktestdomain)
