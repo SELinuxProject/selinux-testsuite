@@ -40,6 +40,10 @@ ifeq ($(DISTRO),RHEL6)
     SUBDIRS:=$(filter-out nnp overlay, $(SUBDIRS))
 endif
 
+ifeq ($(DISTRO),RHEL7)
+    SUBDIRS:=$(filter-out netlink_socket, $(SUBDIRS))
+endif
+
 .PHONY: all test clean
 
 all:
