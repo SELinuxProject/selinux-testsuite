@@ -48,9 +48,7 @@ int main(int argc, char **argv)
 
 	pid = wait(&status);
 	if (WIFEXITED(status)) {
-		if (nobounded) {
-			if (!WEXITSTATUS(status))
-				exit(-1);
+		if (WEXITSTATUS(status) && nobounded) {
 			printf("%s:  Kernels < v3.18 do not support bounded transitions under NNP.\n",
 			       argv[0]);
 			/* pass the test */
