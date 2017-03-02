@@ -57,6 +57,7 @@ usage(char *pname)
     fpe("-z          Map user's UID and GID to 0 in user namespace\n");
     fpe("            (equivalent to: -M '0 <uid> 1' -G '0 <gid> 1'\n");
     fpe("-v          Display verbose messages\n");
+    fpe("-t          Test clone flags combination is supported\n");
     fpe("\n");
     fpe("If -z, -M, or -G is specified, -U is required.\n");
     fpe("It is not permitted to specify both -z and either -M or -G.\n");
@@ -158,6 +159,11 @@ proc_setgroups_write(pid_t child_pid, char *str)
     close(fd);
 }
 
+static int dummyFunc(void *arg)
+{
+    exit(0);
+}
+
 static int              /* Start function for cloned child */
 childFunc(void *arg)
 {
@@ -192,7 +198,7 @@ static char child_stack[STACK_SIZE];    /* Space for child's stack */
 int
 main(int argc, char *argv[])
 {
-    int flags, opt, map_zero;
+    int flags, opt, map_zero, test_clone = 0;
     pid_t child_pid;
     struct child_args args;
     char *uid_map, *gid_map;
@@ -212,7 +218,7 @@ main(int argc, char *argv[])
     gid_map = NULL;
     uid_map = NULL;
     map_zero = 0;
-    while ((opt = getopt(argc, argv, "+imnpuUM:G:zv")) != -1) {
+    while ((opt = getopt(argc, argv, "+imnpuUM:G:zvt")) != -1) {
         switch (opt) {
         case 'i': flags |= CLONE_NEWIPC;        break;
         case 'm': flags |= CLONE_NEWNS;         break;
@@ -224,6 +230,7 @@ main(int argc, char *argv[])
         case 'M': uid_map = optarg;             break;
         case 'G': gid_map = optarg;             break;
         case 'U': flags |= CLONE_NEWUSER;       break;
+        case 't': test_clone = 1;               break;
         default:  usage(argv[0]);
         }
     }
@@ -250,8 +257,18 @@ main(int argc, char *argv[])
     if (pipe(args.pipe_fd) == -1)
         errExit("pipe");
 
-    /* Create the child in new namespace(s) */
+    /* Only test if clone flags combination is supported */
+    if (test_clone) {
+        if (clone(dummyFunc, child_stack + STACK_SIZE,
+            flags | SIGCHLD, &args) == -1) {
+            if (verbose)
+                printf("clone(0x%x): %s\n", flags, strerror(errno));
+            return errno;
+        }
+        return 0;
+    }
 
+    /* Create the child in new namespace(s) */
     child_pid = clone(childFunc, child_stack + STACK_SIZE,
                       flags | SIGCHLD, &args);
     if (child_pid == -1)
