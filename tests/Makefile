@@ -13,7 +13,9 @@ SUBDIRS:=domain_trans entrypoint execshare exectrace execute_no_trans \
 	overlay checkreqprot mqueue
 
 ifeq ($(shell grep -q cap_userns $(POLDEV)/include/support/all_perms.spt && echo true),true)
+ifneq ($(shell ./kvercmp $$(uname -r) 4.7),-1)
 SUBDIRS += cap_userns
+endif
 endif
 
 ifeq ($(shell grep -q icmp_socket $(POLDEV)/include/support/all_perms.spt && grep -q 1 /sys/fs/selinux/policy_capabilities/extended_socket_class && echo true),true)
