@@ -1,0 +1,52 @@
+########################################
+#
+# Policy for testing mac_admin permission checks.
+
+attribute mac_admintestdomain;
+
+# Domain that is allowed mac_admin.
+type test_mac_admin_t;
+domain_type(test_mac_admin_t)
+unconfined_runs_test(test_mac_admin_t)
+typeattribute test_mac_admin_t mac_admintestdomain;
+typeattribute test_mac_admin_t testdomain;
+
+# Relabeling a file to an undefined label remaps it to the unlabeled context,
+# which may have a different SELinux user identity (e.g. system_u).
+# This would go in the common section below but the interface only
+# accepts types, not attributes.
+domain_obj_id_change_exemption(test_mac_admin_t)
+
+# Relabeling a file to an unknown label requires mac_admin permission.
+allow test_mac_admin_t self:capability2 mac_admin;
+
+# Domain that is not allowed mac_admin permission.
+type test_no_mac_admin_t;
+domain_type(test_no_mac_admin_t)
+unconfined_runs_test(test_no_mac_admin_t)
+typeattribute test_no_mac_admin_t mac_admintestdomain;
+typeattribute test_no_mac_admin_t testdomain;
+
+# See above.
+domain_obj_id_change_exemption(test_no_mac_admin_t)
+
+#
+# Common rules for all mac_admin test domains.
+#
+
+# Relabeling a file to an undefined label requires relabelfrom
+# the old file label and relabelto the unlabeled type.  We also
+# require getattr to both types for stat and getfilecon calls.
+allow mac_admintestdomain test_file_t:file { getattr relabelfrom };
+allow mac_admintestdomain unlabeled_t:file { getattr relabelto };
+
+# Creating a directory in an undefined label requires search/write/add_name
+# to the parent directory and create to the new directory. We also
+# allow getattr to permit stat and getfilecon.
+allow mac_admintestdomain test_file_t:dir { search write add_name };
+allow mac_admintestdomain test_file_t:dir { getattr create };
+allow mac_admintestdomain unlabeled_t:dir { getattr create };
+
+# Entry into the test domains via the test program.
+corecmd_bin_entry_type(mac_admintestdomain)
+userdom_sysadm_entry_spec_domtrans_to(mac_admintestdomain)

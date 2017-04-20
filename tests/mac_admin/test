@@ -1,0 +1,55 @@
+#!/usr/bin/perl
+
+use Test;
+BEGIN { plan tests => 8}
+
+$basedir = $0;  $basedir =~ s|(.*)/[^/]*|$1|;
+
+# Verify that test_mac_admin_t can relabel a file to an undefined context.
+system("rm -f $basedir/test_file; touch $basedir/test_file");
+$result = system ("runcon -t test_mac_admin_t -- chcon -t UNDEFINED $basedir/test_file 2>&1");
+ok($result, 0); # we expect this to succeed.
+
+# Verify that test_mac_admin_t sees the undefined context.
+$result = `runcon -t test_mac_admin_t -- secon -t -f $basedir/test_file 2>&1`;
+chomp($result);
+ok($result, "UNDEFINED");
+
+# Verify that test_no_mac_admin_t sees the unlabeled context
+$result = `runcon -t test_no_mac_admin_t -- secon -t -f $basedir/test_file 2>&1`;
+chomp($result);
+ok($result, "unlabeled_t");
+
+# Delete the test file.
+system("rm -f $basedir/test_file");
+
+# Verify that test_mac_admin_t can create a directory with an undefined label.
+system("rm -rf $basedir/test_dir");
+$result = system ("runcon -t test_mac_admin_t -- mkdir --context=system_u:object_r:UNDEFINED:s0 $basedir/test_dir 2>&1");
+ok($result, 0); # we expect this to succeed.
+
+# Verify that test_mac_admin_t sees the undefined label value.
+$result = `runcon -t test_mac_admin_t -- secon -t -f $basedir/test_dir 2>&1`;
+chomp($result);
+ok($result, "UNDEFINED");
+
+# Verify that test_no_mac_admin_t sees the unlabeled context.
+$result = `runcon -t test_no_mac_admin_t -- secon -t -f $basedir/test_dir 2>&1`;
+chomp($result);
+ok($result, "unlabeled_t");
+
+# Delete the test directory
+system("rm -rf $basedir/test_dir");
+
+# Verify that test_no_mac_admin_t cannot set an undefined label on a file
+system("rm -f $basedir/test_file; touch $basedir/test_file");
+$result = system ("runcon -t test_no_mac_admin_t -- chcon -t UNDEFINED $basedir/test_file  2>&1");
+ok($result); # we expect this to fail.
+
+# Verify that test_no_mac_admin_t cannot create a directory with an undefined context
+system("rm -rf $basedir/test_dir");
+$result = system ("runcon -t test_no_mac_admin_t -- mkdir --context=system_u:object_r:UNDEFINED:s0 $basedir/test_dir 2>&1");
+ok($result); # we expect this to fail.
+
+# cleanup
+system("rm -rf $basedir/test_file $basedir/test_dir");
