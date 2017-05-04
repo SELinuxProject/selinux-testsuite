@@ -95,3 +95,7 @@ ifdef(`distro_redhat', `
         auth_read_passwd(testdomain)
     ')
 ')
+
+define(`allow_map',
+ifdef(`map_permission_defined', `allow $1 $2:$3 map;')
+)

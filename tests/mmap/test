@@ -5,6 +5,7 @@ BEGIN {
 	$test_count = 34;
 	$test_hugepages = 0;
 	$test_exec_checking = 0;
+	$test_map_checking = 0;
 
 	system("echo 1 > /proc/sys/vm/nr_hugepages 2> /dev/null");
 	if (system("grep -q 1 /proc/sys/vm/nr_hugepages 2> /dev/null") == 0) {
@@ -15,6 +16,11 @@ BEGIN {
 	if (system("grep -q 0 /sys/fs/selinux/checkreqprot 2> /dev/null") == 0) {
 		$test_exec_checking = 1;
 		$test_count += 4;
+	}
+
+	if (-e '/sys/fs/selinux/class/file/perms/map') {
+		$test_map_checking = 1;
+		$test_count += 1;
 	}
 
 	plan tests => $test_count
@@ -110,6 +116,11 @@ if ($test_exec_checking) {
 	$result = system "runcon -t test_file_rwx_t -- $basedir/mmap_file_shared -r $basedir/temp_file";
 	ok($result, 0);
 	$result = system "runcon -t test_file_rw_t -- $basedir/mmap_file_shared -r $basedir/temp_file 2>&1";
+	ok($result);
+}
+
+if ($test_map_checking) {
+	$result = system "runcon -t test_no_map_t -- $basedir/mmap_file_shared $basedir/temp_file 2>&1";
 	ok($result);
 }
 

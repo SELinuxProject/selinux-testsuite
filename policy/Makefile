@@ -42,6 +42,10 @@ ifeq ($(shell grep -q getrlimit $(POLDEV)/include/support/all_perms.spt && echo 
 TARGETS += test_prlimit.te
 endif
 
+ifeq ($(shell grep -q all_file_perms.*map $(POLDEV)/include/support/all_perms.spt && echo true),true)
+export M4PARAM = -Dmap_permission_defined
+endif
+
 ifeq (x$(DISTRO),$(filter x$(DISTRO),xRHEL4 xRHEL5 xRHEL6))
 TARGETS:=$(filter-out test_overlayfs.te test_mqueue.te, $(TARGETS))
 endif
