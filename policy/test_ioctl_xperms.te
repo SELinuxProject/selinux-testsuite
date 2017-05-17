@@ -1,0 +1,18 @@
+define(`FIOCLEX', `{ 0x00006601 0x00005451 }')
+
+# Domain for process that is allowed the required ioctl xperms.
+type test_ioctl_xperm_t;
+domain_type(test_ioctl_xperm_t)
+unconfined_runs_test(test_ioctl_xperm_t)
+typeattribute test_ioctl_xperm_t ioctldomain;
+typeattribute test_ioctl_xperm_t testdomain;
+allow test_ioctl_xperm_t test_ioctl_file_t:file { open read write ioctl getattr setattr };
+allowxperm test_ioctl_xperm_t test_ioctl_file_t:file ioctl FIOCLEX;
+
+# Domain for process that is not allowed the required ioctl xperms.
+type test_ioctl_noxperm_t;
+domain_type(test_ioctl_noxperm_t)
+unconfined_runs_test(test_ioctl_noxperm_t)
+typeattribute test_ioctl_noxperm_t ioctldomain;
+typeattribute test_ioctl_noxperm_t testdomain;
+allowxperm test_ioctl_noxperm_t test_ioctl_file_t:file ioctl ~FIOCLEX;

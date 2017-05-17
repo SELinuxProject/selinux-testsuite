@@ -4,7 +4,21 @@
 #
 
 use Test;
-BEGIN { plan tests => 2}
+BEGIN {
+    $test_count = 2;
+    $test_xperms = 0;
+
+    $modver = `checkmodule -V | cut -f 2 -d -`;
+    $selinuxfs = `cat /proc/mounts | grep selinuxfs | cut -f 2 -d ' '`;
+    chomp($selinuxfs);
+    $kernver = `cat $selinuxfs/policyvers`;
+    if ($modver >= 18 && $kernver >= 30) {
+	$test_xperms = 1;
+	$test_count += 2;
+    }
+
+    plan tests => $test_count
+}
 
 $basedir = $0;  $basedir =~ s|(.*)/[^/]*|$1|;
 
@@ -26,7 +40,22 @@ ok($result, 0);
 # individual calls, so we expect success always from that program.
 #
 $result = system "runcon -t test_noioctl_t -- $basedir/test_noioctl $basedir/temp_file 2>&1";
-ok($result, 0); 
+ok($result, 0);
+
+if ($test_xperms) {
+    #
+    # Attempt to perform the ioctls with the required ioctl xperms.
+    #
+    $result = system "runcon -t test_ioctl_xperm_t -- $basedir/test_ioctl $basedir/temp_file 2>&1";
+    ok($result, 0);
+
+
+    #
+    # Attempt to perform the ioctls without the required ioctl xperm.
+    #
+    $result = system "runcon -t test_ioctl_noxperm_t -- $basedir/test_ioctl $basedir/temp_file 2>&1";
+    ok($result);
+}
 
 system "rm -f $basedir/temp_file 2>&1";
 

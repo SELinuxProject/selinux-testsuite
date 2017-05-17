@@ -2,11 +2,13 @@
 POLDEV ?= /usr/share/selinux/devel
 SEMODULE = /usr/sbin/semodule
 CHECKPOLICY = /usr/bin/checkpolicy
+CHECKMODULE = /usr/bin/checkmodule
 
 DISTRO=$(shell ../tests/os_detect)
 RHEL_VERS=$(shell echo $(DISTRO) | sed 's/RHEL//')
 
 POL_VERS := $(shell $(CHECKPOLICY) -V |cut -f 1 -d ' ')
+MOD_POL_VERS := $(shell $(CHECKMODULE) -V |cut -f 2 -d '-')
 
 TARGETS = \
 	test_global.te test_capable_file.te test_capable_net.te \
@@ -24,6 +26,10 @@ TARGETS = \
 
 ifeq ($(shell [ $(POL_VERS) -ge 24 ] && echo true),true)
 TARGETS += test_bounds.te
+endif
+
+ifeq ($(shell [ $(MOD_POL_VERS) -ge 18 ] && echo true),true)
+TARGETS += test_ioctl_xperms.te
 endif
 
 ifeq ($(shell grep -q cap_userns $(POLDEV)/include/support/all_perms.spt && echo true),true)
