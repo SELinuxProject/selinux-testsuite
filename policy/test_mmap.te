@@ -96,6 +96,7 @@ unconfined_runs_test(test_no_mmap_dev_zero_t)
 typeattribute test_no_mmap_dev_zero_t testdomain;
 typeattribute test_no_mmap_dev_zero_t mmaptestdomain;
 dev_rw_zero(test_no_mmap_dev_zero_t)
+allow_map(test_no_mmap_dev_zero_t, zero_device_t, chr_file)
 
 type test_mprotect_dev_zero_t;
 domain_type(test_mprotect_dev_zero_t)
@@ -103,6 +104,7 @@ unconfined_runs_test(test_mprotect_dev_zero_t)
 typeattribute test_mprotect_dev_zero_t testdomain;
 typeattribute test_mprotect_dev_zero_t mmaptestdomain;
 dev_rw_zero(test_mprotect_dev_zero_t)
+allow_map(test_mprotect_dev_zero_t, zero_device_t, chr_file)
 # In old kernels, mprotect PROT_EXEC on /dev/zero
 # triggers a tmpfs file execute check on the kernel-internal shmem /dev/zero
 # inode.  In new kernels, mprotect PROT_EXEC will instead trigger an
@@ -117,6 +119,7 @@ unconfined_runs_test(test_no_mprotect_dev_zero_t)
 typeattribute test_no_mprotect_dev_zero_t testdomain;
 typeattribute test_no_mprotect_dev_zero_t mmaptestdomain;
 dev_rw_zero(test_no_mprotect_dev_zero_t)
+allow_map(test_no_mprotect_dev_zero_t, zero_device_t, chr_file)
 
 type test_file_rwx_t;
 domain_type(test_file_rwx_t)

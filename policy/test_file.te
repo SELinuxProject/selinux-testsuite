@@ -83,6 +83,7 @@ allow fileop_t ptmx_t:chr_file { read write };
 # Permissions for the 'good' domain...
 allow test_fileop_t fileop_file_t:file { setattr rw_file_perms};
 allow test_fileop_t fileop_file_t:file { execute relabelfrom relabelto };
+allow_map(test_fileop_t, fileop_file_t, file)
 allow test_fileop_t fileop_t:process { signal };
 allow test_fileop_t ptmx_t:chr_file { open read write ioctl };
 allow test_fileop_t devpts_t:filesystem getattr;
@@ -90,6 +91,7 @@ allow test_fileop_t self:capability sys_admin;
 
 # Permissions for the 'bad' domain...
 allow test_nofileop_t nofileop_rw_file_t:file { open read write append relabelfrom };
+allow_map(test_nofileop_t, nofileop_rw_file_t, file)
 allow test_nofileop_t nofileop_ra_file_t:file { open read append };
 allow test_nofileop_t fileop_file_t:file { relabelto };
 allow test_nofileop_t ptmx_t:chr_file { open read write ioctl };
