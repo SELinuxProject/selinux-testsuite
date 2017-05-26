@@ -46,7 +46,8 @@ int main(int argc, char **argv)
 	}
 
 	if (!strcmp(argv[1], "fail") && strverscmp(uts.release, "4.7") < 0) {
-		printf("%s: Kernels < 4.7 do not check execstack on thread stacks, skipping.\n", argv[0]);
+		printf("%s: Kernels < 4.7 do not check execstack on thread stacks, skipping.\n",
+		       argv[0]);
 		/* pass the test by failing as if it was denied */
 		exit(1);
 	}

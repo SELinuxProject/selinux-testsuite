@@ -74,14 +74,14 @@ main(int argc, char **argv)
 	sun.sun_family = AF_UNIX;
 	if (abstract) {
 		sun.sun_path[0] = 0;
-		strcpy(&sun.sun_path[1], argv[optind+1]);
+		strcpy(&sun.sun_path[1], argv[optind + 1]);
 		sunlen = offsetof(struct sockaddr_un, sun_path) +
-			strlen(&sun.sun_path[1]) + 1;
+			 strlen(&sun.sun_path[1]) + 1;
 	} else {
-		strcpy(sun.sun_path, argv[optind+1]);
+		strcpy(sun.sun_path, argv[optind + 1]);
 		unlink(sun.sun_path);
 		sunlen = offsetof(struct sockaddr_un, sun_path) +
-			strlen(sun.sun_path) + 1;
+			 strlen(sun.sun_path) + 1;
 	}
 
 	if (bind(sock, (struct sockaddr *) &sun, sunlen) < 0) {

@@ -15,7 +15,7 @@ int main(void)
 		exit(1);
 	}
 	execmem = shmat(shmid, 0, SHM_EXEC);
-	if (execmem == ((void *) -1)) {
+	if (execmem == ((void *) - 1)) {
 		perror("shmat SHM_EXEC");
 		rc = 1;
 	} else {
