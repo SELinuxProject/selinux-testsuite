@@ -13,6 +13,9 @@
 CHK_C_LIST="$(find tests/ -name "*.c") $(find tests/ -name "*.h")"
 CHK_C_EXCLUDE=""
 
+CHK_PERL_LIST="$(find tests/ -name "*.pl") $(find tests/ -name "test")"
+CHK_PERL_EXCLUDE=""
+
 ####
 # functions
 
@@ -66,50 +69,93 @@ function tool_c_style() {
 }
 
 #
-# Check the formatting on a C source/header file
+# Generate a properly formatted Perl source file
 #
 # Arguments:
-#     1    File to check
+#     1    Source file
 #
-function tool_c_style_check() {
-	[[ -z "$1" || ! -r "$1" ]] && return
-
-	tool_c_style "$1" | diff -pu --label="$1.orig" "$1" --label="$1" -
+function tool_perl_style() {
+	perltidy < "$1"
 }
 
 #
-# Fix the formatting on a C source/header file
+# Check the formatting on a file
 #
 # Arguments:
-#     1    File to fix
+#     1    Language
+#     2    File to check
 #
-function tool_c_style_fix() {
-	[[ -z "$1" || ! -r "$1" ]] && return
+function style_check() {
+	[[ -z "$1" ]] && return
+	[[ -z "$2" || ! -r "$2" ]] && return
 
-	tmp="$(mktemp --tmpdir=$(dirname "$1"))"
-	tool_c_style "$1" > "$tmp"
-	mv "$tmp" "$1"
+	case "$1" in
+	c|C)
+		tool_c_style "$2" | \
+			diff -pu --label="$2.orig" "$2" --label="$2" -
+		;;
+	perl|Perl)
+		tool_perl_style "$2" | \
+			diff -pu --label="$2.orig" "$2" --label="$2" -
+		;;
+	esac
 }
 
 #
-# Perform all known syntax checks for the configured C sources/headers
+# Fix the formatting on a file
 #
-function check_c() {
+# Arguments:
+#     1    Language
+#     2    File to check
+#
+function style_fix() {
+	[[ -z "$1" ]] && return
+	[[ -z "$2" || ! -w "$2" ]] && return
+
+	tmp="$(mktemp --tmpdir=$(dirname "$2"))"
+	case "$1" in
+	c|C)
+		tool_c_style "$2" > "$tmp"
+		;;
+	perl|Perl)
+		tool_perl_style "$2" > "$tmp"
+		;;
+	esac
+	cat "$tmp" > "$2"
+	rm "$tmp"
+}
+
+#
+# Perform all known syntax checks for the configured files
+#
+function check() {
 	for i in $CHK_C_LIST; do
 		echo "$CHK_C_EXCLUDE" | grep -q "$i" && continue
 		echo "Differences for $i"
-		tool_c_style_check "$i"
+		style_check c "$i"
+	done
+
+	for i in $CHK_PERL_LIST; do
+		echo "$CHK_PERL_EXCLUDE" | grep -q "$i" && continue
+		echo "Differences for $i"
+		style_check perl "$i"
 	done
 }
 
 #
-# Perform all known syntax fixes for the configured C sources/headers
+# Perform all known syntax fixes for the configured files
 #
-function fix_c() {
+function fix() {
 	for i in $CHK_C_LIST; do
 		echo "$CHK_C_EXCLUDE" | grep -q "$i" && continue
 		echo "Fixing $i"
-		tool_c_style_fix "$i"
+		style_fix c "$i"
+	done
+
+	for i in $CHK_PERL_LIST; do
+		echo "$CHK_PERL_EXCLUDE" | grep -q "$i" && continue
+		echo "Fixing $i"
+		style_fix perl "$i"
 	done
 }
 
@@ -117,6 +163,7 @@ function fix_c() {
 # main
 
 verify_deps astyle
+verify_deps perltidy
 
 opt_fix=0
 
@@ -136,9 +183,9 @@ done
 echo "=============== $(date) ==============="
 echo "Code Syntax Check Results (\"check-syntax $*\")"
 if [[ $opt_fix -eq 1 ]]; then
-	fix_c
+	fix
 else
-	check_c
+	check
 fi
 echo "============================================================"
 
