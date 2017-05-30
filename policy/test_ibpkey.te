@@ -1,0 +1,30 @@
+#################################
+#
+# Policy for testing Infiniband Pkey access.
+#
+
+attribute ibpkeydomain;
+
+# Domain for process.
+type test_ibpkey_access_t;
+domain_type(test_ibpkey_access_t)
+unconfined_runs_test(test_ibpkey_access_t)
+typeattribute test_ibpkey_access_t testdomain;
+typeattribute test_ibpkey_access_t ibpkeydomain;
+
+dev_rw_infiniband_dev(test_ibpkey_access_t)
+dev_rw_sysfs(test_ibpkey_access_t)
+
+# Define a pkey type for labeling pkeys during the test.
+type test_ibpkey_t;
+ifdef(`corenet_ib_pkey',`
+corenet_ib_pkey(test_ibpkey_t)
+')
+
+ifdef(`corenet_ib_access_unlabeled_pkeys',`
+corenet_ib_access_unlabeled_pkeys(test_ibpkey_access_t)
+')
+
+# Allow all of these domains to be entered from the sysadm domain.
+miscfiles_domain_entry_test_files(ibpkeydomain)
+userdom_sysadm_entry_spec_domtrans_to(ibpkeydomain)

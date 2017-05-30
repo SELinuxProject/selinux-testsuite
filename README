@@ -68,8 +68,9 @@ libselinux-devel # to build some of the test programs
 net-tools # for ifconfig, used by capable_net/test
 netlabel_tools # to load NetLabel configuration during inet_socket tests
 iptables # to load iptables SECMARK rules during inet_socket tests
+libibverbs-devel # to build ibpkey test program.
 
-yum install perl-Test perl-Test-Harness perl-Test-Simple selinux-policy-devel gcc libselinux-devel net-tools netlabel_tools iptables
+yum install perl-Test perl-Test-Harness perl-Test-Simple selinux-policy-devel gcc libselinux-devel net-tools netlabel_tools iptables libibverbs-devel
 
 The testsuite requires a pre-existing base policy configuration of
 SELinux, using either the old example policy or the reference policy
@@ -195,3 +196,12 @@ establish a base directory (based on the path of the script
 executable).  This won't always be accurate, but will work for this
 test harness/configuration.
 	$basedir = $0;  $basedir =~ s|(.*)/[^/]*|$1|;
+
+INFINIBAND TESTS
+----------------
+Because running Infiniband tests requires specialized hardware you must
+set up a configuration file for these tests. The tests are disabled by
+default.  See comments in the configuration file for info.
+
+Infiniband PKey test conf file:
+tests/infiniband_pkey/ibpkey_test.conf
