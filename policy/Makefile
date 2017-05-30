@@ -49,6 +49,10 @@ ifeq ($(shell grep -q getrlimit $(POLDEV)/include/support/all_perms.spt && echo 
 TARGETS += test_prlimit.te
 endif
 
+ifeq ($(shell grep -q infiniband_endport $(POLDEV)/include/support/all_perms.spt && echo true),true)
+TARGETS += test_ibendport.te
+endif
+
 ifeq ($(shell grep -q all_file_perms.*map $(POLDEV)/include/support/all_perms.spt && echo true),true)
 export M4PARAM = -Dmap_permission_defined
 endif

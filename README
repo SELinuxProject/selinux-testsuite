@@ -201,7 +201,12 @@ INFINIBAND TESTS
 ----------------
 Because running Infiniband tests requires specialized hardware you must
 set up a configuration file for these tests. The tests are disabled by
-default.  See comments in the configuration file for info.
+default.  See comments in the configuration file for info. The endport
+tests use smpquery, for Fedora it's provided by the infiniband-diags
+package.
 
 Infiniband PKey test conf file:
 tests/infiniband_pkey/ibpkey_test.conf
+
+Infiniband Endport test conf file:
+tests/infiniband_endport/ibendport_test.conf

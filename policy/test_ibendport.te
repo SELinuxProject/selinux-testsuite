@@ -1,0 +1,40 @@
+#################################
+#
+# Policy for testing Infiniband Pkey access.
+#
+
+gen_require(`
+	type bin_t;
+	type infiniband_mgmt_device_t;
+')
+
+attribute ibendportdomain;
+
+# Domain for process.
+type test_ibendport_manage_subnet_t;
+domain_type(test_ibendport_manage_subnet_t)
+unconfined_runs_test(test_ibendport_manage_subnet_t)
+typeattribute test_ibendport_manage_subnet_t testdomain;
+typeattribute test_ibendport_manage_subnet_t ibendportdomain;
+
+type test_ibendport_t;
+ifdef(`corenet_ib_endport',`
+corenet_ib_endport(test_ibendport_t)
+')
+
+dev_rw_infiniband_dev(test_ibendport_manage_subnet_t)
+dev_rw_sysfs(test_ibendport_manage_subnet_t)
+
+corecmd_bin_entry_type(test_ibendport_manage_subnet_t)
+
+allow test_ibendport_manage_subnet_t infiniband_mgmt_device_t:chr_file { read write open ioctl};
+
+ifdef(`corenet_ib_access_unlabeled_pkeys',`
+corenet_ib_access_unlabeled_pkeys(test_ibendport_manage_subnet_t)
+')
+
+allow test_ibendport_manage_subnet_t test_ibendport_t:infiniband_endport manage_subnet;
+
+# Allow all of these domains to be entered from the sysadm domain.
+miscfiles_domain_entry_test_files(ibendportdomain)
+userdom_sysadm_entry_spec_domtrans_to(ibendportdomain)
