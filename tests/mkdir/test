@@ -1,18 +1,20 @@
 #!/usr/bin/perl
 
 use Test;
-BEGIN { plan tests => 5}
+BEGIN { plan tests => 5 }
 
-$basedir = $0;  $basedir =~ s|(.*)/[^/]*|$1|;
+$basedir = $0;
+$basedir =~ s|(.*)/[^/]*|$1|;
 
 $selinux_mntpoint = `mount | grep "^selinuxfs" | awk '{ORS="";print \$3}'`;
-if (-e "$selinux_mntpoint/mls") {
+if ( -e "$selinux_mntpoint/mls" ) {
     print "selinuxfs found at: $selinux_mntpoint\n";
-} else {
+}
+else {
     print "selinuxfs not found in mount list\n";
-    @locations = ('/selinux', '/sys/fs/selinux');
+    @locations = ( '/selinux', '/sys/fs/selinux' );
     foreach (@locations) {
-        if (-e "$_/mls") {
+        if ( -e "$_/mls" ) {
             $selinux_mntpoint = $_;
             print "selinuxfs found at: $selinux_mntpoint\n";
             last;
@@ -21,43 +23,50 @@ if (-e "$selinux_mntpoint/mls") {
 }
 
 $mls = `cat $selinux_mntpoint/mls`;
-if ($mls eq 1) {
-	$suffix = ":s0";
-} else {
-	$suffix = "";
+if ( $mls eq 1 ) {
+    $suffix = ":s0";
+}
+else {
+    $suffix = "";
 }
 
 # Remove any leftover test directory from prior failed runs.
-system ("rm -rf $basedir/test_dir");
+system("rm -rf $basedir/test_dir");
 
 # Create a test directory with the test_mkdir_dir_t type for use in the tests.
-system ("mkdir $basedir/test_dir 2>&1");
-system ("chcon -t test_mkdir_dir_t $basedir/test_dir" );
+system("mkdir $basedir/test_dir 2>&1");
+system("chcon -t test_mkdir_dir_t $basedir/test_dir");
 
 # Verify that test_addname_t can create a subdirectory.
-$result = system ("runcon -t test_addname_t mkdir $basedir/test_dir/test1 2>&1");
-ok($result, 0); 
+$result = system("runcon -t test_addname_t mkdir $basedir/test_dir/test1 2>&1");
+ok( $result, 0 );
 
 # Verify that test_noaddname_t cannot create a subdirectory.
 # Should fail on the add_name permission check to the test directory.
-$result = system ("runcon -t test_noaddname_t mkdir $basedir/test_dir/test2 2>&1");
-ok($result); 
+$result =
+  system("runcon -t test_noaddname_t mkdir $basedir/test_dir/test2 2>&1");
+ok($result);
 
 # Verify that test_nosearch_t cannot create a subdirectory.
 # Should fail on the search permission check to the test directory.
-$result = system ("runcon -t test_nosearch_t mkdir $basedir/test_dir/test2 2>&1");
-ok($result); 
+$result =
+  system("runcon -t test_nosearch_t mkdir $basedir/test_dir/test2 2>&1");
+ok($result);
 
 # Verify that test_create_t can create a subdirectory with a different type.
 # This requires add_name to test_mkdir_dir_t and create to test_create_dir_t.
-$result = system ("runcon -t test_create_t -- mkdir --context=system_u:object_r:test_create_dir_t$suffix $basedir/test_dir/test3 2>&1");
-ok($result, 0); 
+$result = system(
+"runcon -t test_create_t -- mkdir --context=system_u:object_r:test_create_dir_t$suffix $basedir/test_dir/test3 2>&1"
+);
+ok( $result, 0 );
 
 # Verify that test_nocreate_t cannot create a subdirectory with a different type.
 # Should fail on create check to the new type.
-$result = system ("runcon -t test_nocreate_t -- mkdir --context=system_u:object_r:test_create_dir_t$suffix $basedir/test_dir/test4 2>&1");
-ok($result); 
+$result = system(
+"runcon -t test_nocreate_t -- mkdir --context=system_u:object_r:test_create_dir_t$suffix $basedir/test_dir/test4 2>&1"
+);
+ok($result);
 
 # Cleanup.
-system ("rm -rf $basedir/test_dir");
+system("rm -rf $basedir/test_dir");
 

@@ -1,15 +1,20 @@
 #!/usr/bin/perl
 
 use Test;
-BEGIN { plan tests => 2}
+BEGIN { plan tests => 2 }
 
-$basedir = $0;  $basedir =~ s|(.*)/[^/]*|$1|;
+$basedir = $0;
+$basedir =~ s|(.*)/[^/]*|$1|;
 
 # Verify that notfromdomain cannot transition to todomain.
 # Should fail on the transition permission check.
-$result = system ("runcon -t test_dyntrans_notfromdomain_t -- $basedir/parent test_dyntrans_todomain_t 2>&1");
-ok($result); # we expect this to fail.
+$result = system(
+"runcon -t test_dyntrans_notfromdomain_t -- $basedir/parent test_dyntrans_todomain_t 2>&1"
+);
+ok($result);    # we expect this to fail.
 
 # Verify that fromdomain can transition to todomain.
-$result = system ("runcon -t test_dyntrans_fromdomain_t -- $basedir/parent test_dyntrans_todomain_t 2>&1");
-ok($result, 0);
+$result = system(
+"runcon -t test_dyntrans_fromdomain_t -- $basedir/parent test_dyntrans_todomain_t 2>&1"
+);
+ok( $result, 0 );

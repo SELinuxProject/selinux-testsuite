@@ -1,18 +1,23 @@
 #!/usr/bin/perl
 
 use Test;
-BEGIN { plan tests => 2}
+BEGIN { plan tests => 2 }
 
-$basedir = $0;  $basedir =~ s|(.*)/[^/]*|$1|;
+$basedir = $0;
+$basedir =~ s|(.*)/[^/]*|$1|;
 
 # Verify that test_exectrace_child_t can be traced across an exec
 # by test_exectrace_parent_t.
-$result = system ("runcon -t test_exectrace_parent_t -- $basedir/parent test_exectrace_child_t $basedir/child 2>&1");
-ok($result, 0); 
+$result = system(
+"runcon -t test_exectrace_parent_t -- $basedir/parent test_exectrace_child_t $basedir/child 2>&1"
+);
+ok( $result, 0 );
 
 # Verify that test_exectrace_notchild_t cannot be traced across an exec
 # by test_exectrace_parent_t.
 # Should fail on ptrace permission.
-$result = system ("runcon -t test_exectrace_parent_t -- $basedir/parent test_exectrace_notchild_t $basedir/child 2>&1");
-ok($result); # we expect this to fail.
+$result = system(
+"runcon -t test_exectrace_parent_t -- $basedir/parent test_exectrace_notchild_t $basedir/child 2>&1"
+);
+ok($result);    # we expect this to fail.
 

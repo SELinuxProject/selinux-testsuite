@@ -1,97 +1,149 @@
 #!/usr/bin/perl
 
 use Test;
-BEGIN { plan tests => 24}
+BEGIN { plan tests => 24 }
 
-$basedir = $0;  $basedir =~ s|(.*)/[^/]*|$1|;
+$basedir = $0;
+$basedir =~ s|(.*)/[^/]*|$1|;
 
-system ("dd if=/dev/zero of=$basedir/bounds_file_red   count=1 > /dev/null 2>&1");
-system ("dd if=/dev/zero of=$basedir/bounds_file_green count=1 > /dev/null 2>&1");
-system ("dd if=/dev/zero of=$basedir/bounds_file_blue  count=1 > /dev/null 2>&1");
-system ("chcon -t test_bounds_file_red_t   $basedir/bounds_file_red");
-system ("chcon -t test_bounds_file_green_t $basedir/bounds_file_green");
-system ("chcon -t test_bounds_file_blue_t  $basedir/bounds_file_blue");
+system(
+    "dd if=/dev/zero of=$basedir/bounds_file_red   count=1 > /dev/null 2>&1");
+system(
+    "dd if=/dev/zero of=$basedir/bounds_file_green count=1 > /dev/null 2>&1");
+system(
+    "dd if=/dev/zero of=$basedir/bounds_file_blue  count=1 > /dev/null 2>&1");
+system("chcon -t test_bounds_file_red_t   $basedir/bounds_file_red");
+system("chcon -t test_bounds_file_green_t $basedir/bounds_file_green");
+system("chcon -t test_bounds_file_blue_t  $basedir/bounds_file_blue");
 
 # It ensures we can dyntrans into bounded domain on multi-threading
-$result = system ("runcon -t test_bounds_parent_t -- $basedir/thread test_bounds_child_t 2>&1");
-ok($result, 0);
+$result = system(
+    "runcon -t test_bounds_parent_t -- $basedir/thread test_bounds_child_t 2>&1"
+);
+ok( $result, 0 );
 
 # It ensures we cannot dyntrans into unbounded domain on multi-threading
-$result = system ("runcon -t test_bounds_parent_t -- $basedir/thread test_bounds_unbound_t 2>&1");
+$result = system(
+"runcon -t test_bounds_parent_t -- $basedir/thread test_bounds_unbound_t 2>&1"
+);
 ok($result);
 
 # It ensures the parent domain does not bounded to anything.
 # So, we expect the result will be identical for each ALLOW statements.
 
-$result = system ("runcon -t test_bounds_parent_t -- dd if=$basedir/bounds_file_red of=/dev/null count=1 2>&1 > /dev/null");
-ok($result, 0);
+$result = system(
+"runcon -t test_bounds_parent_t -- dd if=$basedir/bounds_file_red of=/dev/null count=1 2>&1 > /dev/null"
+);
+ok( $result, 0 );
 
-$result = system ("runcon -t test_bounds_parent_t -- dd if=/dev/zero of=$basedir/bounds_file_red count=1 2>&1 > /dev/null");
+$result = system(
+"runcon -t test_bounds_parent_t -- dd if=/dev/zero of=$basedir/bounds_file_red count=1 2>&1 > /dev/null"
+);
 ok($result);
 
-$result = system ("runcon -t test_bounds_parent_t -- chmod 777 $basedir/bounds_file_red 2>&1 > /dev/null");
-ok($result, 0);
+$result = system(
+"runcon -t test_bounds_parent_t -- chmod 777 $basedir/bounds_file_red 2>&1 > /dev/null"
+);
+ok( $result, 0 );
 
-$result = system ("runcon -t test_bounds_parent_t -- dd if=$basedir/bounds_file_green of=/dev/null count=1 2>&1 > /dev/null");
-ok($result, 0);
+$result = system(
+"runcon -t test_bounds_parent_t -- dd if=$basedir/bounds_file_green of=/dev/null count=1 2>&1 > /dev/null"
+);
+ok( $result, 0 );
 
-$result = system ("runcon -t test_bounds_parent_t -- dd if=/dev/zero of=$basedir/bounds_file_green count=1 2>&1 > /dev/null");
+$result = system(
+"runcon -t test_bounds_parent_t -- dd if=/dev/zero of=$basedir/bounds_file_green count=1 2>&1 > /dev/null"
+);
 ok($result);
 
-$result = system ("runcon -t test_bounds_parent_t -- chmod 777 $basedir/bounds_file_green 2>&1 > /dev/null");
-ok($result, 0);
+$result = system(
+"runcon -t test_bounds_parent_t -- chmod 777 $basedir/bounds_file_green 2>&1 > /dev/null"
+);
+ok( $result, 0 );
 
-$result = system ("runcon -t test_bounds_parent_t -- dd if=$basedir/bounds_file_blue of=/dev/null count=1 2>&1 > /dev/null");
+$result = system(
+"runcon -t test_bounds_parent_t -- dd if=$basedir/bounds_file_blue of=/dev/null count=1 2>&1 > /dev/null"
+);
 ok($result);
 
-$result = system ("runcon -t test_bounds_parent_t -- dd if=/dev/zero of=$basedir/bounds_file_blue count=1 2>&1 > /dev/null");
+$result = system(
+"runcon -t test_bounds_parent_t -- dd if=/dev/zero of=$basedir/bounds_file_blue count=1 2>&1 > /dev/null"
+);
 ok($result);
 
-$result = system ("runcon -t test_bounds_parent_t -- chmod 777 $basedir/bounds_file_blue 2>&1 > /dev/null");
+$result = system(
+"runcon -t test_bounds_parent_t -- chmod 777 $basedir/bounds_file_blue 2>&1 > /dev/null"
+);
 ok($result);
 
 # It ensure the child domain shall be bounded to the parent.
 # So, we expect all the alloed actiona are intersection with test_bounds_parent_t
 
-$result = system ("runcon -t test_bounds_child_t -- dd if=$basedir/bounds_file_red of=/dev/null count=1 2>&1 > /dev/null");
-ok($result, 0);
+$result = system(
+"runcon -t test_bounds_child_t -- dd if=$basedir/bounds_file_red of=/dev/null count=1 2>&1 > /dev/null"
+);
+ok( $result, 0 );
 
-$result = system ("runcon -t test_bounds_child_t -- dd if=/dev/zero of=$basedir/bounds_file_red count=1 2>&1 > /dev/null");
+$result = system(
+"runcon -t test_bounds_child_t -- dd if=/dev/zero of=$basedir/bounds_file_red count=1 2>&1 > /dev/null"
+);
 ok($result);
 
-$result = system ("runcon -t test_bounds_child_t -- chmod 777 $basedir/bounds_file_red 2>&1 > /dev/null");
-ok($result, 0);
+$result = system(
+"runcon -t test_bounds_child_t -- chmod 777 $basedir/bounds_file_red 2>&1 > /dev/null"
+);
+ok( $result, 0 );
 
-$result = system ("runcon -t test_bounds_child_t -- dd if=$basedir/bounds_file_green of=/dev/null count=1 2>&1 > /dev/null");
+$result = system(
+"runcon -t test_bounds_child_t -- dd if=$basedir/bounds_file_green of=/dev/null count=1 2>&1 > /dev/null"
+);
 ok($result);
 
-$result = system ("runcon -t test_bounds_child_t -- dd if=/dev/zero of=$basedir/bounds_file_green count=1 2>&1 > /dev/null");
+$result = system(
+"runcon -t test_bounds_child_t -- dd if=/dev/zero of=$basedir/bounds_file_green count=1 2>&1 > /dev/null"
+);
 ok($result);
 
-$result = system ("runcon -t test_bounds_child_t -- chmod 777 $basedir/bounds_file_green 2>&1 > /dev/null");
-ok($result, 0);
+$result = system(
+"runcon -t test_bounds_child_t -- chmod 777 $basedir/bounds_file_green 2>&1 > /dev/null"
+);
+ok( $result, 0 );
 
-$result = system ("runcon -t test_bounds_child_t -- dd if=$basedir/bounds_file_blue of=/dev/null count=1 2>&1 > /dev/null");
+$result = system(
+"runcon -t test_bounds_child_t -- dd if=$basedir/bounds_file_blue of=/dev/null count=1 2>&1 > /dev/null"
+);
 ok($result);
 
-$result = system ("runcon -t test_bounds_child_t -- dd if=/dev/zero of=$basedir/bounds_file_blue count=1 2>&1 > /dev/null");
+$result = system(
+"runcon -t test_bounds_child_t -- dd if=/dev/zero of=$basedir/bounds_file_blue count=1 2>&1 > /dev/null"
+);
 ok($result);
 
-$result = system ("runcon -t test_bounds_child_t -- chmod 777 $basedir/bounds_file_blue 2>&1 > /dev/null");
+$result = system(
+"runcon -t test_bounds_child_t -- chmod 777 $basedir/bounds_file_blue 2>&1 > /dev/null"
+);
 ok($result);
 
 # It ensure the unbound domain shall not be bounded, although it has identical permission with test_bounds_child_t
-$result = system ("runcon -t test_bounds_unbound_t -- dd if=/dev/zero of=$basedir/bounds_file_red count=1 2>&1 > /dev/null");
-ok($result, 0);
+$result = system(
+"runcon -t test_bounds_unbound_t -- dd if=/dev/zero of=$basedir/bounds_file_red count=1 2>&1 > /dev/null"
+);
+ok( $result, 0 );
 
-$result = system ("runcon -t test_bounds_unbound_t -- chmod 777 $basedir/bounds_file_green 2>&1 > /dev/null");
-ok($result, 0);
+$result = system(
+"runcon -t test_bounds_unbound_t -- chmod 777 $basedir/bounds_file_green 2>&1 > /dev/null"
+);
+ok( $result, 0 );
 
-$result = system ("runcon -t test_bounds_unbound_t -- dd if=$basedir/bounds_file_blue of=/dev/null count=1 2>&1 > /dev/null");
-ok($result, 0);
+$result = system(
+"runcon -t test_bounds_unbound_t -- dd if=$basedir/bounds_file_blue of=/dev/null count=1 2>&1 > /dev/null"
+);
+ok( $result, 0 );
 
-$result = system ("runcon -t test_bounds_unbound_t -- chmod 777 $basedir/bounds_file_blue 2>&1 > /dev/null");
-ok($result, 0);
+$result = system(
+"runcon -t test_bounds_unbound_t -- chmod 777 $basedir/bounds_file_blue 2>&1 > /dev/null"
+);
+ok( $result, 0 );
 
 # Cleanup.
-system ("rm -rf $basedir/bounds_file*");
+system("rm -rf $basedir/bounds_file*");

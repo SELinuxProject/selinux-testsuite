@@ -1,76 +1,108 @@
 #!/usr/bin/perl
 
 use Test;
-BEGIN { plan tests => 16 };
+BEGIN { plan tests => 16 }
 
-$basedir = $0;  $basedir =~ s|(.*)/[^/]*|$1|;
+$basedir = $0;
+$basedir =~ s|(.*)/[^/]*|$1|;
 
 # Enable gid 0 to create ICMP sockets for testing.
 system("echo 0 0 > /proc/sys/net/ipv4/ping_group_range");
 
 # Verify that test_icmp_socket_t can create an ICMP socket.
-$result = system("runcon -t test_icmp_socket_t -- $basedir/sockcreate inet dgram icmp 2>&1");
-ok($result, 0);
+$result = system(
+    "runcon -t test_icmp_socket_t -- $basedir/sockcreate inet dgram icmp 2>&1");
+ok( $result, 0 );
 
 # Verify that test_no_icmp_socket_t cannot create an ICMP socket.
-$result = system("runcon -t test_no_icmp_socket_t -- $basedir/sockcreate inet dgram icmp 2>&1");
+$result = system(
+"runcon -t test_no_icmp_socket_t -- $basedir/sockcreate inet dgram icmp 2>&1"
+);
 ok($result);
 
 # Verify that test_icmp_socket_t can create an ICMPv6 socket.
-$result = system("runcon -t test_icmp_socket_t -- $basedir/sockcreate inet6 dgram icmpv6 2>&1");
-ok($result, 0);
+$result = system(
+"runcon -t test_icmp_socket_t -- $basedir/sockcreate inet6 dgram icmpv6 2>&1"
+);
+ok( $result, 0 );
 
 # Verify that test_no_icmp_socket_t cannot create an ICMPv6 socket.
-$result = system("runcon -t test_no_icmp_socket_t -- $basedir/sockcreate inet6 dgram icmpv6 2>&1");
+$result = system(
+"runcon -t test_no_icmp_socket_t -- $basedir/sockcreate inet6 dgram icmpv6 2>&1"
+);
 ok($result);
 
 # Restore to the kernel defaults - no one allowed to create ICMP sockets.
 system("echo 1 0 > /proc/sys/net/ipv4/ping_group_range");
 
 # Verify that test_sctp_socket_t can create an IPv4 stream SCTP socket.
-$result = system("runcon -t test_sctp_socket_t -- $basedir/sockcreate inet stream sctp 2>&1");
-ok($result, 0);
+$result = system(
+    "runcon -t test_sctp_socket_t -- $basedir/sockcreate inet stream sctp 2>&1"
+);
+ok( $result, 0 );
 
 # Verify that test_no_sctp_socket_t cannot create an IPv4 stream SCTP socket.
-$result = system("runcon -t test_no_sctp_socket_t -- $basedir/sockcreate inet stream sctp 2>&1");
+$result = system(
+"runcon -t test_no_sctp_socket_t -- $basedir/sockcreate inet stream sctp 2>&1"
+);
 ok($result);
 
 # Verify that test_sctp_socket_t can create an IPv4 seqpacket SCTP socket.
-$result = system("runcon -t test_sctp_socket_t -- $basedir/sockcreate inet seqpacket sctp 2>&1");
-ok($result, 0);
+$result = system(
+"runcon -t test_sctp_socket_t -- $basedir/sockcreate inet seqpacket sctp 2>&1"
+);
+ok( $result, 0 );
 
 # Verify that test_no_sctp_socket_t cannot create an IPv4 seqpacket SCTP socket.
-$result = system("runcon -t test_no_sctp_socket_t -- $basedir/sockcreate inet seqpacket sctp 2>&1");
+$result = system(
+"runcon -t test_no_sctp_socket_t -- $basedir/sockcreate inet seqpacket sctp 2>&1"
+);
 ok($result);
 
 # Verify that test_sctp_socket_t can create an IPv6 stream SCTP socket.
-$result = system("runcon -t test_sctp_socket_t -- $basedir/sockcreate inet6 stream sctp 2>&1");
-ok($result, 0);
+$result = system(
+    "runcon -t test_sctp_socket_t -- $basedir/sockcreate inet6 stream sctp 2>&1"
+);
+ok( $result, 0 );
 
 # Verify that test_no_sctp_socket_t cannot create an IPv6 stream SCTP socket.
-$result = system("runcon -t test_no_sctp_socket_t -- $basedir/sockcreate inet6 stream sctp 2>&1");
+$result = system(
+"runcon -t test_no_sctp_socket_t -- $basedir/sockcreate inet6 stream sctp 2>&1"
+);
 ok($result);
 
 # Verify that test_sctp_socket_t can create an IPv6 seqpacket SCTP socket.
-$result = system("runcon -t test_sctp_socket_t -- $basedir/sockcreate inet6 seqpacket sctp 2>&1");
-ok($result, 0);
+$result = system(
+"runcon -t test_sctp_socket_t -- $basedir/sockcreate inet6 seqpacket sctp 2>&1"
+);
+ok( $result, 0 );
 
 # Verify that test_no_sctp_socket_t cannot create an IPv6 seqpacket SCTP socket.
-$result = system("runcon -t test_no_sctp_socket_t -- $basedir/sockcreate inet6 seqpacket sctp 2>&1");
+$result = system(
+"runcon -t test_no_sctp_socket_t -- $basedir/sockcreate inet6 seqpacket sctp 2>&1"
+);
 ok($result);
 
 # Verify that test_bluetooth_socket_t can create a Bluetooth socket.
-$result = system("runcon -t test_bluetooth_socket_t -- $basedir/sockcreate bluetooth stream default 2>&1");
-ok($result, 0);
+$result = system(
+"runcon -t test_bluetooth_socket_t -- $basedir/sockcreate bluetooth stream default 2>&1"
+);
+ok( $result, 0 );
 
 # Verify that test_no_bluetooth_socket_t cannot create a Bluetooth socket.
-$result = system("runcon -t test_no_bluetooth_socket_t -- $basedir/sockcreate bluetooth stream default 2>&1");
+$result = system(
+"runcon -t test_no_bluetooth_socket_t -- $basedir/sockcreate bluetooth stream default 2>&1"
+);
 ok($result);
 
 # Verify that test_alg_socket_t can create a Crypto API socket.
-$result = system("runcon -t test_alg_socket_t -- $basedir/sockcreate alg seqpacket default 2>&1");
-ok($result, 0);
+$result = system(
+"runcon -t test_alg_socket_t -- $basedir/sockcreate alg seqpacket default 2>&1"
+);
+ok( $result, 0 );
 
 # Verify that test_no_alg_socket_t cannot create a Crypto API socket.
-$result = system("runcon -t test_no_alg_socket_t -- $basedir/sockcreate alg seqpacket default 2>&1");
+$result = system(
+"runcon -t test_no_alg_socket_t -- $basedir/sockcreate alg seqpacket default 2>&1"
+);
 ok($result);

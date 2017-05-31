@@ -3,9 +3,10 @@ use Test::More;
 
 BEGIN {
     # check if kernel supports overlayfs and SELinux labeling
-    if (system("grep -q security_inode_copy_up /proc/kallsyms")) {
+    if ( system("grep -q security_inode_copy_up /proc/kallsyms") ) {
         plan skip_all => "overlayfs not supported with SELinux in this kernel";
-    } else {
+    }
+    else {
         plan tests => 121;
     }
 }
@@ -16,790 +17,943 @@ sub cleanup() {
 }
 
 sub getfilecon {
-        my ($filename) = @_;
-	$output = `getfattr -d -n security.selinux $filename --only-values 2> /dev/null`;
-	chop($output);
-	return $output;
+    my ($filename) = @_;
+    $output =
+      `getfattr -d -n security.selinux $filename --only-values 2> /dev/null`;
+    chop($output);
+    return $output;
 }
 
 sub access {
-        my ($filename, $accesstype) = @_;
-	$output = `runcon -t test_overlay_client_t -l s0:c10,c20 $basedir/access $filename $accesstype`;
-	$output =~ s/\n//g;
-	return $output;
+    my ( $filename, $accesstype ) = @_;
+    $output =
+`runcon -t test_overlay_client_t -l s0:c10,c20 $basedir/access $filename $accesstype`;
+    $output =~ s/\n//g;
+    return $output;
 }
 
 sub xattr_test_setup {
-	print "Setting up xattr test\n";
-	system ("touch $basedir/container1/merged/writefile >/dev/null");
-	system ("unlink $basedir/container1/upper/readfile >/dev/null 2>/dev/null");
-	system ("unlink $basedir/container1/upper/noaccessfile >/dev/null 2> /dev/null");
-	return;
+    print "Setting up xattr test\n";
+    system("touch $basedir/container1/merged/writefile >/dev/null");
+    system("unlink $basedir/container1/upper/readfile >/dev/null 2>/dev/null");
+    system(
+        "unlink $basedir/container1/upper/noaccessfile >/dev/null 2> /dev/null"
+    );
+    return;
 }
+
 # Tests
 sub test_1 {
-	print "Attempting to cat readfile should succeed.\n";
-	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 cat $basedir/container1/merged/readfile >/dev/null");
-	ok($result eq 0);
-	return;
+    print "Attempting to cat readfile should succeed.\n";
+    $result = system(
+"runcon -t test_overlay_client_t -l s0:c10,c20 cat $basedir/container1/merged/readfile >/dev/null"
+    );
+    ok( $result eq 0 );
+    return;
 }
 
 sub test_2 {
-	print "Attempting to touch noaccessfile, should fail.\n";
-	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 touch $basedir/container1/merged/noaccessfile >/dev/null 2>&1");
-	ok($result);
-	return;
+    print "Attempting to touch noaccessfile, should fail.\n";
+    $result = system(
+"runcon -t test_overlay_client_t -l s0:c10,c20 touch $basedir/container1/merged/noaccessfile >/dev/null 2>&1"
+    );
+    ok($result);
+    return;
 }
 
 sub test_3 {
-	print "Attempting to cat noaccessfile should fail.\n";
-	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 cat $basedir/container1/merged/noaccessfile > /dev/null 2>&1");
-	ok($result);
-	return;
+    print "Attempting to cat noaccessfile should fail.\n";
+    $result = system(
+"runcon -t test_overlay_client_t -l s0:c10,c20 cat $basedir/container1/merged/noaccessfile > /dev/null 2>&1"
+    );
+    ok($result);
+    return;
 }
 
 sub test_4 {
-	print "Attempting to write writefile, should succeed.\n";
-	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 $basedir/append $basedir/container1/merged/writefile >/dev/null");
-	ok($result eq 0);
-	return;
+    print "Attempting to write writefile, should succeed.\n";
+    $result = system(
+"runcon -t test_overlay_client_t -l s0:c10,c20 $basedir/append $basedir/container1/merged/writefile >/dev/null"
+    );
+    ok( $result eq 0 );
+    return;
 }
 
 sub test_4_0 {
-	print "Check label on writefile, should succeed.\n";
-	$output = getfilecon("$basedir/container1/upper/writefile");
-	# Newly created writefile should have s0 MCS Label since it was copied up
-	ok($output eq "unconfined_u:object_r:test_overlay_files_rwx_t:s0")
+    print "Check label on writefile, should succeed.\n";
+    $output = getfilecon("$basedir/container1/upper/writefile");
+
+    # Newly created writefile should have s0 MCS Label since it was copied up
+    ok( $output eq "unconfined_u:object_r:test_overlay_files_rwx_t:s0" );
 }
 
 sub test_4_0_ctx {
-	print "Check label on writefile, should succeed.\n";
-	$output = getfilecon("$basedir/container1/upper/writefile");
-	# Newly created writefile should have s0 MCS Label since it was copied up
-	ok($output eq "unconfined_u:object_r:test_overlay_files_rwx_t:s0:c10,c20")
+    print "Check label on writefile, should succeed.\n";
+    $output = getfilecon("$basedir/container1/upper/writefile");
+
+    # Newly created writefile should have s0 MCS Label since it was copied up
+    ok( $output eq
+          "unconfined_u:object_r:test_overlay_files_rwx_t:s0:c10,c20" );
 }
 
 sub test_5 {
-	print "Attempting to create new file touchedfile, should succeed.\n";
-	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 touch $basedir/container1/merged/touchfile >/dev/null");
-	ok($result eq 0);
-	return;
+    print "Attempting to create new file touchedfile, should succeed.\n";
+    $result = system(
+"runcon -t test_overlay_client_t -l s0:c10,c20 touch $basedir/container1/merged/touchfile >/dev/null"
+    );
+    ok( $result eq 0 );
+    return;
 }
 
 sub test_5_0 {
-	print "Attempting to create new dir newdir, should succeed.\n";
-	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 mkdir $basedir/container1/merged/newdir >/dev/null");
-	ok($result eq 0);
-	return;
+    print "Attempting to create new dir newdir, should succeed.\n";
+    $result = system(
+"runcon -t test_overlay_client_t -l s0:c10,c20 mkdir $basedir/container1/merged/newdir >/dev/null"
+    );
+    ok( $result eq 0 );
+    return;
 }
 
 sub test_5_1 {
-	print "Check label on newdir, should succeed.\n";
-	$output = getfilecon("$basedir/container1/upper/newdir");
-        # Newly created writedir should have s0:c10,c20 since it was created new
-	ok($output eq "unconfined_u:object_r:test_overlay_files_rwx_t:s0:c10,c20")
+    print "Check label on newdir, should succeed.\n";
+    $output = getfilecon("$basedir/container1/upper/newdir");
+
+    # Newly created writedir should have s0:c10,c20 since it was created new
+    ok( $output eq
+          "unconfined_u:object_r:test_overlay_files_rwx_t:s0:c10,c20" );
 }
 
 sub test_5_2 {
-	print "Attempting to create link file inside newdir to touchfile should succeed.\n";
-	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 ln $basedir/container1/merged/touchfile $basedir/container1/merged/newdir/touchlink >/dev/null");
-	ok($result eq 0);
-	return;
+    print
+"Attempting to create link file inside newdir to touchfile should succeed.\n";
+    $result = system(
+"runcon -t test_overlay_client_t -l s0:c10,c20 ln $basedir/container1/merged/touchfile $basedir/container1/merged/newdir/touchlink >/dev/null"
+    );
+    ok( $result eq 0 );
+    return;
 }
 
 sub test_5_3 {
-	print "Check label on touchlink, should succeed.\n";
-	$output = getfilecon("$basedir/container1/upper/newdir/touchlink");
-        # Newly created writelink should have s0:c10,c20 since it was created new
-	ok($output eq "unconfined_u:object_r:test_overlay_files_rwx_t:s0:c10,c20")
+    print "Check label on touchlink, should succeed.\n";
+    $output = getfilecon("$basedir/container1/upper/newdir/touchlink");
+
+    # Newly created writelink should have s0:c10,c20 since it was created new
+    ok( $output eq
+          "unconfined_u:object_r:test_overlay_files_rwx_t:s0:c10,c20" );
 }
 
 sub test_6 {
-	print "Attempting to create directory inside writedir should succeed.\n";
-	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 mkdir $basedir/container1/merged/writedir/foo >/dev/null");
-	ok($result eq 0);
-	return;
+    print "Attempting to create directory inside writedir should succeed.\n";
+    $result = system(
+"runcon -t test_overlay_client_t -l s0:c10,c20 mkdir $basedir/container1/merged/writedir/foo >/dev/null"
+    );
+    ok( $result eq 0 );
+    return;
 }
 
 sub test_7 {
-	print "Attempting to create file inside writedir should succeed.\n";
-	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 touch $basedir/container1/merged/writedir/bar >/dev/null");
-	ok($result eq 0);
-	return;
+    print "Attempting to create file inside writedir should succeed.\n";
+    $result = system(
+"runcon -t test_overlay_client_t -l s0:c10,c20 touch $basedir/container1/merged/writedir/bar >/dev/null"
+    );
+    ok( $result eq 0 );
+    return;
 }
 
 sub test_7_0 {
-	print "Check label on writedir/bar, should succeed.\n";
-	$output = getfilecon("$basedir/container1/upper/writedir/bar");
-        # Newly created bar should have s0:c10,c20 since it was created new
-	ok($output eq "unconfined_u:object_r:test_overlay_files_rwx_t:s0")
+    print "Check label on writedir/bar, should succeed.\n";
+    $output = getfilecon("$basedir/container1/upper/writedir/bar");
+
+    # Newly created bar should have s0:c10,c20 since it was created new
+    ok( $output eq "unconfined_u:object_r:test_overlay_files_rwx_t:s0" );
 }
 
 sub test_7_0_ctx {
-	print "Check label on writedir/bar, should succeed.\n";
-	$output = getfilecon("$basedir/container1/upper/writedir/bar");
-        # Newly created bar should have s0:c10,c20 since it was created new
-	ok($output eq "unconfined_u:object_r:test_overlay_files_rwx_t:s0:c10,c20")
+    print "Check label on writedir/bar, should succeed.\n";
+    $output = getfilecon("$basedir/container1/upper/writedir/bar");
+
+    # Newly created bar should have s0:c10,c20 since it was created new
+    ok( $output eq
+          "unconfined_u:object_r:test_overlay_files_rwx_t:s0:c10,c20" );
 }
 
 sub test_7_1 {
-	print "Attempting to create link file inside writedir to writefile should succeed.\n";
-	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 ln $basedir/container1/merged/writefile $basedir/container1/merged/writedir/writelink >/dev/null");
-	ok($result eq 0);
-	return;
+    print
+"Attempting to create link file inside writedir to writefile should succeed.\n";
+    $result = system(
+"runcon -t test_overlay_client_t -l s0:c10,c20 ln $basedir/container1/merged/writefile $basedir/container1/merged/writedir/writelink >/dev/null"
+    );
+    ok( $result eq 0 );
+    return;
 }
 
 sub test_7_1_0 {
-	print "Check label on writelink, should succeed.\n";
-	$output = getfilecon("$basedir/container1/upper/writedir/writelink");
-        # Newly created writelink should have s0:c10,c20 since it was created new
-	ok($output eq "unconfined_u:object_r:test_overlay_files_rwx_t:s0")
+    print "Check label on writelink, should succeed.\n";
+    $output = getfilecon("$basedir/container1/upper/writedir/writelink");
+
+    # Newly created writelink should have s0:c10,c20 since it was created new
+    ok( $output eq "unconfined_u:object_r:test_overlay_files_rwx_t:s0" );
 }
 
 sub test_7_1_0_ctx {
-	print "Check label on writelink, should succeed.\n";
-	$output = getfilecon("$basedir/container1/upper/writedir/writelink");
-        # Newly created writelink should have s0:c10,c20 since it was created new
-	ok($output eq "unconfined_u:object_r:test_overlay_files_rwx_t:s0:c10,c20")
+    print "Check label on writelink, should succeed.\n";
+    $output = getfilecon("$basedir/container1/upper/writedir/writelink");
+
+    # Newly created writelink should have s0:c10,c20 since it was created new
+    ok( $output eq
+          "unconfined_u:object_r:test_overlay_files_rwx_t:s0:c10,c20" );
 }
 
 sub test_7_2 {
-	print "Attempting to create link file inside writedir to readfile should fail.\n";
-	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 ln $basedir/container1/merged/readfile $basedir/container1/merged/writedir/readlink >/dev/null 2>&1");
-	ok($result);
-	return;
+    print
+"Attempting to create link file inside writedir to readfile should fail.\n";
+    $result = system(
+"runcon -t test_overlay_client_t -l s0:c10,c20 ln $basedir/container1/merged/readfile $basedir/container1/merged/writedir/readlink >/dev/null 2>&1"
+    );
+    ok($result);
+    return;
 }
 
 # For context mounts, attempt to create lnk file readdir should succeed.
 # Copy up will take place and readdir will have a writable label on upper
 # And dir creation should succeed.
 sub test_7_2_ctx {
-	print "Attempting to create link file inside writedir to readfile should succeed.\n";
-	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 ln $basedir/container1/merged/readfile $basedir/container1/merged/writedir/readlink >/dev/null");
-	ok($result eq 0);
-	return;
+    print
+"Attempting to create link file inside writedir to readfile should succeed.\n";
+    $result = system(
+"runcon -t test_overlay_client_t -l s0:c10,c20 ln $basedir/container1/merged/readfile $basedir/container1/merged/writedir/readlink >/dev/null"
+    );
+    ok( $result eq 0 );
+    return;
 }
 
 sub test_7_3 {
-	print "Attempting to create link file inside writedir to noaccessfile should fail.\n";
-	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 ln $basedir/container1/merged/noaccessfile $basedir/container1/merged/writedir/noaccesslink >/dev/null 2>&1");
-	ok($result);
-	return;
+    print
+"Attempting to create link file inside writedir to noaccessfile should fail.\n";
+    $result = system(
+"runcon -t test_overlay_client_t -l s0:c10,c20 ln $basedir/container1/merged/noaccessfile $basedir/container1/merged/writedir/noaccesslink >/dev/null 2>&1"
+    );
+    ok($result);
+    return;
 }
 
-
 sub test_8 {
-	print "Attempting to create file inside readdir should fail.\n";
-	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 touch $basedir/container1/merged/readdir/bar >/dev/null 2>&1");
-	ok($result);
-	return;
+    print "Attempting to create file inside readdir should fail.\n";
+    $result = system(
+"runcon -t test_overlay_client_t -l s0:c10,c20 touch $basedir/container1/merged/readdir/bar >/dev/null 2>&1"
+    );
+    ok($result);
+    return;
 }
 
 # For context mounts, attempt to create file inside readdir should succeed.
 # Copy up will take place and readdir will have a writable label on upper
 # And dir creation should succeed.
 sub test_8_ctx {
-	print "Attempting to create file inside readdir should succeed.\n";
-	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 touch $basedir/container1/merged/readdir/bar >/dev/null");
-	ok($result eq 0);
-	return;
+    print "Attempting to create file inside readdir should succeed.\n";
+    $result = system(
+"runcon -t test_overlay_client_t -l s0:c10,c20 touch $basedir/container1/merged/readdir/bar >/dev/null"
+    );
+    ok( $result eq 0 );
+    return;
 }
 
 sub test_9 {
-	print "Attempting to change directory to noaccessdir should fail.\n";
-	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 cd $basedir/container1/merged/noaccessdir >/dev/null 2>&1");
-	ok($result);
-	return;
+    print "Attempting to change directory to noaccessdir should fail.\n";
+    $result = system(
+"runcon -t test_overlay_client_t -l s0:c10,c20 cd $basedir/container1/merged/noaccessdir >/dev/null 2>&1"
+    );
+    ok($result);
+    return;
 }
 
 sub test_10 {
-	print "Attempting to write to read null device should fail\n";
-	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 $basedir/append $basedir/container1/merged/null_read >/dev/null 2>&1");
-	ok($result);
-	return;
+    print "Attempting to write to read null device should fail\n";
+    $result = system(
+"runcon -t test_overlay_client_t -l s0:c10,c20 $basedir/append $basedir/container1/merged/null_read >/dev/null 2>&1"
+    );
+    ok($result);
+    return;
 }
 
 sub test_11 {
-	print "Attempting to write to write null device should succeed\n";
-	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 $basedir/append $basedir/container1/merged/null_write >/dev/null");
-	ok($result == 0);
-	return;
+    print "Attempting to write to write null device should succeed\n";
+    $result = system(
+"runcon -t test_overlay_client_t -l s0:c10,c20 $basedir/append $basedir/container1/merged/null_write >/dev/null"
+    );
+    ok( $result == 0 );
+    return;
 }
 
 sub test_12 {
-	print "Attempting to write to noaccess null device should fail\n";
-	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 $basedir/append $basedir/container1/merged/null_noaccess >/dev/null 2>&1");
-	ok($result);
-	return;
+    print "Attempting to write to noaccess null device should fail\n";
+    $result = system(
+"runcon -t test_overlay_client_t -l s0:c10,c20 $basedir/append $basedir/container1/merged/null_noaccess >/dev/null 2>&1"
+    );
+    ok($result);
+    return;
 }
 
 sub test_20 {
-	print "Attempting to getattr noaccessfile, should fail.\n";
-	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 ls -l $basedir/container1/merged/noaccessfile >/dev/null 2>&1");
-	ok($result);
-	return;
+    print "Attempting to getattr noaccessfile, should fail.\n";
+    $result = system(
+"runcon -t test_overlay_client_t -l s0:c10,c20 ls -l $basedir/container1/merged/noaccessfile >/dev/null 2>&1"
+    );
+    ok($result);
+    return;
 }
+
 sub test_21 {
-	print "Attempting to chmod noaccessfile, should fail.\n";
-	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 chmod o-r $basedir/container1/merged/noaccessfile >/dev/null 2>&1");
-	ok($result);
-	return;
+    print "Attempting to chmod noaccessfile, should fail.\n";
+    $result = system(
+"runcon -t test_overlay_client_t -l s0:c10,c20 chmod o-r $basedir/container1/merged/noaccessfile >/dev/null 2>&1"
+    );
+    ok($result);
+    return;
 }
+
 sub test_22 {
-	print "Attempting to getattr readfile, should succeed.\n";
-	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 ls -l $basedir/container1/merged/readfile >/dev/null");
-	ok($result eq 0);
-	return;
+    print "Attempting to getattr readfile, should succeed.\n";
+    $result = system(
+"runcon -t test_overlay_client_t -l s0:c10,c20 ls -l $basedir/container1/merged/readfile >/dev/null"
+    );
+    ok( $result eq 0 );
+    return;
 }
+
 sub test_23 {
-	print "Attempting to chmod readfile, should fail.\n";
-	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 chmod o-r $basedir/container1/merged/readfile >/dev/null 2>&1");
-	ok($result);
-	return;
+    print "Attempting to chmod readfile, should fail.\n";
+    $result = system(
+"runcon -t test_overlay_client_t -l s0:c10,c20 chmod o-r $basedir/container1/merged/readfile >/dev/null 2>&1"
+    );
+    ok($result);
+    return;
 }
+
 # For context mounts, attempt to chmod file inside readdir should succeed.
 # Copy up will take place and readdir will have a writable label on upper
 sub test_23_ctx {
-	print "Attempting to chmod readfile, should succeed.\n";
-	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 chmod o-r $basedir/container1/merged/readfile >/dev/null");
-	ok($result eq 0);
-	return;
+    print "Attempting to chmod readfile, should succeed.\n";
+    $result = system(
+"runcon -t test_overlay_client_t -l s0:c10,c20 chmod o-r $basedir/container1/merged/readfile >/dev/null"
+    );
+    ok( $result eq 0 );
+    return;
 }
+
 sub test_24 {
-	print "Attempting to getattr writefile, should succeed.\n";
-	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 ls -l $basedir/container1/merged/writefile >/dev/null");
-	ok($result eq 0);
-	return;
+    print "Attempting to getattr writefile, should succeed.\n";
+    $result = system(
+"runcon -t test_overlay_client_t -l s0:c10,c20 ls -l $basedir/container1/merged/writefile >/dev/null"
+    );
+    ok( $result eq 0 );
+    return;
 }
+
 sub test_25 {
-	print "Attempting to chmod writefile, should succeed.\n";
-	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 chmod o-r $basedir/container1/merged/writefile >/dev/null");
-	ok($result eq 0);
-	return;
+    print "Attempting to chmod writefile, should succeed.\n";
+    $result = system(
+"runcon -t test_overlay_client_t -l s0:c10,c20 chmod o-r $basedir/container1/merged/writefile >/dev/null"
+    );
+    ok( $result eq 0 );
+    return;
 }
 
 sub test_30 {
-	print "Attempting to getattr noaccessfile, should fail.\n";
-	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 getfattr -n security.selinux $basedir/container1/merged/noaccessfile >/dev/null 2>&1");
-	ok($result);
-	return;
+    print "Attempting to getattr noaccessfile, should fail.\n";
+    $result = system(
+"runcon -t test_overlay_client_t -l s0:c10,c20 getfattr -n security.selinux $basedir/container1/merged/noaccessfile >/dev/null 2>&1"
+    );
+    ok($result);
+    return;
 }
+
 sub test_31 {
-	print "Attempting to getattr readfile, should succeed.\n";
-	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 getfattr -n security.selinux $basedir/container1/merged/readfile >/dev/null");
-	ok($result eq 0);
-	return;
+    print "Attempting to getattr readfile, should succeed.\n";
+    $result = system(
+"runcon -t test_overlay_client_t -l s0:c10,c20 getfattr -n security.selinux $basedir/container1/merged/readfile >/dev/null"
+    );
+    ok( $result eq 0 );
+    return;
 }
 
 sub test_32 {
-	print "Attempting to getattr writefile, should succeed.\n";
-	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 getfattr -n security.selinux $basedir/container1/merged/writefile >/dev/null");
-	ok($result eq 0);
-	return;
+    print "Attempting to getattr writefile, should succeed.\n";
+    $result = system(
+"runcon -t test_overlay_client_t -l s0:c10,c20 getfattr -n security.selinux $basedir/container1/merged/writefile >/dev/null"
+    );
+    ok( $result eq 0 );
+    return;
 }
 
 sub test_33 {
-	print "Attempting to chcon noaccessfile, should fail.\n";
-	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 chcon -t test_overlay_files_rwx_t -l s0:c10 $basedir/container1/merged/noaccessfile >/dev/null 2>&1");
-	ok($result);
-	return;
+    print "Attempting to chcon noaccessfile, should fail.\n";
+    $result = system(
+"runcon -t test_overlay_client_t -l s0:c10,c20 chcon -t test_overlay_files_rwx_t -l s0:c10 $basedir/container1/merged/noaccessfile >/dev/null 2>&1"
+    );
+    ok($result);
+    return;
 }
+
 sub test_34 {
-	print "Attempting to chcon readfile, should fail.\n";
-	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 chcon -t test_overlay_files_rwx_t -l s0:c10 $basedir/container1/merged/readfile >/dev/null 2>&1");
-	ok($result);
-	return;
+    print "Attempting to chcon readfile, should fail.\n";
+    $result = system(
+"runcon -t test_overlay_client_t -l s0:c10,c20 chcon -t test_overlay_files_rwx_t -l s0:c10 $basedir/container1/merged/readfile >/dev/null 2>&1"
+    );
+    ok($result);
+    return;
 }
 
 sub test_35 {
-	print "Attempting to chcon writefile, should succeed.\n";
-	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 chcon -t test_overlay_files_rwx_t -l s0:c10 $basedir/container1/merged/writefile >/dev/null");
-	ok($result eq 0);
-	return;
+    print "Attempting to chcon writefile, should succeed.\n";
+    $result = system(
+"runcon -t test_overlay_client_t -l s0:c10,c20 chcon -t test_overlay_files_rwx_t -l s0:c10 $basedir/container1/merged/writefile >/dev/null"
+    );
+    ok( $result eq 0 );
+    return;
 }
 
 sub test_40 {
-	print "Attempting to remove transition, should succeed.\n";
-	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 rm $basedir/container1/merged/transition >/dev/null");
-	ok($result eq 0);
-	return;
+    print "Attempting to remove transition, should succeed.\n";
+    $result = system(
+"runcon -t test_overlay_client_t -l s0:c10,c20 rm $basedir/container1/merged/transition >/dev/null"
+    );
+    ok( $result eq 0 );
+    return;
 }
 
 sub test_41 {
-	print "Attempting to create transition, should succeed.\n";
-	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 touch $basedir/container1/merged/transition >/dev/null");
-	ok($result eq 0);
-	return;
+    print "Attempting to create transition, should succeed.\n";
+    $result = system(
+"runcon -t test_overlay_client_t -l s0:c10,c20 touch $basedir/container1/merged/transition >/dev/null"
+    );
+    ok( $result eq 0 );
+    return;
 }
 
 sub test_42 {
-	print "Check label on transition, should succeed.\n";
-	$output = getfilecon("$basedir/container1/upper/transition");
-        # Newly created writeout should have s0:c10,c20 since it was created new
-	ok($output eq "unconfined_u:object_r:test_overlay_transition_files_t:s0:c10,c20")
+    print "Check label on transition, should succeed.\n";
+    $output = getfilecon("$basedir/container1/upper/transition");
+
+    # Newly created writeout should have s0:c10,c20 since it was created new
+    ok( $output eq
+          "unconfined_u:object_r:test_overlay_transition_files_t:s0:c10,c20" );
 }
 
 sub test_42_ctx {
-	print "Check label on transition, should succeed.\n";
-	$output = getfilecon("$basedir/container1/upper/transition");
-        # Newly created writeout should have s0:c10,c20 since it was created new
-	ok($output eq "unconfined_u:object_r:test_overlay_files_rwx_t:s0:c10,c20")
+    print "Check label on transition, should succeed.\n";
+    $output = getfilecon("$basedir/container1/upper/transition");
+
+    # Newly created writeout should have s0:c10,c20 since it was created new
+    ok( $output eq
+          "unconfined_u:object_r:test_overlay_files_rwx_t:s0:c10,c20" );
 }
 
 sub test_43 {
-	print "Attempting to remove writedir, should succeed.\n";
-	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 rm -rf $basedir/container1/merged/writedir >/dev/null");
-	ok($result eq 0);
-	return;
+    print "Attempting to remove writedir, should succeed.\n";
+    $result = system(
+"runcon -t test_overlay_client_t -l s0:c10,c20 rm -rf $basedir/container1/merged/writedir >/dev/null"
+    );
+    ok( $result eq 0 );
+    return;
 }
 
 sub test_50 {
-	print "Attempting to stat readfile should succeed.\n";
-	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 stat $basedir/container1/merged/readfile >/dev/null");
-	ok($result eq 0);
-	return;
+    print "Attempting to stat readfile should succeed.\n";
+    $result = system(
+"runcon -t test_overlay_client_t -l s0:c10,c20 stat $basedir/container1/merged/readfile >/dev/null"
+    );
+    ok( $result eq 0 );
+    return;
 }
 
 sub test_51 {
-	print "Attempting to stat writefile should succeed.\n";
-	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 stat $basedir/container1/merged/writefile >/dev/null");
-	ok($result eq 0);
-	return;
+    print "Attempting to stat writefile should succeed.\n";
+    $result = system(
+"runcon -t test_overlay_client_t -l s0:c10,c20 stat $basedir/container1/merged/writefile >/dev/null"
+    );
+    ok( $result eq 0 );
+    return;
 }
 
 sub test_52 {
-	print "Attempting to stat noaccessfile should fail.\n";
-	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 stat $basedir/container1/merged/noaccessfile >/dev/null  2>&1");
-	ok($result);
-	return;
+    print "Attempting to stat noaccessfile should fail.\n";
+    $result = system(
+"runcon -t test_overlay_client_t -l s0:c10,c20 stat $basedir/container1/merged/noaccessfile >/dev/null  2>&1"
+    );
+    ok($result);
+    return;
 }
 
 sub test_60 {
-	print "Check read access on readfile, should succeed.\n";
-	$result = access("$basedir/container1/merged/readfile", "R_OK");
-	ok($result eq "True");
-	return;
+    print "Check read access on readfile, should succeed.\n";
+    $result = access( "$basedir/container1/merged/readfile", "R_OK" );
+    ok( $result eq "True" );
+    return;
 }
+
 sub test_61 {
-	print "Check read access on writefile, should succeed.\n";
-	$result = access("$basedir/container1/merged/writefile", "R_OK");
-	ok($result eq "True");
-	return;
+    print "Check read access on writefile, should succeed.\n";
+    $result = access( "$basedir/container1/merged/writefile", "R_OK" );
+    ok( $result eq "True" );
+    return;
 }
+
 sub test_62 {
-	print "Check read access on noaccessfile, should fail.\n";
-	$result = access("$basedir/container1/merged/noaccessfile", "R_OK");
-	ok($result eq "False");
-	return; 
+    print "Check read access on noaccessfile, should fail.\n";
+    $result = access( "$basedir/container1/merged/noaccessfile", "R_OK" );
+    ok( $result eq "False" );
+    return;
 }
+
 sub test_63 {
-	print "Check write access on readfile, should fail.\n";
-	$result = access("$basedir/container1/merged/readfile", "W_OK");
-	ok($result eq "False");
-	return;
+    print "Check write access on readfile, should fail.\n";
+    $result = access( "$basedir/container1/merged/readfile", "W_OK" );
+    ok( $result eq "False" );
+    return;
 }
+
 sub test_63_ctx {
-	print "Check write access on readfile, should succeed.\n";
-	$result = access("$basedir/container1/merged/readfile", "W_OK");
-	ok($result eq "True");
-	return;
+    print "Check write access on readfile, should succeed.\n";
+    $result = access( "$basedir/container1/merged/readfile", "W_OK" );
+    ok( $result eq "True" );
+    return;
 }
+
 sub test_64 {
-	print "Check write access on writefile, should succeed.\n";
-	$result = access("$basedir/container1/merged/writefile", "W_OK");
-	ok($result eq "True");
-	return;
+    print "Check write access on writefile, should succeed.\n";
+    $result = access( "$basedir/container1/merged/writefile", "W_OK" );
+    ok( $result eq "True" );
+    return;
 }
+
 sub test_65 {
-	print "Check write access on noaccessfile, should fail.\n";
-	$result = access("$basedir/container1/merged/noaccessfile", "W_OK");
-	ok($result eq "False");
-	return;
+    print "Check write access on noaccessfile, should fail.\n";
+    $result = access( "$basedir/container1/merged/noaccessfile", "W_OK" );
+    ok( $result eq "False" );
+    return;
 }
 
 sub test_66 {
-	print "Check read to read null device should fail\n";
-	$result = access("$basedir/container1/merged/null_read", "R_OK");
-	ok($result eq "True");
-	return;
+    print "Check read to read null device should fail\n";
+    $result = access( "$basedir/container1/merged/null_read", "R_OK" );
+    ok( $result eq "True" );
+    return;
 }
 
 sub test_67 {
-	print "Check write to read null device should fail\n";
-	$result = access("$basedir/container1/merged/null_read", "W_OK");
-	ok($result eq "False");
-	return;
+    print "Check write to read null device should fail\n";
+    $result = access( "$basedir/container1/merged/null_read", "W_OK" );
+    ok( $result eq "False" );
+    return;
 }
 
-
 sub test_70 {
-	print "Check unlink access on readfile, should fail.\n";
-	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 unlink $basedir/container1/merged/readfile 2>/dev/null");
-	ok($result);
-	return;
+    print "Check unlink access on readfile, should fail.\n";
+    $result = system(
+"runcon -t test_overlay_client_t -l s0:c10,c20 unlink $basedir/container1/merged/readfile 2>/dev/null"
+    );
+    ok($result);
+    return;
 }
 
 sub test_70_ctx {
-	print "Check unlink access on readfile, should succeed.\n";
-	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 unlink $basedir/container1/merged/readfile >/dev/null");
-	ok($result == 0);
-	return;
+    print "Check unlink access on readfile, should succeed.\n";
+    $result = system(
+"runcon -t test_overlay_client_t -l s0:c10,c20 unlink $basedir/container1/merged/readfile >/dev/null"
+    );
+    ok( $result == 0 );
+    return;
 }
 
 sub test_71 {
-	print "Check unlink access on writefile, should succeed.\n";
-	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 unlink $basedir/container1/merged/writefile >/dev/null");
-	ok($result == 0);
-	return;
+    print "Check unlink access on writefile, should succeed.\n";
+    $result = system(
+"runcon -t test_overlay_client_t -l s0:c10,c20 unlink $basedir/container1/merged/writefile >/dev/null"
+    );
+    ok( $result == 0 );
+    return;
 }
 
 sub test_72 {
-	print "Check unlink access on noaccessfile, should fail.\n";
-	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 unlink $basedir/container1/merged/noaccessfile 2>/dev/null");
-	ok($result);
-	return;
+    print "Check unlink access on noaccessfile, should fail.\n";
+    $result = system(
+"runcon -t test_overlay_client_t -l s0:c10,c20 unlink $basedir/container1/merged/noaccessfile 2>/dev/null"
+    );
+    ok($result);
+    return;
 }
 
 sub test_72_ctx {
-	print "Check unlink access on noaccessfile, should succeed.\n";
-	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 unlink $basedir/container1/merged/noaccessfile 2>/dev/null");
-	ok($result==0);
-	return;
+    print "Check unlink access on noaccessfile, should succeed.\n";
+    $result = system(
+"runcon -t test_overlay_client_t -l s0:c10,c20 unlink $basedir/container1/merged/noaccessfile 2>/dev/null"
+    );
+    ok( $result == 0 );
+    return;
 }
 
 sub test_80 {
-	print "Check unlink access on mounterfile, should fail.\n";
-	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 unlink $basedir/container1/merged/mounterfile 2>/dev/null");
-	ok($result);
-	return;
+    print "Check unlink access on mounterfile, should fail.\n";
+    $result = system(
+"runcon -t test_overlay_client_t -l s0:c10,c20 unlink $basedir/container1/merged/mounterfile 2>/dev/null"
+    );
+    ok($result);
+    return;
 }
 
 sub test_80_ctx {
-	print "Check unlink access on mounterfile, should succeed.\n";
-	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 unlink $basedir/container1/merged/mounterfile >/dev/null");
-	ok($result == 0);
-	return;
+    print "Check unlink access on mounterfile, should succeed.\n";
+    $result = system(
+"runcon -t test_overlay_client_t -l s0:c10,c20 unlink $basedir/container1/merged/mounterfile >/dev/null"
+    );
+    ok( $result == 0 );
+    return;
 }
 
 sub test_81 {
-	print "Attempting to create file inside mounterdir should fail.\n";
-	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 touch $basedir/container1/merged/mounterdir/bar >/dev/null 2>&1");
-	ok($result);
-	return;
+    print "Attempting to create file inside mounterdir should fail.\n";
+    $result = system(
+"runcon -t test_overlay_client_t -l s0:c10,c20 touch $basedir/container1/merged/mounterdir/bar >/dev/null 2>&1"
+    );
+    ok($result);
+    return;
 }
 
 # For context mounts, attempt to create file inside mounterdir should succeed.
 # Copy up will take place and mounterdir will have a writable label on upper
 # And dir creation should succeed.
 sub test_81_ctx {
-	print "Attempting to create file inside mounterdir should succeed.\n";
-	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 touch $basedir/container1/merged/mounterdir/bar >/dev/null");
-	ok($result eq 0);
-	return;
+    print "Attempting to create file inside mounterdir should succeed.\n";
+    $result = system(
+"runcon -t test_overlay_client_t -l s0:c10,c20 touch $basedir/container1/merged/mounterdir/bar >/dev/null"
+    );
+    ok( $result eq 0 );
+    return;
 }
 
 sub test_82 {
-	print "Attempting to write to mounter null device should fail\n";
-	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 $basedir/append $basedir/container1/merged/null_mounter >/dev/null 2>&1");
-	ok($result);
-	return;
+    print "Attempting to write to mounter null device should fail\n";
+    $result = system(
+"runcon -t test_overlay_client_t -l s0:c10,c20 $basedir/append $basedir/container1/merged/null_mounter >/dev/null 2>&1"
+    );
+    ok($result);
+    return;
 }
 
 sub test_90_1 {
-	print "Attempting to enter domain with bad entrypoint, should fail.\n";
-	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 $basedir/container1/merged/badentrypoint >/dev/null 2>&1");
-	ok($result);
-	return;
+    print "Attempting to enter domain with bad entrypoint, should fail.\n";
+    $result = system(
+"runcon -t test_overlay_client_t -l s0:c10,c20 $basedir/container1/merged/badentrypoint >/dev/null 2>&1"
+    );
+    ok($result);
+    return;
 }
 
 sub test_90_2 {
-	print "Attempting to enter domain with good entrypoint, should succeed.\n";
-	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 $basedir/container1/merged/goodentrypoint >/dev/null");
-	ok($result eq 0);
-	return;
+    print "Attempting to enter domain with good entrypoint, should succeed.\n";
+    $result = system(
+"runcon -t test_overlay_client_t -l s0:c10,c20 $basedir/container1/merged/goodentrypoint >/dev/null"
+    );
+    ok( $result eq 0 );
+    return;
 }
 
 sub test_91_1 {
-	print "Attempting to setfattr on writefile, should succeed.\n";
-	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 setfattr -n user.foo -v bar $basedir/container1/merged/writefile >/dev/null");
-	ok($result eq 0);
-	return;
+    print "Attempting to setfattr on writefile, should succeed.\n";
+    $result = system(
+"runcon -t test_overlay_client_t -l s0:c10,c20 setfattr -n user.foo -v bar $basedir/container1/merged/writefile >/dev/null"
+    );
+    ok( $result eq 0 );
+    return;
 }
 
 sub test_91_2 {
-	print "Attempting to getfattr on writefile, should succeed.\n";
-	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 getfattr -n user.foo $basedir/container1/merged/writefile >/dev/null");
-	ok($result eq 0);
-	return;
+    print "Attempting to getfattr on writefile, should succeed.\n";
+    $result = system(
+"runcon -t test_overlay_client_t -l s0:c10,c20 getfattr -n user.foo $basedir/container1/merged/writefile >/dev/null"
+    );
+    ok( $result eq 0 );
+    return;
 }
 
 sub test_91_3 {
-	print "Attempting to remove xattr on writefile, should succeed.\n";
-	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 setfattr -x user.foo $basedir/container1/merged/writefile >/dev/null");
-	ok($result eq 0);
-	return;
+    print "Attempting to remove xattr on writefile, should succeed.\n";
+    $result = system(
+"runcon -t test_overlay_client_t -l s0:c10,c20 setfattr -x user.foo $basedir/container1/merged/writefile >/dev/null"
+    );
+    ok( $result eq 0 );
+    return;
 }
 
 sub test_92_1 {
-	print "Attempting to setfattr on readfile, should fail.\n";
-	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 setfattr -n user.foo -v bar $basedir/container1/merged/readfile >/dev/null 2>/dev/null");
-	ok($result);
-	return;
+    print "Attempting to setfattr on readfile, should fail.\n";
+    $result = system(
+"runcon -t test_overlay_client_t -l s0:c10,c20 setfattr -n user.foo -v bar $basedir/container1/merged/readfile >/dev/null 2>/dev/null"
+    );
+    ok($result);
+    return;
 }
 
 sub test_92_1_ctx {
-	print "Attempting to setfattr on readfile, should succeed.\n";
-	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 setfattr -n user.foo -v bar $basedir/container1/merged/readfile >/dev/null");
-	ok($result eq 0);
-	return;
+    print "Attempting to setfattr on readfile, should succeed.\n";
+    $result = system(
+"runcon -t test_overlay_client_t -l s0:c10,c20 setfattr -n user.foo -v bar $basedir/container1/merged/readfile >/dev/null"
+    );
+    ok( $result eq 0 );
+    return;
 }
 
 sub test_93_1 {
-	print "Attempting to setfattr on noaccessfile, should fail.\n";
-	$result = system ("runcon -t test_overlay_client_t -l s0:c10,c20 setfattr -n user.foo -v bar $basedir/container1/merged/noaccessfile >/dev/null 2>/dev/null");
-	ok($result);
-	return;
+    print "Attempting to setfattr on noaccessfile, should fail.\n";
+    $result = system(
+"runcon -t test_overlay_client_t -l s0:c10,c20 setfattr -n user.foo -v bar $basedir/container1/merged/noaccessfile >/dev/null 2>/dev/null"
+    );
+    ok($result);
+    return;
 }
 
-
-$basedir = $0;  $basedir =~ s|(.*)/[^/]*|$1|;
+$basedir = $0;
+$basedir =~ s|(.*)/[^/]*|$1|;
 
 cleanup();
 
 sub nocontext_test {
 
-print "=====================================================\n";
-print "Testing mounting overlayfs without context switch\n";
-print "=====================================================\n\n";
+    print "=====================================================\n";
+    print "Testing mounting overlayfs without context switch\n";
+    print "=====================================================\n\n";
 
-# Setup Overlay for non-context mounts.
-if (system ("$basedir/setup-overlay $basedir") == 0) {
-	print "Mounted overlay without context.\n";
-} else {
+    # Setup Overlay for non-context mounts.
+    if ( system("$basedir/setup-overlay $basedir") == 0 ) {
+        print "Mounted overlay without context.\n";
+    }
+    else {
         print "setup-overlay failed. Cleaning up.\n";
         cleanup();
-	exit;
-}
+        exit;
+    }
 
-test_1();
-test_2();
-test_3();
-test_4();
-test_4_0();
-test_5();
-test_5_0();
-test_5_1();
-test_5_2();
-test_5_3();
-test_6();
-test_7();
-test_7_0();
-test_7_1();
-test_7_1_0();
-test_7_2();
-test_7_3();
-test_8();
-test_9();
+    test_1();
+    test_2();
+    test_3();
+    test_4();
+    test_4_0();
+    test_5();
+    test_5_0();
+    test_5_1();
+    test_5_2();
+    test_5_3();
+    test_6();
+    test_7();
+    test_7_0();
+    test_7_1();
+    test_7_1_0();
+    test_7_2();
+    test_7_3();
+    test_8();
+    test_9();
 
-print "=====================================================\n";
-print "Device tests.\n";
-print "=====================================================\n";
-test_10();
-test_11();
-test_12();
+    print "=====================================================\n";
+    print "Device tests.\n";
+    print "=====================================================\n";
+    test_10();
+    test_11();
+    test_12();
 
-print "=====================================================\n";
-print "chmod/getattr tests.\n";
-print "=====================================================\n";
-test_20();
-test_21();
-test_22();
-test_23();
-test_24();
-test_25();
+    print "=====================================================\n";
+    print "chmod/getattr tests.\n";
+    print "=====================================================\n";
+    test_20();
+    test_21();
+    test_22();
+    test_23();
+    test_24();
+    test_25();
 
-print "=====================================================\n";
-print "chcon/getxattr tests.\n";
-print "=====================================================\n";
-test_30();
-test_31();
-test_32();
-test_33();
-test_34();
-test_35();
+    print "=====================================================\n";
+    print "chcon/getxattr tests.\n";
+    print "=====================================================\n";
+    test_30();
+    test_31();
+    test_32();
+    test_33();
+    test_34();
+    test_35();
 
-print "=====================================================\n";
-print "transition tests.\n";
-print "=====================================================\n";
-test_40();
-test_41();
-test_42();
-test_43();
+    print "=====================================================\n";
+    print "transition tests.\n";
+    print "=====================================================\n";
+    test_40();
+    test_41();
+    test_42();
+    test_43();
 
-print "=====================================================\n";
-print "stat tests.\n";
-print "=====================================================\n";
-test_50();
-test_51();
-test_52();
+    print "=====================================================\n";
+    print "stat tests.\n";
+    print "=====================================================\n";
+    test_50();
+    test_51();
+    test_52();
 
-print "=====================================================\n";
-print "access tests.\n";
-print "=====================================================\n";
-test_60();
-test_61();
-test_62();
-test_63();
-test_64();
-test_65();
-test_66();
-test_67();
+    print "=====================================================\n";
+    print "access tests.\n";
+    print "=====================================================\n";
+    test_60();
+    test_61();
+    test_62();
+    test_63();
+    test_64();
+    test_65();
+    test_66();
+    test_67();
 
-print "=====================================================\n";
-print "unlink tests.\n";
-print "=====================================================\n";
-test_70();
-test_71();
-test_72();
-test_80();
-test_81();
-test_82();
-print "=====================================================\n";
-print "Entrypoint tests.\n";
-print "=====================================================\n";
-test_90_1();
-test_90_2();
-print "=====================================================\n";
-print "xattr tests.\n";
-print "=====================================================\n";
-xattr_test_setup();
-test_91_1();
-test_91_2();
-test_91_3();
-test_92_1();
-test_93_1();
+    print "=====================================================\n";
+    print "unlink tests.\n";
+    print "=====================================================\n";
+    test_70();
+    test_71();
+    test_72();
+    test_80();
+    test_81();
+    test_82();
+    print "=====================================================\n";
+    print "Entrypoint tests.\n";
+    print "=====================================================\n";
+    test_90_1();
+    test_90_2();
+    print "=====================================================\n";
+    print "xattr tests.\n";
+    print "=====================================================\n";
+    xattr_test_setup();
+    test_91_1();
+    test_91_2();
+    test_91_3();
+    test_92_1();
+    test_93_1();
 }
 
 sub context_test {
 
-cleanup();
-$context="unconfined_u:object_r:test_overlay_files_rwx_t:s0:c10,c20";
-print "\n\n=====================================================\n";
-print "Testing mounting overlayfs with context switch\n";
-print "context=$context\n";
-print "=====================================================\n\n";
+    cleanup();
+    $context = "unconfined_u:object_r:test_overlay_files_rwx_t:s0:c10,c20";
+    print "\n\n=====================================================\n";
+    print "Testing mounting overlayfs with context switch\n";
+    print "context=$context\n";
+    print "=====================================================\n\n";
 
-if (system ("$basedir/setup-overlay $basedir '$context'") == 0) {
+    if ( system("$basedir/setup-overlay $basedir '$context'") == 0 ) {
         print "Mounted overlay with context=$context.\n";
-} else {
+    }
+    else {
         print "setup-overlay failed. Cleaning up.\n";
         cleanup();
         exit;
-}
+    }
 
-test_1();
-test_2();
-test_3();
-test_4();
-test_4_0_ctx();
-test_5();
-test_5_0();
-test_5_1();
-test_5_2();
-test_5_3();
-test_6();
-test_7();
-test_7_0_ctx();
-test_7_1();
-test_7_1_0_ctx();
-test_7_2_ctx();
-test_7_3();
-test_8_ctx();
-test_9();
+    test_1();
+    test_2();
+    test_3();
+    test_4();
+    test_4_0_ctx();
+    test_5();
+    test_5_0();
+    test_5_1();
+    test_5_2();
+    test_5_3();
+    test_6();
+    test_7();
+    test_7_0_ctx();
+    test_7_1();
+    test_7_1_0_ctx();
+    test_7_2_ctx();
+    test_7_3();
+    test_8_ctx();
+    test_9();
 
-print "=====================================================\n";
-print "Device tests.\n";
-print "=====================================================\n";
-test_10();
-test_11();
-test_12();
+    print "=====================================================\n";
+    print "Device tests.\n";
+    print "=====================================================\n";
+    test_10();
+    test_11();
+    test_12();
 
-print "=====================================================\n";
-print "chmod tests.\n";
-print "=====================================================\n";
-test_20();
-test_21();
-test_22();
-test_23_ctx();
-test_24();
-test_25();
+    print "=====================================================\n";
+    print "chmod tests.\n";
+    print "=====================================================\n";
+    test_20();
+    test_21();
+    test_22();
+    test_23_ctx();
+    test_24();
+    test_25();
 
-print "=====================================================\n";
-print "getcon tests.\n";
-print "=====================================================\n";
-test_30();
-test_31();
-test_32();
-# Can't do chcon tests on context mounts, since these will all fail.
-# Kernel does not allow alterning of context if you use context mount
-#test_34();
-#test_35();
+    print "=====================================================\n";
+    print "getcon tests.\n";
+    print "=====================================================\n";
+    test_30();
+    test_31();
+    test_32();
 
+    # Can't do chcon tests on context mounts, since these will all fail.
+    # Kernel does not allow alterning of context if you use context mount
+    #test_34();
+    #test_35();
 
-print "=====================================================\n";
-print "transition tests.\n";
-print "=====================================================\n";
-test_40();
-test_41();
-test_42_ctx();
-test_43();
+    print "=====================================================\n";
+    print "transition tests.\n";
+    print "=====================================================\n";
+    test_40();
+    test_41();
+    test_42_ctx();
+    test_43();
 
-print "=====================================================\n";
-print "stat tests.\n";
-print "=====================================================\n";
-test_50();
-test_51();
-test_52();
+    print "=====================================================\n";
+    print "stat tests.\n";
+    print "=====================================================\n";
+    test_50();
+    test_51();
+    test_52();
 
-print "=====================================================\n";
-print "access tests.\n";
-print "=====================================================\n";
-test_60();
-test_61();
-test_62();
-test_63_ctx();
-test_64();
-test_65();
-test_66();
-test_67();
+    print "=====================================================\n";
+    print "access tests.\n";
+    print "=====================================================\n";
+    test_60();
+    test_61();
+    test_62();
+    test_63_ctx();
+    test_64();
+    test_65();
+    test_66();
+    test_67();
 
-print "=====================================================\n";
-print "unlink tests.\n";
-print "=====================================================\n";
-test_70_ctx();
-test_71();
-test_72_ctx();
+    print "=====================================================\n";
+    print "unlink tests.\n";
+    print "=====================================================\n";
+    test_70_ctx();
+    test_71();
+    test_72_ctx();
 
-print "=====================================================\n";
-print "Mounter tests.\n";
-print "=====================================================\n";
-test_80_ctx();
-test_81_ctx();
-test_82();
-print "=====================================================\n";
-print "Bad Entrypoint tests.\n";
-print "=====================================================\n";
-test_90_1();
-test_90_2();
-print "=====================================================\n";
-print "xattr tests.\n";
-print "=====================================================\n";
-xattr_test_setup();
-test_91_1();
-test_91_2();
-test_91_3();
-test_92_1_ctx();
-test_93_1();
+    print "=====================================================\n";
+    print "Mounter tests.\n";
+    print "=====================================================\n";
+    test_80_ctx();
+    test_81_ctx();
+    test_82();
+    print "=====================================================\n";
+    print "Bad Entrypoint tests.\n";
+    print "=====================================================\n";
+    test_90_1();
+    test_90_2();
+    print "=====================================================\n";
+    print "xattr tests.\n";
+    print "=====================================================\n";
+    xattr_test_setup();
+    test_91_1();
+    test_91_2();
+    test_91_3();
+    test_92_1_ctx();
+    test_93_1();
 }
 
 nocontext_test();

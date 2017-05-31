@@ -6,7 +6,8 @@
 use Test;
 BEGIN { plan tests => 8 }
 
-$basedir = $0;  $basedir =~ s|(.*)/[^/]*|$1|;
+$basedir = $0;
+$basedir =~ s|(.*)/[^/]*|$1|;
 
 # Clean up from a previous run
 system "rm -f $basedir/temp_file 2>&1";
@@ -17,25 +18,26 @@ system "rm -f $basedir/temp_file 2>&1";
 
 # CAP_SYS_RAWIO
 system "touch $basedir/temp_file 2>&1";
-$result = system "runcon -t test_scap_t -- $basedir/test_rawio $basedir/temp_file 2>&1";
-ok($result, 0); 
+$result =
+  system "runcon -t test_scap_t -- $basedir/test_rawio $basedir/temp_file 2>&1";
+ok( $result, 0 );
 
 # CAP_SYS_CHROOT
 $result = system "runcon -t test_scap_t -- $basedir/test_chroot $basedir/ 2>&1";
-ok($result, 0); 
+ok( $result, 0 );
 
 # CAP_SYS_PTRACE - Not done here.
 # CAP_SYS_PACCT - Not done; needs support built into the kernel
 
-# CAP_SYS_ADMIN 
+# CAP_SYS_ADMIN
 $result = system "runcon -t test_scap_t -- $basedir/test_hostname 2>&1";
-ok($result, 0); 
+ok( $result, 0 );
 
 # CAP_SYS_BOOT - Not done; too dangerous
 
 # CAP_SYS_NICE
 $result = system "runcon -t test_scap_t -- $basedir/test_nice 2>&1";
-ok($result, 0); 
+ok( $result, 0 );
 
 # CAP_SYS_RESOURCE - Not done.
 
@@ -52,20 +54,22 @@ system "rm -f $basedir/temp_file 2>&1";
 
 # CAP_SYS_RAWIO
 system "touch $basedir/temp_file 2>&1";
-$result = system "runcon -t test_noscap_t -- $basedir/test_rawio $basedir/temp_file 2>&1";
-ok($result); 
+$result = system
+  "runcon -t test_noscap_t -- $basedir/test_rawio $basedir/temp_file 2>&1";
+ok($result);
 
 # CAP_SYS_CHROOT
-$result = system "runcon -t test_noscap_t -- $basedir/test_chroot $basedir/ 2>&1";
-ok($result); 
+$result =
+  system "runcon -t test_noscap_t -- $basedir/test_chroot $basedir/ 2>&1";
+ok($result);
 
-# CAP_SYS_ADMIN 
+# CAP_SYS_ADMIN
 $result = system "runcon -t test_noscap_t -- $basedir/test_hostname 2>&1";
-ok($result); 
+ok($result);
 
 # CAP_SYS_NICE
 $result = system "runcon -t test_noscap_t -- $basedir/test_nice 2>&1";
-ok($result); 
+ok($result);
 
 # Remove files from bad tests
 system "rm -f $basedir/temp_file 2>&1";

@@ -1,16 +1,17 @@
 #!/usr/bin/perl
 
 use Test;
-BEGIN { plan tests => 2}
+BEGIN { plan tests => 2 }
 
-$basedir = $0;  $basedir =~ s|(.*)/[^/]*|$1|;
+$basedir = $0;
+$basedir =~ s|(.*)/[^/]*|$1|;
 
 # Verify that test_create_yes_t can fork.
-$result = system ("runcon -t test_create_yes_t -- $basedir/parent 2>&1");
-ok($result, 0);
+$result = system("runcon -t test_create_yes_t -- $basedir/parent 2>&1");
+ok( $result, 0 );
 
 # Verify that test_create_no_t cannot fork.
-$result = system ("runcon -t test_create_no_t -- $basedir/parent 2>&1");
+$result = system("runcon -t test_create_no_t -- $basedir/parent 2>&1");
 ok($result);
 
 exit;

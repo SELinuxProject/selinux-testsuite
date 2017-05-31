@@ -1,21 +1,23 @@
 #!/usr/bin/perl
 
 use Test;
-BEGIN { plan tests => 4}
+BEGIN { plan tests => 4 }
 
 $sysctl = "kernel.modprobe";
 $oldval = `/sbin/sysctl -n $sysctl`;
 
 $result = system "runcon -t test_sysctl_t -- /sbin/sysctl -n $sysctl 2>&1";
-ok($result, 0); 
+ok( $result, 0 );
 
-$result = system "runcon -t test_sysctl_t -- /sbin/sysctl -w $sysctl=$oldval 2>&1";
-ok($result, 0); 
+$result =
+  system "runcon -t test_sysctl_t -- /sbin/sysctl -w $sysctl=$oldval 2>&1";
+ok( $result, 0 );
 
 $result = system "runcon -t test_nosysctl_t -- /sbin/sysctl -n $sysctl 2>&1";
-ok($result); 
+ok($result);
 
-$result = system "runcon -t test_nosysctl_t -- /sbin/sysctl -w $sysctl=foobar 2>&1";
-ok($result); 
+$result =
+  system "runcon -t test_nosysctl_t -- /sbin/sysctl -w $sysctl=foobar 2>&1";
+ok($result);
 
 exit;

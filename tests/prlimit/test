@@ -1,30 +1,43 @@
 #!/usr/bin/perl
 
 use Test;
-BEGIN { plan tests => 6}
+BEGIN { plan tests => 6 }
 
-$basedir = $0;  $basedir =~ s|(.*)/[^/]*|$1|;
+$basedir = $0;
+$basedir =~ s|(.*)/[^/]*|$1|;
 
 # Verify that test_setrlimit_t can set soft limit of test_setrlimit_child_t
-$result = system ("runcon -t test_setrlimit_t $basedir/parent -s soft test_setrlimit_child_t $basedir/child 2>&1");
-ok($result, 0); # we expect this to succeed.
+$result = system(
+"runcon -t test_setrlimit_t $basedir/parent -s soft test_setrlimit_child_t $basedir/child 2>&1"
+);
+ok( $result, 0 );    # we expect this to succeed.
 
 # Verify that test_no_setrlimit_t cannot set soft limit of test_setrlimit_child_t
-$result = system ("runcon -t test_no_setrlimit_t $basedir/parent -s soft test_setrlimit_child_t $basedir/child 2>&1");
-ok($result); # we expect this to fail.
+$result = system(
+"runcon -t test_no_setrlimit_t $basedir/parent -s soft test_setrlimit_child_t $basedir/child 2>&1"
+);
+ok($result);         # we expect this to fail.
 
 # Verify that test_setrlimit_t can set hard limit of test_setrlimit_child_t
-$result = system ("runcon -t test_setrlimit_t $basedir/parent -s hard test_setrlimit_child_t $basedir/child 2>&1");
-ok($result, 0); # we expect this to succeed.
+$result = system(
+"runcon -t test_setrlimit_t $basedir/parent -s hard test_setrlimit_child_t $basedir/child 2>&1"
+);
+ok( $result, 0 );    # we expect this to succeed.
 
 # Verify that test_no_setrlimit_t cannot set hard limit of test_setrlimit_child_t
-$result = system ("runcon -t test_no_setrlimit_t $basedir/parent -s hard test_setrlimit_child_t $basedir/child 2>&1");
-ok($result); # we expect this to fail.
+$result = system(
+"runcon -t test_no_setrlimit_t $basedir/parent -s hard test_setrlimit_child_t $basedir/child 2>&1"
+);
+ok($result);         # we expect this to fail.
 
 # Verify that test_getrlimit_t can get limits of test_setrlimit_child_t
-$result = system ("runcon -t test_getrlimit_t $basedir/parent -g test_getrlimit_child_t $basedir/child 2>&1");
-ok($result, 0); # we expect this to succeed.
+$result = system(
+"runcon -t test_getrlimit_t $basedir/parent -g test_getrlimit_child_t $basedir/child 2>&1"
+);
+ok( $result, 0 );    # we expect this to succeed.
 
 # Verify that test_no_getrlimit_t cannot get limit of test_setrlimit_child_t
-$result = system ("runcon -t test_no_getrlimit_t $basedir/parent -g test_getrlimit_child_t $basedir/child 2>&1");
-ok($result); # we expect this to fail.
+$result = system(
+"runcon -t test_no_getrlimit_t $basedir/parent -g test_getrlimit_child_t $basedir/child 2>&1"
+);
+ok($result);         # we expect this to fail.

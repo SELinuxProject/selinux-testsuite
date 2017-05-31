@@ -1,44 +1,45 @@
 #!/usr/bin/perl
 
 use Test;
-BEGIN { plan tests => 20}
+BEGIN { plan tests => 20 }
 
-$basedir = $0;  $basedir =~ s|(.*)/[^/]*|$1|;
+$basedir = $0;
+$basedir =~ s|(.*)/[^/]*|$1|;
 
 # ================================================================= #
 #  Basic Message Queue Test Cases                                   #
 # ================================================================= #
 # First time should just get the resource
-$output=`runcon -t test_ipc_base_t $basedir/msgget`;
-ok($?,0);
+$output = `runcon -t test_ipc_base_t $basedir/msgget`;
+ok( $?, 0 );
 $output =~ /id = (\d+)$/ || print "Invalid output from msgget\n";
 $ipcid = $1;
 
 # Delete the resource
 $output = `runcon -t test_ipc_base_t ipcrm msg $ipcid`;
-ok($?,0);
+ok( $?, 0 );
 
 # Create it again
-$output=`runcon -t test_ipc_base_t $basedir/msgget`;
-ok($?,0);
+$output = `runcon -t test_ipc_base_t $basedir/msgget`;
+ok( $?, 0 );
 $output =~ /id = (\d+)$/ || print "Invalid output from msgget\n";
 $ipcid = $1;
 
 # Create it one more time to check associate permission
-$output=`runcon -t test_ipc_base_t $basedir/msgget`;
-ok($?,0);
+$output = `runcon -t test_ipc_base_t $basedir/msgget`;
+ok( $?, 0 );
 $output =~ /id = (\d+)$/ || print "Invalid output from msgget\n";
 $ipcid2 = $1;
 
 # Make sure they match
-ok($ipcid2, $ipcid);
+ok( $ipcid2, $ipcid );
 
 # Try to associate with it from the read-only domain
-$output=`runcon -t test_ipc_read_t $basedir/msgget`;
-ok($?,0);
+$output = `runcon -t test_ipc_read_t $basedir/msgget`;
+ok( $?, 0 );
 
 # Try to associate with it from the unprivileged domain
-$output=`runcon -t test_ipc_none_t $basedir/msgget`;
+$output = `runcon -t test_ipc_none_t $basedir/msgget`;
 ok($?);
 
 # ================================================================= #
@@ -47,12 +48,12 @@ ok($?);
 
 # run msg queue control tests, we expect all to fail
 $output = `runcon -t test_ipc_associate_t $basedir/msgctl`;
-&reformat_results($output, -1);
+&reformat_results( $output, -1 );
 
 # run msg queue control tests, we expect all to succeed
 # last test should delete the message queue
 $output = `runcon -t test_ipc_base_t $basedir/msgctl`;
-&reformat_results($output, 0);
+&reformat_results( $output, 0 );
 
 # ================================================================= #
 # Send/Receive Syscalls                                             #
@@ -60,48 +61,48 @@ $output = `runcon -t test_ipc_base_t $basedir/msgctl`;
 
 # We now need a message queue with write permissions, so get rid of the
 # existing one
-$output=`runcon -t test_ipc_base_t $basedir/msgget`;
+$output = `runcon -t test_ipc_base_t $basedir/msgget`;
 print "cleanup: $output\n";
 $output =~ /id = (\d+)$/ || print "Invalid output from msgget\n";
-$ipcid = $1;
+$ipcid  = $1;
 $output = `runcon -t test_ipc_base_t ipcrm msg $ipcid`;
 
 # Base domain can send and receive.
-$output=`runcon -t test_ipc_base_t $basedir/msgsnd`;
-ok($?,0);
+$output = `runcon -t test_ipc_base_t $basedir/msgsnd`;
+ok( $?, 0 );
 
-$output=`runcon -t test_ipc_base_t $basedir/msgrcv`;
-ok($?,0);
+$output = `runcon -t test_ipc_base_t $basedir/msgrcv`;
+ok( $?, 0 );
 
 # Read domain can receive, but not send
-$output=`runcon -t test_ipc_read_t $basedir/msgsnd`;
-ok($?); # write denied
+$output = `runcon -t test_ipc_read_t $basedir/msgsnd`;
+ok($?);    # write denied
 
-$output=`runcon -t test_ipc_base_t $basedir/msgsnd`;
-ok($?,0);
+$output = `runcon -t test_ipc_base_t $basedir/msgsnd`;
+ok( $?, 0 );
 
-$output=`runcon -t test_ipc_read_t $basedir/msgrcv`;
-ok($?,0);
+$output = `runcon -t test_ipc_read_t $basedir/msgrcv`;
+ok( $?, 0 );
 
 # Associate domain can't even receive messages
-$output=`runcon -t test_ipc_base_t $basedir/msgsnd`;
-ok($?,0);
-$output=`runcon -t test_ipc_associate_t $basedir/msgrcv`;
+$output = `runcon -t test_ipc_base_t $basedir/msgsnd`;
+ok( $?, 0 );
+$output = `runcon -t test_ipc_associate_t $basedir/msgrcv`;
 ok($?);
 
-# Cleanup 
-$output=`runcon -t test_ipc_base_t $basedir/msgget`;
+# Cleanup
+$output = `runcon -t test_ipc_base_t $basedir/msgget`;
 $output =~ /id = (\d+)$/ || print "Invalid output from msgget\n";
-$ipcid = $1;
+$ipcid  = $1;
 $output = `runcon -t test_ipc_base_t ipcrm msg $ipcid`;
 
 # ================================================================= #
 # Miscellaneous Routines                                            #
 # ================================================================= #
 sub reformat_results {
-	$list = shift;
-	$expected = shift;
-	for (split (' ', $list)) {
-		ok($_, $expected);
-	}
+    $list     = shift;
+    $expected = shift;
+    for ( split( ' ', $list ) ) {
+        ok( $_, $expected );
+    }
 }

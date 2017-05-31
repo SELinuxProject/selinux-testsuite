@@ -1,87 +1,106 @@
 #!/usr/bin/perl
 
 use Test;
-BEGIN { plan tests => 9}
+BEGIN { plan tests => 9 }
 
-$basedir = $0;  $basedir =~ s|(.*)/[^/]*|$1|;
+$basedir = $0;
+$basedir =~ s|(.*)/[^/]*|$1|;
 
 # Remove any leftover test directories from prior failed runs.
-system ("rm -rf $basedir/src_dir $basedir/dst_dir");
+system("rm -rf $basedir/src_dir $basedir/dst_dir");
 
 # Create the source and destination test directories for the rename.
-system ("mkdir $basedir/src_dir 2>&1");
-system ("chcon -t test_rename_src_dir_t $basedir/src_dir 2>&1");
-system ("mkdir $basedir/dst_dir 2>&1");
-system ("chcon -t test_rename_dst_dir_t $basedir/dst_dir 2>&1");
+system("mkdir $basedir/src_dir 2>&1");
+system("chcon -t test_rename_src_dir_t $basedir/src_dir 2>&1");
+system("mkdir $basedir/dst_dir 2>&1");
+system("chcon -t test_rename_dst_dir_t $basedir/dst_dir 2>&1");
 
 # Create a test file to try renaming.
-system ("touch $basedir/src_dir/test_file");
-system ("chcon -t test_rename_file_t $basedir/src_dir/test_file" );
+system("touch $basedir/src_dir/test_file");
+system("chcon -t test_rename_file_t $basedir/src_dir/test_file");
 
 # Create a test directory to try renaming.
-system ("mkdir $basedir/src_dir/test_dir" );
-system ("chcon -t test_rename_dir_t $basedir/src_dir/test_dir 2>&1");
+system("mkdir $basedir/src_dir/test_dir");
+system("chcon -t test_rename_dir_t $basedir/src_dir/test_dir 2>&1");
 
 # Verify that test_rename_t can rename the test file.
-$result = system ("runcon -t test_rename_t mv $basedir/src_dir/test_file $basedir/dst_dir 2>&1");
-ok($result, 0); 
+$result = system(
+"runcon -t test_rename_t mv $basedir/src_dir/test_file $basedir/dst_dir 2>&1"
+);
+ok( $result, 0 );
 
 # Revert.
-system ("mv $basedir/dst_dir/test_file $basedir/src_dir 2>&1");
+system("mv $basedir/dst_dir/test_file $basedir/src_dir 2>&1");
 
 # Create a pre-existing destination file.
-system ("touch $basedir/dst_dir/test_file");
+system("touch $basedir/dst_dir/test_file");
 
-# Verify that test_rename2_t can rename the file, removing the 
+# Verify that test_rename2_t can rename the file, removing the
 # pre-existing destination file.
-$result = system ("runcon -t test_rename2_t -- mv -f $basedir/src_dir/test_file $basedir/dst_dir 2>&1");
-ok($result, 0); 
+$result = system(
+"runcon -t test_rename2_t -- mv -f $basedir/src_dir/test_file $basedir/dst_dir 2>&1"
+);
+ok( $result, 0 );
 
 # Revert.
-system ("mv $basedir/dst_dir/test_file $basedir/src_dir 2>&1");
+system("mv $basedir/dst_dir/test_file $basedir/src_dir 2>&1");
 
 # Verify that test_rename_t can rename the test dir.
-$result = system ("runcon -t test_rename_t mv $basedir/src_dir/test_dir $basedir/dst_dir 2>&1");
-ok($result, 0); 
+$result = system(
+    "runcon -t test_rename_t mv $basedir/src_dir/test_dir $basedir/dst_dir 2>&1"
+);
+ok( $result, 0 );
 
 # Revert.
-system ("mv $basedir/dst_dir/test_dir $basedir/src_dir 2>&1");
+system("mv $basedir/dst_dir/test_dir $basedir/src_dir 2>&1");
 
 # Verify that test_norename_t cannot rename the test file.
 # Should fail on the rename permission check to the file.
-$result = system ("runcon -t test_norename_t mv $basedir/src_dir/test_file $basedir/dst_dir 2>&1");
-ok($result); 
+$result = system(
+"runcon -t test_norename_t mv $basedir/src_dir/test_file $basedir/dst_dir 2>&1"
+);
+ok($result);
 
 # Verify that test_norename2_t cannot rename the test file.
 # Should fail on the remove_name permission check to the src_dir.
-$result = system ("runcon -t test_norename2_t mv $basedir/src_dir/test_file $basedir/dst_dir 2>&1");
-ok($result); 
+$result = system(
+"runcon -t test_norename2_t mv $basedir/src_dir/test_file $basedir/dst_dir 2>&1"
+);
+ok($result);
 
 # Verify that test_norename3_t cannot rename the test file.
 # Should fail on the add_name permission check to the dst_dir.
-$result = system ("runcon -t test_norename3_t mv $basedir/src_dir/test_file $basedir/dst_dir 2>&1");
-ok($result); 
+$result = system(
+"runcon -t test_norename3_t mv $basedir/src_dir/test_file $basedir/dst_dir 2>&1"
+);
+ok($result);
 
 # Create a pre-existing destination file again.
-system ("touch $basedir/dst_dir/test_file");
+system("touch $basedir/dst_dir/test_file");
 
 # Verify that test_norename4_t cannot rename the source file
 # to the destination file.
 # Should fail on the remove_name permission check to the dst_dir.
-$result = system ("runcon -t test_norename4_t -- mv -f $basedir/src_dir/test_file $basedir/dst_dir 2>&1");
-ok($result); 
+$result = system(
+"runcon -t test_norename4_t -- mv -f $basedir/src_dir/test_file $basedir/dst_dir 2>&1"
+);
+ok($result);
 
 # Verify that test_norename5_t cannot rename the source file
 # to the destination file.
 # Should fail on the unlink permission check to the dst_file.
-$result = system ("runcon -t test_norename5_t -- mv -f $basedir/src_dir/test_file $basedir/dst_dir 2>&1");
-ok($result); 
+$result = system(
+"runcon -t test_norename5_t -- mv -f $basedir/src_dir/test_file $basedir/dst_dir 2>&1"
+);
+ok($result);
 
 # Verify that test_norename6_t cannot rename the test dir.
 # Should fail on the reparent check.
-$result = system ("runcon -t test_norename6_t mv $basedir/src_dir/test_dir $basedir/dst_dir 2>&1");
-ok($result); 
+$result = system(
+"runcon -t test_norename6_t mv $basedir/src_dir/test_dir $basedir/dst_dir 2>&1"
+);
+ok($result);
 
 # Cleanup.
-system ("rm -rf $basedir/src_dir $basedir/dst_dir");
+system("rm -rf $basedir/src_dir $basedir/dst_dir");
 

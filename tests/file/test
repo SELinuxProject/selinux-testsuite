@@ -6,7 +6,8 @@
 use Test;
 BEGIN { plan tests => 16 }
 
-$basedir = $0;  $basedir =~ s|(.*)/[^/]*|$1|;
+$basedir = $0;
+$basedir =~ s|(.*)/[^/]*|$1|;
 
 #
 # Clean up from a previous run
@@ -18,9 +19,12 @@ system "rm -f $basedir/temp_file3 2>&1";
 #
 # Create the temp files
 #
-system "dd if=/dev/zero of=$basedir/temp_file count=2 ibs=1024 2>&1 > /dev/null";
-system "dd if=/dev/zero of=$basedir/temp_file2 count=2 ibs=1024 2>&1 > /dev/null";
-system "dd if=/dev/zero of=$basedir/temp_file3 count=2 ibs=1024 2>&1 > /dev/null";
+system
+  "dd if=/dev/zero of=$basedir/temp_file count=2 ibs=1024 2>&1 > /dev/null";
+system
+  "dd if=/dev/zero of=$basedir/temp_file2 count=2 ibs=1024 2>&1 > /dev/null";
+system
+  "dd if=/dev/zero of=$basedir/temp_file3 count=2 ibs=1024 2>&1 > /dev/null";
 system "chmod 775 $basedir/temp_file 2>&1 > /dev/null";
 system "chmod 775 $basedir/temp_file2 2>&1 > /dev/null";
 #
@@ -37,7 +41,7 @@ system "chcon -t nofileop_rw_file_t $basedir/temp_file2 2>&1 > /dev/null";
 #
 system "chcon -t nofileop_ra_file_t $basedir/temp_file3 2>&1 > /dev/null";
 
-# 
+#
 # Change the context of the test executable
 #
 system "chcon -t fileop_exec_t $basedir/wait_io 2>&1 > /dev/null";
@@ -46,11 +50,12 @@ system "chcon -t fileop_exec_t $basedir/wait_io 2>&1 > /dev/null";
 # Get the SID of the good file.
 #
 $output = `ls -Z $basedir/temp_file`;
-@arr = split(' ', $output);
-if (index($arr[0], ":") != -1) {
-	$good_file_sid = $arr[0]
-} else {
-	$good_file_sid = $arr[3]
+@arr = split( ' ', $output );
+if ( index( $arr[0], ":" ) != -1 ) {
+    $good_file_sid = $arr[0];
+}
+else {
+    $good_file_sid = $arr[3];
 }
 
 #
@@ -58,38 +63,44 @@ if (index($arr[0], ":") != -1) {
 # hits basic permissions, while the remaining tests hit specific hooks.
 #
 $result = system "runcon -t test_fileop_t -- touch $basedir/temp_file 2>&1";
-ok($result, 0); 
+ok( $result, 0 );
 
-$result = system "runcon -t test_fileop_t -- $basedir/test_seek $basedir/temp_file 2>&1";
-ok($result, 0); 
+$result = system
+  "runcon -t test_fileop_t -- $basedir/test_seek $basedir/temp_file 2>&1";
+ok( $result, 0 );
 
-$result = system "runcon -t test_fileop_t -- $basedir/test_mmap $basedir/temp_file $good_file_sid 2>&1";
-ok($result, 0); 
+$result = system
+"runcon -t test_fileop_t -- $basedir/test_mmap $basedir/temp_file $good_file_sid 2>&1";
+ok( $result, 0 );
 
-$result = system "runcon -t test_fileop_t -- $basedir/test_mprotect $basedir/temp_file $good_file_sid 2>&1";
-ok($result, 0); 
+$result = system
+"runcon -t test_fileop_t -- $basedir/test_mprotect $basedir/temp_file $good_file_sid 2>&1";
+ok( $result, 0 );
 
-$result = system "runcon -t test_fileop_t -- $basedir/test_lock $basedir/temp_file $good_file_sid 2>&1";
-ok($result, 0); 
+$result = system
+"runcon -t test_fileop_t -- $basedir/test_lock $basedir/temp_file $good_file_sid 2>&1";
+ok( $result, 0 );
 
-$result = system "runcon -t test_fileop_t -- $basedir/test_rw $basedir/temp_file $good_file_sid 2>&1";
-ok($result, 0); 
+$result = system
+"runcon -t test_fileop_t -- $basedir/test_rw $basedir/temp_file $good_file_sid 2>&1";
+ok( $result, 0 );
 
-$result = system "runcon -t test_fileop_t -- $basedir/test_fcntl $basedir/temp_file 2>&1";
-ok($result, 0); 
+$result = system
+  "runcon -t test_fileop_t -- $basedir/test_fcntl $basedir/temp_file 2>&1";
+ok( $result, 0 );
 
 #
-# Attempt to create a SIGIO as the 'good' domain. 
+# Attempt to create a SIGIO as the 'good' domain.
 #
 $result = system "runcon -t test_fileop_t -- $basedir/test_sigiotask 2>&1";
-ok($result, 0); 
+ok( $result, 0 );
 
 #
 # Attempt to access the restricted file as the 'bad' domain. The first test
 # hits basic permissions, while the remaining tests hit specific hooks.
 #
 $result = system "runcon -t test_nofileop_t -- touch $basedir/temp_file 2>&1";
-ok($result); 
+ok($result);
 
 #
 # Perform tests for the bad domain.
@@ -99,36 +110,42 @@ ok($result);
 # properly, a policy change would need to take effect between the time that
 # the file was opened and the seek took place. So, for now, we just test
 # the basic access which should succeed.
-$result = system "runcon -t test_nofileop_t -- $basedir/test_seek $basedir/temp_file2 2>&1";
-ok($result, 0); 
+$result = system
+  "runcon -t test_nofileop_t -- $basedir/test_seek $basedir/temp_file2 2>&1";
+ok( $result, 0 );
 
-$result = system "runcon -t test_nofileop_t -- $basedir/test_mmap $basedir/temp_file2 $good_file_sid 2>&1";
-ok($result); 
+$result = system
+"runcon -t test_nofileop_t -- $basedir/test_mmap $basedir/temp_file2 $good_file_sid 2>&1";
+ok($result);
 system "chcon -t nofileop_rw_file_t $basedir/temp_file2 2>&1 > /dev/null";
 
-$result = system "runcon -t test_nofileop_t -- $basedir/test_mprotect $basedir/temp_file2 $good_file_sid 2>&1";
-ok($result); 
+$result = system
+"runcon -t test_nofileop_t -- $basedir/test_mprotect $basedir/temp_file2 $good_file_sid 2>&1";
+ok($result);
 system "chcon -t nofileop_rw_file_t $basedir/temp_file2 2>&1 > /dev/null";
 
-$result = system "runcon -t test_nofileop_t -- $basedir/test_lock $basedir/temp_file2 $good_file_sid 2>&1";
-ok($result); 
+$result = system
+"runcon -t test_nofileop_t -- $basedir/test_lock $basedir/temp_file2 $good_file_sid 2>&1";
+ok($result);
 system "chcon -t nofileop_rw_file_t $basedir/temp_file2 2>&1 > /dev/null";
 
-$result = system "runcon -t test_nofileop_t -- $basedir/test_rw $basedir/temp_file2 $good_file_sid 2>&1";
-ok($result); 
+$result = system
+"runcon -t test_nofileop_t -- $basedir/test_rw $basedir/temp_file2 $good_file_sid 2>&1";
+ok($result);
 system "chcon -t nofileop_rw_file_t $basedir/temp_file2 2>&1 > /dev/null";
 
 #
 # Check the fcntl for the bad domain. This uses the read-only accessable file.
 #
-$result = system "runcon -t test_nofileop_t -- $basedir/test_nofcntl $basedir/temp_file3 2>&1";
-ok($result, 0); 
+$result = system
+  "runcon -t test_nofileop_t -- $basedir/test_nofcntl $basedir/temp_file3 2>&1";
+ok( $result, 0 );
 
 #
-# Attempt to create a SIGIO as the 'bad' domain. 
+# Attempt to create a SIGIO as the 'bad' domain.
 #
 $result = system "runcon -t test_nofileop_t -- $basedir/test_sigiotask 2>&1";
-ok($result); 
+ok($result);
 
 #
 # Delete the temp files

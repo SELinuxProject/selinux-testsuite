@@ -4,16 +4,18 @@
 #
 
 use Test::More;
+
 BEGIN {
     # check if kernel supports posix mqueues file system is mounted
-    if (system("mount | grep -q mqueue")) {
+    if ( system("mount | grep -q mqueue") ) {
         plan skip_all => "mqueue fileystem not supported/mounted";
-    } else {
+    }
+    else {
         plan tests => 13;
     }
 }
-$basedir = $0;  $basedir =~ s|(.*)/[^/]*|$1|;
-
+$basedir = $0;
+$basedir =~ s|(.*)/[^/]*|$1|;
 
 #
 # Change the context of the test executable
@@ -30,74 +32,70 @@ system "chcon -t mqop_exec_t $basedir/mqsnd 2>&1 > /dev/null";
 #
 system "chcon -t mqop_exec_t $basedir/mqrcv 2>&1 > /dev/null";
 
-
 #
 # Create the three mqueues
 #
 $result = `runcon -t test_mqmanageop_t -- $basedir/mqmgr /mqread 1 2>&1`;
-ok($? == 0, 'Setup: create read test queue');
+ok( $? == 0, 'Setup: create read test queue' );
 
 $result = `runcon -t test_mqmanageop_t -- $basedir/mqmgr /mqwrite 1 2>&1`;
-ok($? == 0, 'Setup: create write test queue');
+ok( $? == 0, 'Setup: create write test queue' );
 
 #########################
 $result = `runcon -t test_mqmanageop_t -- $basedir/mqmgr /mqrw 1 2>&1`;
-ok($? == 0, 'Setup: create read/write test queue');
-
+ok( $? == 0, 'Setup: create read/write test queue' );
 
 # Check if system supports named file transitions if not
 # manually set the mqueue contexts via chcon
-if (system("grep -q mqueue_initxattrs /proc/kallsyms")) {
-	print "Manually setting queue file labels\n";
-	system "chcon -t mqop_mqread_t /dev/mqueue/mqread 2>&1 > /dev/null";
-	system "chcon -t mqop_mqwrite_t /dev/mqueue/mqwrite 2>&1 > /dev/null";
-	system "chcon -t mqop_mqrw_t /dev/mqueue/mqrw 2>&1 > /dev/null";
+if ( system("grep -q mqueue_initxattrs /proc/kallsyms") ) {
+    print "Manually setting queue file labels\n";
+    system "chcon -t mqop_mqread_t /dev/mqueue/mqread 2>&1 > /dev/null";
+    system "chcon -t mqop_mqwrite_t /dev/mqueue/mqwrite 2>&1 > /dev/null";
+    system "chcon -t mqop_mqrw_t /dev/mqueue/mqrw 2>&1 > /dev/null";
 }
 
 #
 # Use the write domain to write each of the mqueues
 #
 $result = `runcon -t test_mqwriteop_t $basedir/mqsnd /mqread `;
-$result =~/errno = (\d+)/ || print "Invalid output from mgsnd\n";
-ok($1 == 13, 'Invalid write to read queue');
+$result =~ /errno = (\d+)/ || print "Invalid output from mgsnd\n";
+ok( $1 == 13, 'Invalid write to read queue' );
 
 $result = `runcon -t test_mqwriteop_t -- $basedir/mqsnd /mqwrite`;
-ok($? == 0, 'Valid write to write queue');
+ok( $? == 0, 'Valid write to write queue' );
 
 $result = `runcon -t test_mqwriteop_t -- $basedir/mqsnd /mqrw `;
-ok($? == 0, 'Valid write to read/write queue');
-
-
+ok( $? == 0, 'Valid write to read/write queue' );
 
 #
 # Use the create domain to write some data to the read queue for next test
 #
 
 $result = `runcon -t test_mqmanageop_t -- $basedir/mqsnd /mqread `;
-ok($? == 0, 'Valid write to read queue');
+ok( $? == 0, 'Valid write to read queue' );
 
 #
 # Use the read domain to read each of the mqueues
 #
 $result = `runcon -t test_mqreadop_t $basedir/mqrcv /mqread `;
-ok($? == 0, 'Valid read from read queue');
+ok( $? == 0, 'Valid read from read queue' );
 
 $result = `runcon -t test_mqreadop_t -- $basedir/mqrcv /mqwrite`;
-$result =~/errno = (\d+)/ || print "Invalid output from mqrcv\n";
-ok($1 == 13, 'Invalid read from write queue');
+$result =~ /errno = (\d+)/ || print "Invalid output from mqrcv\n";
+ok( $1 == 13, 'Invalid read from write queue' );
 
 $result = `runcon -t test_mqreadop_t -- $basedir/mqrcv /mqrw `;
-ok($? == 0, 'Valid read from read/write queue');
+ok( $? == 0, 'Valid read from read/write queue' );
 
 #
 # remove the three queues three mqueues
 #
 $result = `runcon -t test_mqmanageop_t -- $basedir/mqmgr /mqread 0 2>&1`;
-ok($? == 0, 'Cleanup: remove read queue');
+ok( $? == 0, 'Cleanup: remove read queue' );
 
 $result = `runcon -t test_mqmanageop_t -- $basedir/mqmgr /mqwrite 0 2>&1`;
-ok($? == 0, 'Cleanup: remove write queue');
+ok( $? == 0, 'Cleanup: remove write queue' );
 
 $result = `runcon -t test_mqmanageop_t -- $basedir/mqmgr /mqrw 0 2>&1`;
-ok($? == 0, 'Cleanup: remove read/write queue');
+ok( $? == 0, 'Cleanup: remove read/write queue' );
 exit;

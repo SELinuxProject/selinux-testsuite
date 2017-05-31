@@ -1,16 +1,17 @@
 #!/usr/bin/perl
 
 use Test;
-BEGIN { plan tests => 2}
+BEGIN { plan tests => 2 }
 
-$basedir = $0;  $basedir =~ s|(.*)/[^/]*|$1|;
+$basedir = $0;
+$basedir =~ s|(.*)/[^/]*|$1|;
 
 # Remove any leftover programs from prior failed runs.
 system("rm -f $basedir/true");
 
 # Verify that test_entrypoint_t cannot be entered via an ordinary program.
 $result = system("runcon -t test_entrypoint_t true 2>&1");
-ok($result); #this should fail
+ok($result);    #this should fail
 
 # Set up a program with the entrypoint type for this domain.
 system("cp /bin/true $basedir/true");
@@ -18,7 +19,7 @@ system("chcon -t test_entrypoint_execute_t $basedir/true");
 
 # Verify that test_entrypoint_t can be entered via this program.
 $result = system("runcon -t test_entrypoint_t $basedir/true");
-ok($result,0); #this should pass
+ok( $result, 0 );    #this should pass
 
 # Cleanup.
 system("rm -f $basedir/true");

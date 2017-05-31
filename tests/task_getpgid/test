@@ -1,24 +1,25 @@
 #!/usr/bin/perl
 
 use Test;
-BEGIN { plan tests => 2}
+BEGIN { plan tests => 2 }
 
-$basedir = $0;  $basedir =~ s|(.*)/[^/]*|$1|;
+$basedir = $0;
+$basedir =~ s|(.*)/[^/]*|$1|;
 
 # Start the target process.
-if ( ($pid = fork()) == 0 ) {
-	exec "runcon -t test_getpgid_target_t $basedir/target";
+if ( ( $pid = fork() ) == 0 ) {
+    exec "runcon -t test_getpgid_target_t $basedir/target";
 }
 
-sleep 1; # Give it a second to start
+sleep 1;    # Give it a second to start
 
 # Verify that test_getpgid_yes_t can get the target's process group ID.
 $result = system "runcon -t test_getpgid_yes_t -- $basedir/source $pid 2>&1";
-ok($result, 0); 
+ok( $result, 0 );
 
 # Verify that test_getpgid_no_t cannot get the target's process group ID.
 $result = system "runcon -t test_getpgid_no_t -- $basedir/source $pid 2>&1";
-ok($result); 
+ok($result);
 
 # Kill the target
 kill KILL, $pid;

@@ -1,19 +1,24 @@
 #!/usr/bin/perl
 
 use Test;
-BEGIN { plan tests => 2}
+BEGIN { plan tests => 2 }
 
-$basedir = $0;  $basedir =~ s|(.*)/[^/]*|$1|;
+$basedir = $0;
+$basedir =~ s|(.*)/[^/]*|$1|;
 
 # Verify that test_execshare_parent_t can share state across an exec with
 # test_execshare_child_t.
 
-$result = system ("runcon -t test_execshare_parent_t -- $basedir/parent 0x200 test_execshare_child_t $basedir/child 2>&1");
-ok($result, 0);
+$result = system(
+"runcon -t test_execshare_parent_t -- $basedir/parent 0x200 test_execshare_child_t $basedir/child 2>&1"
+);
+ok( $result, 0 );
 
 # Verify that test_execshare_parent_t cannot share state across an exec with
 # test_execshare_notchild_t.
 
-$result = system ("runcon -t test_execshare_parent_t -- $basedir/parent 0x200 test_execshare_notchild_t $basedir/child 2>&1");
+$result = system(
+"runcon -t test_execshare_parent_t -- $basedir/parent 0x200 test_execshare_notchild_t $basedir/child 2>&1"
+);
 ok($result);
 

@@ -1,9 +1,10 @@
 #!/usr/bin/perl
 
 use Test;
-BEGIN { plan tests => 4}
+BEGIN { plan tests => 4 }
 
-$basedir = $0;  $basedir =~ s|(.*)/[^/]*|$1|;
+$basedir = $0;
+$basedir =~ s|(.*)/[^/]*|$1|;
 
 # Remove any leftover programs from prior failed runs.
 system("rm -f $basedir/true");
@@ -12,12 +13,14 @@ system("rm -f $basedir/true");
 system("chcon -t test_nnp_bounded_exec_t $basedir/checkcon");
 
 # Transition to bounded type via setexec.
-$result = system("$basedir/execnnp runcon -t test_nnp_bounded_t $basedir/checkcon test_nnp_bounded_t 2>&1");
-ok($result,0); #this should pass
+$result = system(
+"$basedir/execnnp runcon -t test_nnp_bounded_t $basedir/checkcon test_nnp_bounded_t 2>&1"
+);
+ok( $result, 0 );    #this should pass
 
 # Automatic transition to bounded domain via exec.
 $result = system("$basedir/execnnp $basedir/checkcon test_nnp_bounded_t 2>&1");
-ok($result,0); #this should pass
+ok( $result, 0 );    #this should pass
 
 # Use true as an entrypoint program to test ability to exec at all.
 system("cp /bin/true $basedir/true");
@@ -26,12 +29,14 @@ system("cp /bin/true $basedir/true");
 system("chcon -t test_nnp_notbounded_exec_t $basedir/checkcon $basedir/true");
 
 # Transition to notbounded domain via setexec.
-$result = system("$basedir/execnnp runcon -t test_nnp_notbounded_t $basedir/true 2>&1");
-ok($result); #this should fail
+$result =
+  system("$basedir/execnnp runcon -t test_nnp_notbounded_t $basedir/true 2>&1");
+ok($result);         #this should fail
 
 # Automatic transition to notbounded domain via exec.
-$result = system("$basedir/execnnp $basedir/checkcon test_nnp_notbounded_t 2>&1");
-ok($result); #this should fail
+$result =
+  system("$basedir/execnnp $basedir/checkcon test_nnp_notbounded_t 2>&1");
+ok($result);         #this should fail
 
 # Cleanup.
 system("rm -f $basedir/true");

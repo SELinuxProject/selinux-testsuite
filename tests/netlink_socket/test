@@ -1,38 +1,55 @@
 #!/usr/bin/perl
 
 use Test;
-BEGIN { plan tests => 8 };
+BEGIN { plan tests => 8 }
 
-$basedir = $0;  $basedir =~ s|(.*)/[^/]*|$1|;
+$basedir = $0;
+$basedir =~ s|(.*)/[^/]*|$1|;
 
 # Verify that test_netlink_iscsi_socket_t can create a NETLINK_ISCSI socket.
-$result = system("runcon -t test_netlink_iscsi_socket_t -- $basedir/netlinkcreate iscsi 2>&1");
-ok($result, 0);
+$result = system(
+    "runcon -t test_netlink_iscsi_socket_t -- $basedir/netlinkcreate iscsi 2>&1"
+);
+ok( $result, 0 );
 
 # Verify that test_no_netlink_iscsi_socket_t cannot create a NETLINK_ISCSI socket.
-$result = system("runcon -t test_no_netlink_iscsi_socket_t -- $basedir/netlinkcreate iscsi 2>&1");
+$result = system(
+"runcon -t test_no_netlink_iscsi_socket_t -- $basedir/netlinkcreate iscsi 2>&1"
+);
 ok($result);
 
 # Verify that test_netlink_netfilter_socket_t can create a NETLINK_NETFILTER socket.
-$result = system("runcon -t test_netlink_netfilter_socket_t -- $basedir/netlinkcreate netfilter 2>&1");
-ok($result, 0);
+$result = system(
+"runcon -t test_netlink_netfilter_socket_t -- $basedir/netlinkcreate netfilter 2>&1"
+);
+ok( $result, 0 );
 
 # Verify that test_no_netlink_netfilter_socket_t cannot create a NETLINK_NETFILTER socket.
-$result = system("runcon -t test_no_netlink_netfilter_socket_t -- $basedir/netlinkcreate netfilter 2>&1");
+$result = system(
+"runcon -t test_no_netlink_netfilter_socket_t -- $basedir/netlinkcreate netfilter 2>&1"
+);
 ok($result);
 
 # Verify that test_netlink_generic_socket_t can create a NETLINK_GENERIC socket.
-$result = system("runcon -t test_netlink_generic_socket_t -- $basedir/netlinkcreate generic 2>&1");
-ok($result, 0);
+$result = system(
+"runcon -t test_netlink_generic_socket_t -- $basedir/netlinkcreate generic 2>&1"
+);
+ok( $result, 0 );
 
 # Verify that test_no_netlink_generic_socket_t cannot create a NETLINK_GENERIC socket.
-$result = system("runcon -t test_no_netlink_generic_socket_t -- $basedir/netlinkcreate generic 2>&1");
+$result = system(
+"runcon -t test_no_netlink_generic_socket_t -- $basedir/netlinkcreate generic 2>&1"
+);
 ok($result);
 
 # Verify that test_netlink_crypto_socket_t can create a NETLINK_CRYPTO socket.
-$result = system("runcon -t test_netlink_crypto_socket_t -- $basedir/netlinkcreate crypto 2>&1");
-ok($result, 0);
+$result = system(
+"runcon -t test_netlink_crypto_socket_t -- $basedir/netlinkcreate crypto 2>&1"
+);
+ok( $result, 0 );
 
 # Verify that test_no_netlink_crypto_socket_t cannot create a NETLINK_CRYPTO socket.
-$result = system("runcon -t test_no_netlink_crypto_socket_t -- $basedir/netlinkcreate crypto 2>&1");
+$result = system(
+"runcon -t test_no_netlink_crypto_socket_t -- $basedir/netlinkcreate crypto 2>&1"
+);
 ok($result);
