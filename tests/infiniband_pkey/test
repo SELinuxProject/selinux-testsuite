@@ -2,83 +2,102 @@
 
 use Test;
 
-BEGIN { plan tests => 3}
+BEGIN { plan tests => 3 }
 
-$basedir = $0; $basedir =~ s|(.*)/[^/]*|$1|;
+$basedir = $0;
+$basedir =~ s|(.*)/[^/]*|$1|;
 
 my %conf;
-$confpath = $basedir."/ibpkey_test.conf";
-open($f, $confpath) or die ("Couldn't open $confpath");
-while($r = <$f>) {
-	if ($r =~ /^\s*#/ || $r =~ /^\s*$/) { next; }
-	chomp $r;
-	($k,$v) = split(/=/, $r);
-	$conf{$k} = $v;
+$confpath = $basedir . "/ibpkey_test.conf";
+open( $f, $confpath ) or die("Couldn't open $confpath");
+while ( $r = <$f> ) {
+    if ( $r =~ /^\s*#/ || $r =~ /^\s*$/ ) { next; }
+    chomp $r;
+    ( $k, $v ) = split( /=/, $r );
+    $conf{$k} = $v;
 }
 close($f);
 
-if ($conf{SELINUX_INFINIBAND_PKEY_TEST} eq 1) {
-	$device = $conf{SELINUX_INFINIBAND_PKEY_TEST_DEV};
-	$port = $conf{SELINUX_INFINIBAND_PKEY_TEST_PORT};
+if ( $conf{SELINUX_INFINIBAND_PKEY_TEST} eq 1 ) {
+    $device = $conf{SELINUX_INFINIBAND_PKEY_TEST_DEV};
+    $port   = $conf{SELINUX_INFINIBAND_PKEY_TEST_PORT};
 
-	# Read GID 0, to get the subnet prefix.
-	$gid_path = "/sys/class/infiniband/".$device."/ports/".$port."/gids/0";
-	open($f, $gid_path) or die ("Couldn't open $gid_path");
-	$gid = <$f>;
-	close($f);
-	# The gid sysfs shows a fully expanded ipv6 address, just take the
-	# top half.
-	@tmp = unpack('(a20)*', $gid);
-	$subnet_prefix = $tmp[0].":";
+    # Read GID 0, to get the subnet prefix.
+    $gid_path =
+      "/sys/class/infiniband/" . $device . "/ports/" . $port . "/gids/0";
+    open( $f, $gid_path ) or die("Couldn't open $gid_path");
+    $gid = <$f>;
+    close($f);
 
-	@labeled_pkeys = split(/,/, $conf{SELINUX_INFINIBAND_TEST_LABELED_PKEYS});
-	@unlabeled_pkeys = split(/,/, $conf{SELINUX_INFINIBAND_TEST_UNLABELED_PKEYS});
+    # The gid sysfs shows a fully expanded ipv6 address, just take the
+    # top half.
+    @tmp = unpack( '(a20)*', $gid );
+    $subnet_prefix = $tmp[0] . ":";
 
-	foreach (@unlabeled_pkeys) {
-		$result = system "runcon -t test_ibpkey_access_t $basedir/create_modify_qp $device $port $_";
-		if($result ne 0) {
-			last;
-		}
-	}
-	if (@unlabeled_pkeys) {
-		ok($result, 0);
-	} else {
-		ok(1);
-	}
+    @labeled_pkeys = split( /,/, $conf{SELINUX_INFINIBAND_TEST_LABELED_PKEYS} );
+    @unlabeled_pkeys =
+      split( /,/, $conf{SELINUX_INFINIBAND_TEST_UNLABELED_PKEYS} );
 
-	foreach (@unlabeled_pkeys) {
-		$pkey_path = "/sys/class/infiniband/".$device."/ports/".$port."/pkeys/".$_;
-		open($f, $pkey_path) or die ("Couldn't open $pkey_path");
-		$pkey_val = <$f>;
-		close($f);
+    foreach (@unlabeled_pkeys) {
+        $result = system
+"runcon -t test_ibpkey_access_t $basedir/create_modify_qp $device $port $_";
+        if ( $result ne 0 ) {
+            last;
+        }
+    }
+    if (@unlabeled_pkeys) {
+        ok( $result, 0 );
+    }
+    else {
+        ok(1);
+    }
 
-		system "semanage ibpkey -a -t test_ibpkey_t -x $subnet_prefix $pkey_val";
-		$result = system "runcon -t test_ibpkey_access_t $basedir/create_modify_qp $device $port $_";
-		system "semanage ibpkey -d -t test_ibpkey_t -x $subnet_prefix $pkey_val";
-		if ($result>>8 ne 13) {
-			last;
-		}
-	}
-	if (@unlabeled_pkeys) {
-		ok($result>>8, 13);
-	} else {
-		ok(1);
-	}
+    foreach (@unlabeled_pkeys) {
+        $pkey_path =
+            "/sys/class/infiniband/"
+          . $device
+          . "/ports/"
+          . $port
+          . "/pkeys/"
+          . $_;
+        open( $f, $pkey_path ) or die("Couldn't open $pkey_path");
+        $pkey_val = <$f>;
+        close($f);
 
-	foreach (@labeled_pkeys) {
-		$result = system "runcon -t test_ibpkey_access_t $basedir/create_modify_qp $device $port $_";
-		if ($result>>8 ne 13) {
-			last;
-		}
-	}
-	if (@labeled_pkeys) {
-		ok($result>>8, 13);
-	} else {
-		ok(1);
-	}
-} else {
-	ok(1);
-	ok(1);
-	ok(1);
+        system
+          "semanage ibpkey -a -t test_ibpkey_t -x $subnet_prefix $pkey_val";
+        $result = system
+"runcon -t test_ibpkey_access_t $basedir/create_modify_qp $device $port $_";
+        system
+          "semanage ibpkey -d -t test_ibpkey_t -x $subnet_prefix $pkey_val";
+        if ( $result >> 8 ne 13 ) {
+            last;
+        }
+    }
+    if (@unlabeled_pkeys) {
+        ok( $result >> 8, 13 );
+    }
+    else {
+        ok(1);
+    }
+
+    foreach (@labeled_pkeys) {
+        $result = system
+"runcon -t test_ibpkey_access_t $basedir/create_modify_qp $device $port $_";
+        if ( $result >> 8 ne 13 ) {
+            last;
+        }
+    }
+    if (@labeled_pkeys) {
+        ok( $result >> 8, 13 );
+    }
+    else {
+        ok(1);
+    }
+}
+else {
+    ok(1);
+    ok(1);
+    ok(1);
 }
 exit;

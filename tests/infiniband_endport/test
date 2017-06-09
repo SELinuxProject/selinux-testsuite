@@ -2,48 +2,54 @@
 
 use Test;
 
-BEGIN { plan tests => 2}
+BEGIN { plan tests => 2 }
 
-$basedir = $0;  $basedir =~ s|(.*)/[^/]*|$1|;
+$basedir = $0;
+$basedir =~ s|(.*)/[^/]*|$1|;
 
 my %conf;
-my $confpath = $basedir."/ibendport_test.conf";
-open($f, $confpath) or die ("Couldn't open ibtest.conf");
-while($r = <$f>) {
-	if ($r =~ /^\s*#/ || $r =~ /^\s*$/) { next; }
-	chomp $r;
-	($k,$v) = split(/=/, $r);
-	$conf{$k} = $v;
+my $confpath = $basedir . "/ibendport_test.conf";
+open( $f, $confpath ) or die("Couldn't open ibtest.conf");
+while ( $r = <$f> ) {
+    if ( $r =~ /^\s*#/ || $r =~ /^\s*$/ ) { next; }
+    chomp $r;
+    ( $k, $v ) = split( /=/, $r );
+    $conf{$k} = $v;
 }
 
-if ($conf{SELINUX_INFINIBAND_ENDPORT_TEST} eq 1) {
-	@allowed_device_port = split(/,/, $conf{SELINUX_INFINIBAND_ENDPORT_TEST_ALLOWED});
-	@denied_device_port = split(/,/, $conf{SELINUX_INFINIBAND_ENDPORT_TEST_DENIED});
+if ( $conf{SELINUX_INFINIBAND_ENDPORT_TEST} eq 1 ) {
+    @allowed_device_port =
+      split( /,/, $conf{SELINUX_INFINIBAND_ENDPORT_TEST_ALLOWED} );
+    @denied_device_port =
+      split( /,/, $conf{SELINUX_INFINIBAND_ENDPORT_TEST_DENIED} );
 
-	foreach (@allowed_device_port) {
-		@dev_port_pair= split(/ /, $_);
+    foreach (@allowed_device_port) {
+        @dev_port_pair = split( / /, $_ );
 
-		system "semanage ibendport -a -t test_ibendport_t -z $_ 2>/dev/null";
-		$result = system "runcon -t test_ibendport_manage_subnet_t smpquery PKeyTable -C $dev_port_pair[0] -P $dev_port_pair[1] -D 1 2>/dev/null";
-		system "semanage ibendport -d -t test_ibendport_t -z $_ 2>/dev/null";
-		if($result ne 0) {
-			last;
-		}
-	}
-	ok($result, 0);
+        system "semanage ibendport -a -t test_ibendport_t -z $_ 2>/dev/null";
+        $result = system
+"runcon -t test_ibendport_manage_subnet_t smpquery PKeyTable -C $dev_port_pair[0] -P $dev_port_pair[1] -D 1 2>/dev/null";
+        system "semanage ibendport -d -t test_ibendport_t -z $_ 2>/dev/null";
+        if ( $result ne 0 ) {
+            last;
+        }
+    }
+    ok( $result, 0 );
 
-        foreach (@denied_device_port) {
-	        @dev_port_pair= split(/ /, $_);
-	        $result = system "runcon -t test_ibendport_manage_subnet_t smpquery PKeyTable -C $dev_port_pair[0] -P $dev_port_pair[1] -D 1 2>/dev/null";
+    foreach (@denied_device_port) {
+        @dev_port_pair = split( / /, $_ );
+        $result = system
+"runcon -t test_ibendport_manage_subnet_t smpquery PKeyTable -C $dev_port_pair[0] -P $dev_port_pair[1] -D 1 2>/dev/null";
 
-		if ($result>>8 eq 0) {
-			last;
-		}
-	}
+        if ( $result >> 8 eq 0 ) {
+            last;
+        }
+    }
 
-	ok(int($result>>8) ne 0);
-} else {
-	ok(1);
-	ok(1);
+    ok( int( $result >> 8 ) ne 0 );
+}
+else {
+    ok(1);
+    ok(1);
 }
 exit;
