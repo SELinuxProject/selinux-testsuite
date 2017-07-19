@@ -23,7 +23,7 @@ TARGETS = \
 	test_task_getsid.te test_task_setpgid.te test_task_setsched.te \
 	test_transition.te test_inet_socket.te test_unix_socket.te \
 	test_mmap.te test_overlayfs.te test_mqueue.te test_mac_admin.te \
-	test_ibpkey.te
+	test_ibpkey.te test_atsecure.te
 
 ifeq ($(shell [ $(POL_VERS) -ge 24 ] && echo true),true)
 TARGETS += test_bounds.te

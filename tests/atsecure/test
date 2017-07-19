@@ -1,0 +1,31 @@
+#!/usr/bin/perl
+
+use Test;
+BEGIN { plan tests => 4 }
+
+$basedir = $0;
+$basedir =~ s|(.*)/[^/]*|$1|;
+
+# Verify that AT_SECURE is 1 when noatsecure permission is not allowed.
+$result = system(
+"runcon -t test_atsecure_denied_t -- runcon -t test_atsecure_newdomain_t $basedir/atsecure"
+);
+ok($result);
+
+# Verify that AT_SECURE is 0 when noatsecure permission is allowed.
+$result = system(
+"runcon -t test_atsecure_allowed_t -- runcon -t test_atsecure_newdomain_t $basedir/atsecure"
+);
+ok( $result, 0 );
+
+# Verify that LD_PRELOAD is ignored when noatsecure permission is not allowed.
+$result = system(
+"runcon -t test_atsecure_denied_t -- bash -c 'LD_PRELOAD=$basedir/evil.so runcon -t test_atsecure_newdomain_t $basedir/good'"
+);
+ok( $result, 0 );
+
+# Verify that LD_PRELOAD is honored when noatsecure permission is allowed.
+$result = system(
+"runcon -t test_atsecure_allowed_t -- bash -c 'LD_PRELOAD=$basedir/evil.so runcon -t test_atsecure_newdomain_t $basedir/good'"
+);
+ok($result);
