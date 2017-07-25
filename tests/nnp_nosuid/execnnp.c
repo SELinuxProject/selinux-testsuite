@@ -2,11 +2,18 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <getopt.h>
 #include <unistd.h>
 #include <sys/utsname.h>
 #include <sys/prctl.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+
+static void usage(const char *progname)
+{
+	fprintf(stderr, "usage: %s [-n] command [args...]\n", progname);
+	exit(-1);
+}
 
 int main(int argc, char **argv)
 {
@@ -14,24 +21,37 @@ int main(int argc, char **argv)
 	struct utsname uts;
 	pid_t pid;
 	int rc, status;
+	int opt;
+	bool nnp = false;
 
-	if (argc < 2) {
-		fprintf(stderr, "usage:  %s command [args...]\n", argv[0]);
-		exit(-1);
+	while ((opt = getopt(argc, argv, "n")) != -1) {
+		switch (opt) {
+		case 'n':
+			nnp = true;
+			break;
+		default:
+			usage(argv[0]);
+			break;
+		}
 	}
+
+	if ((argc - optind) < 2)
+		usage(argv[0]);
 
 	if (uname(&uts) < 0) {
 		perror("uname");
 		exit(-1);
 	}
 
-	nobounded = ((strcmp(argv[argc - 1], "test_nnp_bounded_t") == 0) &&
+	nobounded = ((strcmp(argv[argc - 1], "test_bounded_t") == 0) &&
 		     (strverscmp(uts.release, "3.18") < 0));
 
-	rc = prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0);
-	if (rc < 0) {
-		perror("prctl PR_SET_NO_NEW_PRIVS");
-		exit(-1);
+	if (nnp) {
+		rc = prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0);
+		if (rc < 0) {
+			perror("prctl PR_SET_NO_NEW_PRIVS");
+			exit(-1);
+		}
 	}
 
 	pid = fork();
@@ -41,8 +61,8 @@ int main(int argc, char **argv)
 	}
 
 	if (pid == 0) {
-		execvp(argv[1], &argv[1]);
-		perror(argv[1]);
+		execvp(argv[optind], &argv[optind]);
+		perror(argv[optind]);
 		exit(-1);
 	}
 

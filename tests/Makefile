@@ -9,8 +9,8 @@ SUBDIRS:= domain_trans entrypoint execshare exectrace execute_no_trans \
 	rxdir sem setattr setnice shm sigkill stat sysctl task_create \
 	task_setnice task_setscheduler task_getscheduler task_getsid \
 	task_getpgid task_setpgid file ioctl capable_file capable_net \
-	capable_sys dyntrans dyntrace bounds nnp mmap unix_socket inet_socket \
-	overlay checkreqprot mqueue mac_admin infiniband_pkey \
+	capable_sys dyntrans dyntrace bounds nnp_nosuid mmap unix_socket \
+        inet_socket overlay checkreqprot mqueue mac_admin infiniband_pkey \
 	infiniband_endport atsecure
 
 ifeq ($(shell grep -q cap_userns $(POLDEV)/include/support/all_perms.spt && echo true),true)
@@ -32,15 +32,15 @@ SUBDIRS += prlimit
 endif
 
 ifeq ($(DISTRO),RHEL4)
-    SUBDIRS:=$(filter-out bounds dyntrace dyntrans inet_socket mmap nnp overlay unix_socket, $(SUBDIRS))
+    SUBDIRS:=$(filter-out bounds dyntrace dyntrans inet_socket mmap nnp_nosuid overlay unix_socket, $(SUBDIRS))
 endif
 
 ifeq ($(DISTRO),RHEL5)
-    SUBDIRS:=$(filter-out bounds inet_socket mmap nnp overlay unix_socket, $(SUBDIRS))
+    SUBDIRS:=$(filter-out bounds inet_socket mmap nnp_nosuid overlay unix_socket, $(SUBDIRS))
 endif
 
 ifeq ($(DISTRO),RHEL6)
-    SUBDIRS:=$(filter-out nnp overlay, $(SUBDIRS))
+    SUBDIRS:=$(filter-out nnp_nosuid overlay, $(SUBDIRS))
 endif
 
 ifeq ($(DISTRO),RHEL7)
