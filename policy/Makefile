@@ -65,6 +65,10 @@ ifeq (x$(DISTRO),$(filter x$(DISTRO),xRHEL4 xRHEL5 xRHEL6))
 TARGETS:=$(filter-out test_overlayfs.te test_mqueue.te, $(TARGETS))
 endif
 
+ifeq (x$(DISTRO),$(filter x$(DISTRO), xRHEL6))
+TARGETS:=$(filter-out test_ibpkey.te, $(TARGETS))
+endif
+
 ifeq (x$(DISTRO),$(filter x$(DISTRO),xRHEL4 xRHEL5))
 	BUILD_TARGET := build_rhel
 	LOAD_TARGET := load_rhel

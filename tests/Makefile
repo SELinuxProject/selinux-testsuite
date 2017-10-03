@@ -36,11 +36,11 @@ ifeq ($(DISTRO),RHEL4)
 endif
 
 ifeq ($(DISTRO),RHEL5)
-    SUBDIRS:=$(filter-out bounds inet_socket mmap nnp_nosuid overlay unix_socket, $(SUBDIRS))
+    SUBDIRS:=$(filter-out bounds inet_socket mmap nnp_nosuid overlay unix_socket atsecure mac_admin, $(SUBDIRS))
 endif
 
 ifeq ($(DISTRO),RHEL6)
-    SUBDIRS:=$(filter-out nnp_nosuid overlay, $(SUBDIRS))
+    SUBDIRS:=$(filter-out nnp_nosuid overlay atsecure, $(SUBDIRS))
 endif
 
 ifeq ($(DISTRO),RHEL7)
