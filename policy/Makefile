@@ -9,6 +9,8 @@ RHEL_VERS=$(shell echo $(DISTRO) | sed 's/RHEL//')
 
 POL_VERS := $(shell $(CHECKPOLICY) -V |cut -f 1 -d ' ')
 MOD_POL_VERS := $(shell $(CHECKMODULE) -V |cut -f 2 -d '-')
+SELINUXFS := $(shell cat /proc/mounts | grep selinuxfs | cut -f 2 -d ' ')
+MAX_KERNEL_POLICY := $(shell cat $(SELINUXFS)/policyvers)
 
 TARGETS = \
 	test_global.te test_capable_file.te test_capable_net.te \
@@ -29,7 +31,7 @@ ifeq ($(shell [ $(POL_VERS) -ge 24 ] && echo true),true)
 TARGETS += test_bounds.te
 endif
 
-ifeq ($(shell [ $(MOD_POL_VERS) -ge 18 ] && echo true),true)
+ifeq ($(shell [ $(MOD_POL_VERS) -ge 18 -a $(MAX_KERNEL_POLICY) -ge 30 ] && echo true),true)
 TARGETS += test_ioctl_xperms.te
 endif
 
