@@ -173,7 +173,7 @@ if ($test_nnp_nosuid_transition) {
       );
     ok( $result, 0 );    #this should succeed
 
-    # Automatic transition under NNP+nosuid to nnpnosuidtransition domain via exec.
+ # Automatic transition under NNP+nosuid to nnpnosuidtransition domain via exec.
     $result =
       system(
 "$basedir/execnnp -n -- $basedir/testdir/checkcon test_nnpnosuidtransition_t 2>&1"
