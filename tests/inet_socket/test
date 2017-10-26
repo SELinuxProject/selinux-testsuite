@@ -32,7 +32,7 @@ ok( $result eq 0 );
 # Verify that unauthorized client cannot communicate with the server.
 $result = system
 "runcon -t test_inet_bad_client_t -- $basedir/client stream 127.0.0.1 65535 2>&1";
-ok($result);
+ok( $result >> 8 eq 5 );
 
 # Kill the server.
 kill TERM, $pid;
@@ -52,7 +52,7 @@ ok( $result eq 0 );
 # Verify that unauthorized client cannot communicate with the server.
 $result = system
 "runcon -t test_inet_bad_client_t -- $basedir/client dgram 127.0.0.1 65535 2>&1";
-ok($result);
+ok( $result >> 8 eq 9 );
 
 # Kill the server.
 kill TERM, $pid;
@@ -84,7 +84,7 @@ ok( $result eq 0 );
 # Verify that authorized client cannot communicate with the server using different level.
 $result = system
 "runcon -t test_inet_client_t -l s0:c8.c12 $basedir/client stream 127.0.0.1 65535 2>&1";
-ok($result);
+ok( $result >> 8 eq 5 );
 
 # Kill the server.
 kill TERM, $pid;
@@ -105,7 +105,7 @@ ok( $result eq 0 );
 # Verify that authorized client cannot communicate with the server using levels dominating the server.
 $result = system
 "runcon -t test_inet_client_t -l s0:c40.c51 $basedir/client dgram 127.0.0.1 65535 2>&1";
-ok($result);
+ok( $result >> 8 eq 9 );
 
 # Kill the server.
 kill TERM, $pid;
@@ -169,7 +169,7 @@ ok( $result eq 0 );
 # Verify that unauthorized client cannot communicate with the server.
 $result = system
 "runcon -t test_inet_bad_client_t -- $basedir/client stream 127.0.0.1 65535 2>&1";
-ok($result);
+ok( $result >> 8 eq 5 );
 
 # Verify that authorized client can communicate with the server.
 $result =
@@ -179,7 +179,7 @@ ok( $result eq 0 );
 # Verify that unauthorized client cannot communicate with the server.
 $result = system
   "runcon -t test_inet_bad_client_t -- $basedir/client stream ::1 65535 2>&1";
-ok($result);
+ok( $result >> 8 eq 5 );
 
 # Kill the server.
 kill TERM, $pid;
@@ -199,12 +199,12 @@ ok( $result eq 0 );
 # Verify that unauthorized client cannot communicate with the server.
 $result = system
 "runcon -t test_inet_bad_client_t -- $basedir/client dgram 127.0.0.1 65535 2>&1";
-ok($result);
+ok( $result >> 8 eq 8 );
 
 # Verify that unauthorized client cannot communicate with the server.
 $result = system
   "runcon -t test_inet_bad_client_t -- $basedir/client dgram ::1 65535 2>&1";
-ok($result);
+ok( $result >> 8 eq 8 );
 
 # Kill the server.
 kill TERM, $pid;
@@ -245,7 +245,7 @@ ok( $result eq 0 );
 # Verify that unauthorized client cannot communicate with the server.
 $result = system
 "runcon -t test_inet_bad_client_t -- $basedir/client -e nopeer stream 127.0.0.1 65535 2>&1";
-ok($result);
+ok( $result >> 8 eq 5 );
 
 # Verify that authorized client can communicate with the server.
 $result = system
@@ -255,7 +255,7 @@ ok( $result eq 0 );
 # Verify that unauthorized client cannot communicate with the server.
 $result = system
 "runcon -t test_inet_bad_client_t -- $basedir/client -e nopeer stream ::1 65535 2>&1";
-ok($result);
+ok( $result >> 8 eq 5 );
 
 # Kill the server.
 kill TERM, $pid;
@@ -275,7 +275,7 @@ ok( $result eq 0 );
 # Verify that unauthorized client cannot communicate with the server.
 $result = system
 "runcon -t test_inet_bad_client_t -- $basedir/client -e nopeer dgram 127.0.0.1 65535 2>&1";
-ok($result);
+ok( $result >> 8 eq 8 );
 
 # Verify that authorized client can communicate with the server.
 $result = system
@@ -285,7 +285,7 @@ ok( $result eq 0 );
 # Verify that unauthorized client cannot communicate with the server.
 $result = system
 "runcon -t test_inet_bad_client_t -- $basedir/client -e nopeer dgram ::1 65535 2>&1";
-ok($result);
+ok( $result >> 8 eq 8 );
 
 # Kill the server.
 kill TERM, $pid;

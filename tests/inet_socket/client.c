@@ -67,14 +67,14 @@ int main(int argc, char **argv)
 			     &serverinfo);
 	if (result < 0) {
 		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(result));
-		exit(1);
+		exit(2);
 	}
 
 	sock = socket(serverinfo->ai_family, serverinfo->ai_socktype,
 		      serverinfo->ai_protocol);
 	if (sock < 0) {
 		perror("socket");
-		exit(1);
+		exit(3);
 	}
 
 	tm.tv_sec = 5;
@@ -82,14 +82,14 @@ int main(int argc, char **argv)
 	result = setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, &tm, sizeof(tm));
 	if (result < 0) {
 		perror("setsockopt: SO_SNDTIMEO");
-		exit(1);
+		exit(4);
 	}
 
 	result = connect(sock, serverinfo->ai_addr, serverinfo->ai_addrlen);
 	if (result < 0) {
 		perror("connect");
 		close(sock);
-		exit(1);
+		exit(5);
 	}
 
 	byte = 0;
@@ -97,7 +97,7 @@ int main(int argc, char **argv)
 	if (result < 0) {
 		perror("write");
 		close(sock);
-		exit(1);
+		exit(6);
 	}
 
 	if (hints.ai_socktype == SOCK_DGRAM) {
@@ -109,10 +109,10 @@ int main(int argc, char **argv)
 		if (result < 0) {
 			perror("poll");
 			close(sock);
-			exit(1);
+			exit(7);
 		} else if (result == 0) {
 			fprintf(stderr, "%s: no reply from server\n", argv[0]);
-			exit(1);
+			exit(8);
 		}
 	}
 
@@ -120,7 +120,7 @@ int main(int argc, char **argv)
 	if (result < 0) {
 		perror("read");
 		close(sock);
-		exit(1);
+		exit(9);
 	}
 	label[result] = 0;
 
@@ -129,14 +129,14 @@ int main(int argc, char **argv)
 		if (result < 0) {
 			perror("getcon");
 			close(sock);
-			exit(1);
+			exit(10);
 		}
 	}
 
 	if (strcmp(expected, label)) {
 		fprintf(stderr, "%s:  expected %s, got %s\n",
 			argv[0], expected, label);
-		exit(1);
+		exit(11);
 	}
 
 	close(sock);
