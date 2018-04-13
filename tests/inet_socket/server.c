@@ -79,11 +79,17 @@ int main(int argc, char **argv)
 		perror("socket");
 		exit(1);
 	}
-	result = setsockopt(sock, SOL_IP, IP_PASSSEC, &on, sizeof(on));
-	if (result < 0) {
-		perror("setsockopt: SO_PASSSEC");
-		close(sock);
-		exit(1);
+
+	/* Allow retrieval of UDP/Datagram security contexts for IPv4 as
+	 * IPv6 is not currently supported.
+	 */
+	if (hints.ai_socktype == SOCK_DGRAM) {
+		result = setsockopt(sock, SOL_IP, IP_PASSSEC, &on, sizeof(on));
+		if (result < 0) {
+			perror("setsockopt: IP_PASSSEC");
+			close(sock);
+			exit(1);
+		}
 	}
 
 	result = setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));

@@ -1,0 +1,11 @@
+#!/bin/sh
+# Based on http://paulmoore.livejournal.com/7234.html.
+#
+# Modifications:
+# - Defined a doi for testing loopback for CIPSOv4.
+
+netlabelctl cipsov4 add pass doi:16 tags:1
+netlabelctl map del default
+netlabelctl map add default address:0.0.0.0/0 protocol:unlbl
+netlabelctl map add default address:::/0 protocol:unlbl
+netlabelctl map add default address:127.0.0.1 protocol:cipsov4,16
