@@ -941,9 +941,8 @@ sub context_test {
     test_81_ctx();
     test_82();
     print "=====================================================\n";
-    print "Bad Entrypoint tests.\n";
+    print "Good Entrypoint test.\n";
     print "=====================================================\n";
-    test_90_1();
     test_90_2();
     print "=====================================================\n";
     print "xattr tests.\n";
@@ -956,9 +955,34 @@ sub context_test {
     test_93_1();
 }
 
+sub context_rot_t_test {
+
+    cleanup();
+    $context = "unconfined_u:object_r:test_overlay_files_ro_t:s0:c10,c20";
+    print "\n\n=====================================================\n";
+    print "Testing mounting overlayfs with context switch\n";
+    print "context=$context\n";
+    print "=====================================================\n\n";
+
+    if ( system("$basedir/setup-overlay $basedir '$context'") == 0 ) {
+        print "Mounted overlay with context=$context.\n";
+    }
+    else {
+        print "setup-overlay failed. Cleaning up.\n";
+        cleanup();
+        exit;
+    }
+    print "=====================================================\n";
+    print "Bad Entrypoint test.\n";
+    print "=====================================================\n";
+    test_90_1();
+}
+
 nocontext_test();
 
 context_test();
+
+context_rot_t_test();
 
 cleanup();
 
