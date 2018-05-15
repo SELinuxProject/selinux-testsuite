@@ -87,6 +87,12 @@ build: $(BUILD_TARGET)
 load: $(LOAD_TARGET)
 unload: $(UNLOAD_TARGET)
 
+expand_check:
+	# Test for "expand-check = 0" in /etc/selinux/semanage.conf
+	@grep -q '^[ \t]*expand-check[ \t]*=[ \t]*0' /etc/selinux/semanage.conf || \
+		(echo "ERROR: set 'expand-check = 0' in /etc/selinux/semanage.conf"; \
+		 /bin/false)
+
 build_rhel: $(TARGETS)
 	# RHEL specific policy build
 	$(MAKE) -C redhat/$(RHEL_VERS) all
@@ -103,11 +109,11 @@ build_general: $(TARGETS)
 		echo "ERROR: You must have selinux-policy-devel installed."; \
 	fi
 
-load_rhel: all
+load_rhel: expand_check all
 	# RHEL specific policy load
 	$(MAKE) -C redhat/$(RHEL_VERS) load
 
-load_general: all
+load_general: expand_check all
 	# General policy load
 	@-/usr/sbin/setsebool allow_domain_fd_use=0
 	$(SEMODULE) -i test_policy/test_policy.pp
