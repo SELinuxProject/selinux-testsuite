@@ -63,6 +63,10 @@ ifeq ($(shell grep -q nnp_transition $(POLDEV)/include/support/all_perms.spt && 
 export M4PARAM += -Dnnp_nosuid_transition_permission_defined
 endif
 
+ifeq ($(shell grep -q binder $(POLDEV)/include/support/all_perms.spt && echo true),true)
+TARGETS += test_binder.te
+endif
+
 ifeq (x$(DISTRO),$(filter x$(DISTRO),xRHEL4 xRHEL5 xRHEL6))
 TARGETS:=$(filter-out test_overlayfs.te test_mqueue.te, $(TARGETS))
 endif

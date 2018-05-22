@@ -1,0 +1,89 @@
+#!/usr/bin/perl
+use Test::More;
+
+BEGIN {
+    $basedir = $0;
+    $basedir =~ s|(.*)/[^/]*|$1|;
+
+    # allow binder info to be shown
+    $v = $ARGV[0];
+    if ($v) {
+        if ( $v ne "-v" ) {
+            plan skip_all => "Invalid option (use -v)";
+        }
+    }
+    else {
+        $v = " ";
+    }
+
+    # check if binder driver available and kernel/userspace versions.
+    $result = system("$basedir/check_binder 2> /dev/null");
+
+    if ( $result >> 8 eq 0 ) {
+        plan tests => 6;
+    }
+    elsif ( $result >> 8 eq 1 ) {
+        plan skip_all => "Binder not supported by kernel";
+    }
+    elsif ( $result >> 8 eq 2 ) {
+        plan skip_all => "Binder kernel/userspace versions differ";
+    }
+    else {
+        plan skip_all => "Error checking Binder driver";
+    }
+}
+
+if ( ( $pid = fork() ) == 0 ) {
+    exec "runcon -t test_binder_mgr_t $basedir/test_binder $v manager";
+}
+
+select( undef, undef, undef, 0.25 );    # Give it a moment to initialize.
+
+# 1 Verify that authorized provider can transact with the manager.
+$result =
+  system
+  "runcon -t test_binder_provider_t $basedir/test_binder $v -r 1 provider";
+ok( $result eq 0 );
+
+# 2 Verify that provider cannot call manager (no call perm).
+$result = system
+"runcon -t test_binder_provider_no_call_t $basedir/test_binder $v -r 2 provider 2>&1";
+ok( $result >> 8 eq 8 );
+
+# 3 Verify that provider cannot communicate with manager (no impersonate perm).
+$result = system
+"runcon -t test_binder_provider_no_im_t $basedir/test_binder $v -r 2 provider 2>&1";
+ok( $result >> 8 eq 103 );
+
+# 4 Verify that provider cannot communicate with manager (no transfer perm).
+$result = system
+"runcon -t test_binder_provider_no_transfer_t $basedir/test_binder $v -r 1 provider 2>&1";
+ok( $result >> 8 eq 8 );
+
+# Kill the manager.
+kill TERM, $pid;
+
+# 5 Verify that provider cannot become a manager (no set_context_mgr perm).
+$result =
+  system
+  "runcon -t test_binder_provider_t $basedir/test_binder $v manager 2>&1";
+ok( $result >> 8 eq 4 );
+
+# Start manager to test that selinux_binder_transfer_file() fails when fd { use } is denied by policy.
+if ( ( $pid = fork() ) == 0 ) {
+    exec "runcon -t test_binder_mgr_no_fd_t $basedir/test_binder $v manager";
+}
+
+select( undef, undef, undef, 0.25 );    # Give it a moment to initialize.
+
+# 6 Verify that authorized provider can communicate with the server, however the fd passed will not be valid for manager
+# domain and binder will return BR_FAILED_REPLY.
+$result =
+  system
+  "runcon -t test_binder_provider_t $basedir/test_binder $v provider -r 2 2>&1";
+ok( $result >> 8 eq 8 );
+
+# Kill the manager
+kill TERM, $pid;
+
+exit;

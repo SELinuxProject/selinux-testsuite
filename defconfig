@@ -51,3 +51,10 @@ CONFIG_CRYPTO_USER=m
 # This is enabled to test overlayfs SELinux integration.
 # It is not required for SELinux operation itself.
 CONFIG_OVERLAY_FS=m
+
+# Android binder implementations.
+# These are enabled to test the binder controls in
+# tests/binder; they are not required for SELinux operation itself.
+CONFIG_ANDROID=y
+CONFIG_ANDROID_BINDER_DEVICES="binder"
+CONFIG_ANDROID_BINDER_IPC=y

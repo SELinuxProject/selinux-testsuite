@@ -141,6 +141,14 @@ directory or you can follow these broken-out steps:
 The broken-out steps allow you to run the tests multiple times without
 loading policy each time.
 
+Note that if leaving the test policy in-place for further testing, the
+policy build process changes a boolean:
+   On policy load:   setsebool allow_domain_fd_use=0
+   On policy unload: setsebool allow_domain_fd_use=1
+The consequence of this is that after a system reboot, the boolean
+defaults to true. Therefore if running the fdreceive or binder tests,
+reset the boolean to false, otherwise some tests will fail.
+
 4) Review the test results.
 
 As each test script is run, the name of the script will be displayed followed

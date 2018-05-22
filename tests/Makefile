@@ -1,3 +1,4 @@
+INCLUDEDIR ?= /usr/include
 POLDEV ?= /usr/share/selinux/devel
 
 export CFLAGS+=-g -O0 -Wall -D_GNU_SOURCE
@@ -28,6 +29,10 @@ endif
 
 ifeq ($(shell grep -q getrlimit $(POLDEV)/include/support/all_perms.spt && echo true),true)
 SUBDIRS += prlimit
+endif
+
+ifeq ($(shell grep -q binder $(POLDEV)/include/support/all_perms.spt && test -e $(INCLUDEDIR)/linux/android/binder.h && echo true),true)
+SUBDIRS += binder
 endif
 
 ifeq ($(shell grep "^SELINUX_INFINIBAND_ENDPORT_TEST=" infiniband_endport/ibendport_test.conf | cut -d'=' -f 2),1)
