@@ -632,7 +632,7 @@ int main(int argc, char **argv)
 
 		writebuf.txn.data.ptr.buffer = (uintptr_t)&obj;
 		writebuf.txn.data.ptr.offsets = (uintptr_t)&obj +
-					sizeof(struct flat_binder_object);
+						sizeof(struct flat_binder_object);
 
 		bwr.write_buffer = (uintptr_t)&writebuf;
 		bwr.write_size = sizeof(writebuf);
