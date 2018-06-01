@@ -1,0 +1,5 @@
+#!/bin/sh
+# Reset NetLabel configuration to unlabeled after CALIPSO/IPv6 tests.
+netlabelctl map del default
+netlabelctl calipso del doi:16
+netlabelctl map add default protocol:unlbl

@@ -1,0 +1,7 @@
+#!/bin/sh
+
+netlabelctl cipsov4 add local doi:1
+netlabelctl map del default
+netlabelctl map add default address:0.0.0.0/0 protocol:unlbl
+netlabelctl map add default address:::/0 protocol:unlbl
+netlabelctl map add default address:127.0.0.1 protocol:cipsov4,1

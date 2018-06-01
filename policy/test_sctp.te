@@ -1,0 +1,159 @@
+#
+################# SCTP selinux-testsuite policy module ######################
+#
+
+attribute sctpsocketdomain;
+
+#
+######################## NetLabel labels ############################
+#
+# Fall-back labeling label:
+type netlabel_sctp_peer_t;
+corenet_in_generic_node(netlabel_sctp_peer_t)
+corenet_in_generic_if(netlabel_sctp_peer_t)
+
+# Default label for CIPSO/CALIPSO:
+gen_require(`
+	type netlabel_peer_t;
+')
+
+#
+############### Declare an attribute that will hold all peers ###############
+###############           allowed an association              ###############
+#
+attribute sctp_assoc_peers;
+
+typeattribute netlabel_peer_t sctp_assoc_peers;
+typeattribute netlabel_sctp_peer_t sctp_assoc_peers;
+allow sctp_assoc_peers sctp_assoc_peers:sctp_socket { association };
+
+#
+##################### SCTP portcon for ports 1024-65535 ######################
+#
+corenet_sctp_bind_all_unreserved_ports(sctpsocketdomain)
+corenet_sctp_connect_all_unreserved_ports(sctpsocketdomain)
+
+#
+################################## Server ###################################
+#
+type test_sctp_server_t;
+domain_type(test_sctp_server_t)
+unconfined_runs_test(test_sctp_server_t)
+typeattribute test_sctp_server_t testdomain;
+typeattribute test_sctp_server_t sctpsocketdomain;
+allow test_sctp_server_t self:sctp_socket create_stream_socket_perms;
+allow test_sctp_server_t netlabel_sctp_peer_t:peer { recv };
+corenet_sctp_bind_all_nodes(test_sctp_server_t)
+corenet_inout_generic_node(test_sctp_server_t)
+corenet_inout_generic_if(test_sctp_server_t)
+
+#
+############################### Client #################################
+#
+type test_sctp_client_t;
+domain_type(test_sctp_client_t)
+unconfined_runs_test(test_sctp_client_t)
+typeattribute test_sctp_client_t testdomain;
+typeattribute test_sctp_client_t sctpsocketdomain;
+allow test_sctp_client_t self:sctp_socket create_stream_socket_perms;
+allow test_sctp_server_t test_sctp_client_t:peer { recv };
+allow test_sctp_client_t test_sctp_server_t:peer { recv };
+allow test_sctp_client_t netlabel_sctp_peer_t:peer { recv };
+corenet_inout_generic_node(test_sctp_client_t)
+corenet_inout_generic_if(test_sctp_client_t)
+
+#
+#################### Deny peer recv permission Client ########################
+#
+type test_sctp_deny_peer_client_t;
+domain_type(test_sctp_deny_peer_client_t)
+unconfined_runs_test(test_sctp_deny_peer_client_t)
+typeattribute test_sctp_deny_peer_client_t testdomain;
+typeattribute test_sctp_deny_peer_client_t sctpsocketdomain;
+allow test_sctp_deny_peer_client_t self:sctp_socket create_stream_socket_perms;
+corenet_inout_generic_node(test_sctp_deny_peer_client_t)
+corenet_inout_generic_if(deny_assoc_sctp_peer_t)
+
+#
+####################### Deny association permission #########################
+#
+
+# Declare this type for NetLabel etc. to allow the packet through the system,
+# however do not allow an association:
+type deny_assoc_sctp_peer_t;
+allow test_sctp_server_t deny_assoc_sctp_peer_t:peer { recv };
+allow test_sctp_client_t deny_assoc_sctp_peer_t:peer {recv };
+corenet_inout_generic_node(deny_assoc_sctp_peer_t)
+corenet_inout_generic_if(deny_assoc_sctp_peer_t)
+
+#
+############################# Connectx #################################
+#
+type test_sctp_connectx_t;
+domain_type(test_sctp_connectx_t)
+unconfined_runs_test(test_sctp_connectx_t)
+typeattribute test_sctp_connectx_t testdomain;
+typeattribute test_sctp_connectx_t sctpsocketdomain;
+allow test_sctp_connectx_t self:sctp_socket create_stream_socket_perms;
+allow test_sctp_server_t test_sctp_connectx_t:peer { recv };
+allow test_sctp_connectx_t test_sctp_server_t:peer { recv };
+corenet_sctp_bind_all_nodes(test_sctp_connectx_t)
+corenet_inout_generic_node(test_sctp_connectx_t)
+corenet_inout_generic_if(test_sctp_connectx_t)
+
+#
+############################## Bindx #####################################
+#
+type test_sctp_bindx_t;
+domain_type(test_sctp_bindx_t)
+unconfined_runs_test(test_sctp_bindx_t)
+typeattribute test_sctp_bindx_t testdomain;
+typeattribute test_sctp_bindx_t sctpsocketdomain;
+allow test_sctp_bindx_t self:sctp_socket create_stream_socket_perms;
+allow test_sctp_server_t test_sctp_bindx_t:peer { recv };
+allow test_sctp_bindx_t test_sctp_server_t:peer { recv };
+corenet_sctp_bind_all_nodes(test_sctp_bindx_t)
+corenet_inout_generic_node(test_sctp_bindx_t)
+corenet_inout_generic_if(test_sctp_bindx_t)
+
+#
+########## SET_PRI_ADDR + SET_PEER ADDR for ASCONF process testing ##########
+#
+type test_sctp_set_peer_addr_t;
+domain_type(test_sctp_set_peer_addr_t)
+unconfined_runs_test(test_sctp_set_peer_addr_t)
+typeattribute test_sctp_set_peer_addr_t testdomain;
+typeattribute test_sctp_set_peer_addr_t sctpsocketdomain;
+allow test_sctp_set_peer_addr_t self:sctp_socket create_stream_socket_perms;
+allow test_sctp_server_t test_sctp_set_peer_addr_t:peer { recv };
+allow test_sctp_set_peer_addr_t test_sctp_server_t:peer { recv };
+corenet_sctp_bind_all_nodes(test_sctp_set_peer_addr_t)
+corenet_inout_generic_node(test_sctp_set_peer_addr_t)
+corenet_inout_generic_if(test_sctp_set_peer_addr_t)
+
+#
+######################### SECMARK-specific policy ############################
+#
+type test_sctp_server_packet_t;
+allow unconfined_t test_sctp_server_packet_t:packet { relabelto };
+allow test_sctp_server_t test_sctp_server_packet_t:packet { send recv };
+allow test_sctp_client_t test_sctp_server_packet_t:packet { send recv };
+
+#
+####### Required for getaddrinfo(3), if_nametoindex(3) type functions ########
+########## when resolving IPv6 link local addresses e.g. addr%<if> ###########
+#
+gen_require(`
+	type sysctl_net_t;
+')
+
+allow sctpsocketdomain proc_net_t:file { read };
+allow sctpsocketdomain sysctl_net_t:dir { search };
+allow sctpsocketdomain self:udp_socket { create };
+allow sctpsocketdomain self:unix_dgram_socket { create ioctl };
+
+#
+############ Allow these domains to be entered from sysadm domain ############
+#
+miscfiles_domain_entry_test_files(sctpsocketdomain)
+userdom_sysadm_entry_spec_domtrans_to(sctpsocketdomain)

@@ -1,0 +1,27 @@
+#!/bin/sh
+############################ SECMARK IPTABLE ENTRIES ########################
+#
+# Flush the security table first:
+iptables -t security -F
+ip6tables -t security -F
+
+#-------------- INPUT IP Stream --------------------#
+# These rules will replace the above context if sctp ports 1024:1035 are found in the packets:
+iptables -t security -A INPUT -i lo -p sctp -m multiport --port 1024:1035 -j SECMARK --selctx system_u:object_r:test_sctp_server_packet_t:s0
+
+iptables -t security -A INPUT -m state --state ESTABLISHED,RELATED -j CONNSECMARK --save
+
+ip6tables -t security -A INPUT -i lo -p sctp -m multiport --port 1024:1035 -j SECMARK --selctx system_u:object_r:test_sctp_server_packet_t:s0
+
+ip6tables -t security -A INPUT -m state --state ESTABLISHED,RELATED -j CONNSECMARK --save
+
+#-------------- OUTPUT IP Stream --------------------#
+# These rules will replace the above context if sctp ports 1024:1035 are found in the packets:
+iptables -t security -A OUTPUT -o lo -p sctp -m multiport --port 1024:1035 -j SECMARK --selctx system_u:object_r:test_sctp_server_packet_t:s0
+
+iptables -t security -A OUTPUT -m state --state ESTABLISHED,RELATED -j CONNSECMARK --save
+
+ip6tables -t security -A OUTPUT -o lo -p sctp -m multiport --port 1024:1035 -j SECMARK --selctx system_u:object_r:test_sctp_server_packet_t:s0
+
+ip6tables -t security -A OUTPUT -m state --state ESTABLISHED,RELATED -j CONNSECMARK --save
+

@@ -49,6 +49,7 @@ similar dependencies):
 * net-tools _(for `ifconfig`, used by `capable_net/test`)_
 * netlabel\_tools _(to load NetLabel configuration during `inet_socket` tests)_
 * iptables _(to load the `iptables SECMARK` rules during `inet_socket` tests)_
+* lksctp-tools-devel _(to build the SCTP test programs)_
 
 On a modern Fedora system you can install these dependencies with the
 following command:
@@ -61,7 +62,8 @@ following command:
 		libselinux-devel \
 		net-tools \
 		netlabel_tools \
-		iptables
+		iptables \
+		lksctp-tools-devel
 
 The testsuite requires a pre-existing base policy configuration of SELinux,
 using either the old example policy or the reference policy as the baseline.

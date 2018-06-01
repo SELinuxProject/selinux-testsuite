@@ -1,0 +1,4 @@
+#!/bin/sh
+# Flush the security table after IPv4 and IPv6 tests.
+iptables -t security -F
+ip6tables -t security -F

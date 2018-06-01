@@ -23,6 +23,10 @@ ifeq ($(shell grep -q icmp_socket $(POLDEV)/include/support/all_perms.spt && gre
 SUBDIRS += extended_socket_class
 endif
 
+ifeq ($(shell grep -q corenet_sctp_bind_all_nodes $(POLDEV)/include/kernel/corenetwork.if && grep -q 1 /sys/fs/selinux/policy_capabilities/extended_socket_class && echo true),true)
+SUBDIRS += sctp
+endif
+
 ifeq ($(shell grep -q netlink_iscsi_socket $(POLDEV)/include/support/all_perms.spt && echo true),true)
 SUBDIRS += netlink_socket
 endif

@@ -67,6 +67,10 @@ ifeq ($(shell grep -q binder $(POLDEV)/include/support/all_perms.spt && echo tru
 TARGETS += test_binder.te
 endif
 
+ifeq ($(shell grep -q corenet_sctp_bind_all_nodes $(POLDEV)/include/kernel/corenetwork.if && echo true),true)
+TARGETS += test_sctp.te
+endif
+
 ifeq (x$(DISTRO),$(filter x$(DISTRO),xRHEL4 xRHEL5 xRHEL6))
 TARGETS:=$(filter-out test_overlayfs.te test_mqueue.te, $(TARGETS))
 endif
