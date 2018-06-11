@@ -33,6 +33,16 @@ corenet_udp_bind_all_nodes(test_inet_server_t)
 corenet_inout_generic_if(test_inet_server_t)
 corenet_inout_generic_node(test_inet_server_t)
 
+# We need to ensure that the test domain is MCS constrained.
+## newer systems, e.g. Fedora and RHEL >= 7.x
+ifdef(`mcs_constrained', `
+	mcs_constrained(test_inet_server_t)
+')
+## older systems, e.g. RHEL == 6.x
+ifdef(`mcs_untrusted_proc', `
+	mcs_untrusted_proc(test_inet_server_t)
+')
+
 # Domain for client process.
 type test_inet_client_t;
 domain_type(test_inet_client_t)
