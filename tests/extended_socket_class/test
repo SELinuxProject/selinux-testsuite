@@ -1,10 +1,21 @@
 #!/usr/bin/perl
 
 use Test;
-BEGIN { plan tests => 16 }
+BEGIN {
+    $basedir = $0;
+    $basedir =~ s|(.*)/[^/]*|$1|;
 
-$basedir = $0;
-$basedir =~ s|(.*)/[^/]*|$1|;
+    $test_count = 14;
+    $test_bluetooth = 0;
+
+    # Does kernel have bluetooth support?
+    if ( system("$basedir/sockcreate bluetooth stream default 2>&1") == 0 ) {
+        $test_bluetooth = 1;
+        $test_count += 2;
+    }
+
+    plan tests => $test_count;
+}
 
 # Enable gid 0 to create ICMP sockets for testing.
 system("echo 0 0 > /proc/sys/net/ipv4/ping_group_range");
@@ -83,17 +94,19 @@ $result = system(
 );
 ok($result);
 
-# Verify that test_bluetooth_socket_t can create a Bluetooth socket.
-$result = system(
-"runcon -t test_bluetooth_socket_t -- $basedir/sockcreate bluetooth stream default 2>&1"
-);
-ok( $result, 0 );
+if ($test_bluetooth) {
+    # Verify that test_bluetooth_socket_t can create a Bluetooth socket.
+    $result = system(
+    "runcon -t test_bluetooth_socket_t -- $basedir/sockcreate bluetooth stream default 2>&1"
+    );
+    ok( $result, 0 );
 
-# Verify that test_no_bluetooth_socket_t cannot create a Bluetooth socket.
-$result = system(
-"runcon -t test_no_bluetooth_socket_t -- $basedir/sockcreate bluetooth stream default 2>&1"
-);
-ok($result);
+    # Verify that test_no_bluetooth_socket_t cannot create a Bluetooth socket.
+    $result = system(
+    "runcon -t test_no_bluetooth_socket_t -- $basedir/sockcreate bluetooth stream default 2>&1"
+    );
+    ok($result);
+}
 
 # Verify that test_alg_socket_t can create a Crypto API socket.
 $result = system(
