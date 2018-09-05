@@ -13,6 +13,7 @@ setup () {
     echo read > $BASEDIR/lower/readfile
     echo write > $BASEDIR/lower/writefile
     echo noaccess > $BASEDIR/lower/noaccessfile
+    echo client_nounlink > $BASEDIR/lower/client_nounlinkfile
     echo mounter > $BASEDIR/lower/mounterfile
     echo transition > $BASEDIR/lower/transition
     cp $BASEDIR/badentrypoint $BASEDIR/lower/
