@@ -7,7 +7,7 @@ BEGIN {
         plan skip_all => "overlayfs not supported with SELinux in this kernel";
     }
     else {
-        plan tests => 121;
+        plan tests => 119;
     }
 }
 
@@ -549,18 +549,18 @@ sub test_67 {
 }
 
 sub test_70 {
-    print "Check unlink access on readfile, should fail.\n";
+    print "Check unlink access on client_nounlinkfile, should fail.\n";
     $result = system(
-"runcon -t test_overlay_client_t -l s0:c10,c20 unlink $basedir/container1/merged/readfile 2>/dev/null"
+"runcon -t test_overlay_client_t -l s0:c10,c20 unlink $basedir/container1/merged/client_nounlinkfile 2>/dev/null"
     );
     ok($result);
     return;
 }
 
 sub test_70_ctx {
-    print "Check unlink access on readfile, should succeed.\n";
+    print "Check unlink access on client_nounlinkfile, should succeed.\n";
     $result = system(
-"runcon -t test_overlay_client_t -l s0:c10,c20 unlink $basedir/container1/merged/readfile >/dev/null"
+"runcon -t test_overlay_client_t -l s0:c10,c20 unlink $basedir/container1/merged/client_nounlinkfile >/dev/null"
     );
     ok( $result == 0 );
     return;
@@ -570,24 +570,6 @@ sub test_71 {
     print "Check unlink access on writefile, should succeed.\n";
     $result = system(
 "runcon -t test_overlay_client_t -l s0:c10,c20 unlink $basedir/container1/merged/writefile >/dev/null"
-    );
-    ok( $result == 0 );
-    return;
-}
-
-sub test_72 {
-    print "Check unlink access on noaccessfile, should fail.\n";
-    $result = system(
-"runcon -t test_overlay_client_t -l s0:c10,c20 unlink $basedir/container1/merged/noaccessfile 2>/dev/null"
-    );
-    ok($result);
-    return;
-}
-
-sub test_72_ctx {
-    print "Check unlink access on noaccessfile, should succeed.\n";
-    $result = system(
-"runcon -t test_overlay_client_t -l s0:c10,c20 unlink $basedir/container1/merged/noaccessfile 2>/dev/null"
     );
     ok( $result == 0 );
     return;
@@ -813,7 +795,6 @@ sub nocontext_test {
     print "=====================================================\n";
     test_70();
     test_71();
-    test_72();
     test_80();
     test_81();
     test_82();
@@ -932,7 +913,6 @@ sub context_test {
     print "=====================================================\n";
     test_70_ctx();
     test_71();
-    test_72_ctx();
 
     print "=====================================================\n";
     print "Mounter tests.\n";
