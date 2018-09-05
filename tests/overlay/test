@@ -7,7 +7,7 @@ BEGIN {
         plan skip_all => "overlayfs not supported with SELinux in this kernel";
     }
     else {
-        plan tests => 121;
+        plan tests => 118;
     }
 }
 
@@ -881,7 +881,6 @@ sub context_test {
     print "=====================================================\n";
     print "chmod tests.\n";
     print "=====================================================\n";
-    test_20();
     test_21();
     test_22();
     test_23_ctx();
@@ -891,7 +890,6 @@ sub context_test {
     print "=====================================================\n";
     print "getcon tests.\n";
     print "=====================================================\n";
-    test_30();
     test_31();
     test_32();
 
@@ -913,7 +911,6 @@ sub context_test {
     print "=====================================================\n";
     test_50();
     test_51();
-    test_52();
 
     print "=====================================================\n";
     print "access tests.\n";

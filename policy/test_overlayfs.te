@@ -71,6 +71,12 @@ allow test_overlay_mounter_t test_overlay_files_rwx_t:{dir file} mounton;
 allow test_overlay_mounter_t test_overlay_files_rwx_t:filesystem { mount relabelfrom relabelto };
 can_exec(test_overlay_mounter_t, test_overlay_files_ro_t)
 
+# Mount should be able to do getattr on noaccess files. Overlayfs performs
+# getattr on underlying files during dentry lookup in the context of mounter
+# of filesystem. If mounter does not have getattr, unlink of a noaccess
+# file fails with context mount.
+allow test_overlay_mounter_t test_overlay_files_noaccess_t:file getattr;
+
 #
 # Mounter should be allowed to search/read r/o directories and files
 #
