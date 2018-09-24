@@ -70,8 +70,9 @@ allow test_ipc_base_t test_ipc_base_t:capability ipc_lock;
 # Needed for msgctl IPC_SET test
 allow test_ipc_associate_t test_ipc_associate_t:capability sys_resource;
 
-# Access tmpfs/shm file systems.
+# Access and map tmpfs/shm file systems.
 fs_rw_tmpfs_files(ipcdomain)
+allow_map(ipcdomain, tmpfs_t, file)
 
 # Allow all of these domains to be entered from user domains.
 # via a shell script in the test directory or by another program.
