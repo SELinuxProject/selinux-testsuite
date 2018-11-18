@@ -114,6 +114,30 @@ the tests:
 	tests/infiniband_pkey/ibpkey_test.conf
 	tests/infiniband_endport/ibendport_test.conf
 
+#### NFS server and client support
+
+The NFS automount test (tests/submount) requires NFS server and client support
+in the kernel.  In addition, it requires the NFS utility programs and a running
+NFS daemon.  On Fedora/RHEL you need the following package (other distributions
+should have a similar package):
+
+* nfs-utils _(to setup the NFS server and export directory trees)_
+
+On a modern Fedora system you can install it with the following command:
+
+	# dnf install nfs-utils
+
+The process to start the NFS server service varies across distributions, but
+usually you can start it by running:
+
+	# service nfs-server start
+	(or)
+	# service nfs start
+	(or)
+	# systemctl start nfs-server
+	(or)
+	# systemctl start nfs
+
 ## Running the Tests
 
 Create a shell with the `unconfined_r` or `sysadm_r` role and the Linux

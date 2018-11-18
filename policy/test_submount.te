@@ -1,0 +1,31 @@
+#################################
+#
+# Policy for testing NFS crosmnt
+#
+
+# A domain that can access NFS files/directories
+type test_readnfs_t;
+domain_type(test_readnfs_t)
+unconfined_runs_test(test_readnfs_t)
+domain_obj_id_change_exemption(test_readnfs_t)
+typeattribute test_readnfs_t testdomain;
+
+# Allow execution of helper programs
+corecmd_exec_bin(test_readnfs_t)
+domain_exec_all_entry_files(test_readnfs_t)
+libs_use_ld_so(test_readnfs_t)
+libs_use_shared_libs(test_readnfs_t)
+libs_exec_ld_so(test_readnfs_t)
+libs_exec_lib_files(test_readnfs_t)
+
+# Allow this domain to be entered from sysadm domain
+miscfiles_domain_entry_test_files(test_readnfs_t)
+userdom_sysadm_entry_spec_domtrans_to(test_readnfs_t)
+corecmd_bin_entry_type(test_readnfs_t)
+sysadm_bin_spec_domtrans_to(test_readnfs_t)
+
+# Allow the domain to search home dirs so that ls works
+userdom_search_generic_user_home_dirs(test_readnfs_t)
+
+# Allow the domain to read NFS mounted files/directories
+fs_read_nfs_files(test_readnfs_t)

@@ -67,3 +67,14 @@ CONFIG_ANDROID_BINDERFS=y
 # They are not required for SELinux operation itself.
 CONFIG_BPF=y
 CONFIG_BPF_SYSCALL=y
+
+# NFS server and client.
+# This is enabled for testing NFS automount in tests/submount.
+# It is not required for SELinux operation itself.
+CONFIG_NETWORK_FILESYSTEMS=y
+CONFIG_FILE_LOCKING=y
+CONFIG_MULTIUSER=y
+CONFIG_NFSD=m
+CONFIG_NFSD_V3=y
+CONFIG_NFS_FS=m
+CONFIG_NFS_V3=m

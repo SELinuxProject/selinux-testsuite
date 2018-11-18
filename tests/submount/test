@@ -1,0 +1,84 @@
+#!/usr/bin/perl
+# SPDX-License-Identifier: GPL-2.0
+#
+# This test checks that NFS automounts do not trigger
+# unwanted SELinux checks for mount permission
+#
+# Author:  Ondrej Mosnacek <omosnace@redhat.com>
+# Based on code by:  Martin Frodl <mfrodl@redhat.com>
+# Copyright (c) 2018 Red Hat, Inc.
+#
+
+use Test::More;
+use File::Spec;
+
+my ( $basedir, $result );
+
+BEGIN {
+    $basedir = File::Spec->rel2abs($0);
+    $basedir =~ s|(.*)/[^/]*|$1|;
+
+    system "rm -rf $basedir/nfs_export 2>&1";
+    system "rm -rf $basedir/nfs_import 2>&1";
+
+    system "mkdir $basedir/nfs_export";
+    system "mkdir $basedir/nfs_import";
+
+    # Try exporting and mounting NFS.
+    $result =
+      system "exportfs -o ro,crossmnt,sync 127.0.0.1:$basedir/nfs_export 2>&1";
+    $result += system "mount -t nfs -o ro,timeo=5,retry=0,retrans=1 "
+      . "127.0.0.1:$basedir/nfs_export $basedir/nfs_import 2>&1";
+
+    # Cleanup.
+    system "umount $basedir/nfs_import 2>&1";
+    system "exportfs -u 127.0.0.1:$basedir/nfs_export 2>&1";
+
+    # If basic NFS workflow failed, then skip the test.
+    if ( $result eq 0 ) {
+        plan tests => 2;
+    }
+    else {
+        system "rm -rf $basedir/nfs_export 2>&1";
+        system "rm -rf $basedir/nfs_import 2>&1";
+        plan skip_all => "Unable to use NFS server/client";
+    }
+}
+
+# Create an EXT2 image to mount as submount (NFS needs a fs with UUID).
+system
+  "dd if=/dev/zero of=$basedir/nfs_export/image.ext2 bs=5M count=1 status=none";
+system "mkfs.ext2 -q -F $basedir/nfs_export/image.ext2";
+
+# Create the submount dir and mount the EXT2 image on it.
+system "mkdir $basedir/nfs_export/submount";
+system "mount -t ext2 -o loop "
+  . "$basedir/nfs_export/image.ext2 $basedir/nfs_export/submount";
+system "touch $basedir/nfs_export/submount/file";
+
+system "chcon -R -t test_file_t $basedir/nfs_export";
+
+# Export the directory.
+system "exportfs -o ro,crossmnt,sync 127.0.0.1:$basedir/nfs_export";
+
+# Mount the NFS export.
+system "mount -t nfs -o ro 127.0.0.1:$basedir/nfs_export $basedir/nfs_import";
+
+# Sanity check if we can access the mounted filesystem.
+$result =
+  system "runcon -t test_readnfs_t -- ls $basedir/nfs_import >/dev/null";
+ok( $result eq 0 );
+
+# Check that we can access the submounted filesystem.
+$result = system "runcon -t test_readnfs_t -- "
+  . "cat $basedir/nfs_import/submount/file >/dev/null";
+ok( $result eq 0 );
+
+# Cleanup.
+system "umount $basedir/nfs_import 2>&1";
+system "exportfs -u 127.0.0.1:$basedir/nfs_export 2>&1";
+while ( system("umount $basedir/nfs_export/submount 2>&1") ne 0 ) {
+    select( undef, undef, undef, 1 );
+}
+system "rm -rf $basedir/nfs_export 2>&1";
+system "rm -rf $basedir/nfs_import 2>&1";
