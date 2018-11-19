@@ -1,0 +1,4 @@
+getinfo
+semctl
+semget
+semop
