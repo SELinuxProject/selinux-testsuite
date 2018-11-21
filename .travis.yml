@@ -1,0 +1,12 @@
+language: minimal
+
+dist: xenial
+
+addons:
+  apt:
+    packages:
+      - astyle
+      - perltidy
+
+script:
+  - tools/check-syntax -f && git diff --exit-code
