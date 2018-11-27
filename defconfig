@@ -21,6 +21,7 @@ CONFIG_NETWORK_SECMARK=y
 CONFIG_NF_CONNTRACK_SECMARK=y
 CONFIG_NETFILTER_XT_TARGET_CONNSECMARK=m
 CONFIG_NETFILTER_XT_TARGET_SECMARK=m
+CONFIG_NETFILTER_XT_MATCH_MULTIPORT=m # used for testing sctp
 
 # Filesystem security labeling support.
 # Only need to enable the ones for the filesystems on which you are testing.
