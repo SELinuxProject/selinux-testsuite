@@ -22,7 +22,7 @@ static void usage(char *progname)
 
 int main(int argc, char **argv)
 {
-	int opt, sock, newsock, result, flags, if_index = 0, on = 1;
+	int opt, sock, newsock, result, if_index = 0, on = 1;
 	socklen_t sinlen, opt_len;
 	struct sockaddr_storage sin;
 	struct addrinfo hints, *res;
@@ -276,7 +276,7 @@ int main(int argc, char **argv)
 
 			result = sctp_recvmsg(sock, msglabel, sizeof(msglabel),
 					      (struct sockaddr *)&sin, &sinlen,
-					      &sinfo, &flags);
+					      &sinfo, NULL);
 			if (result < 0) {
 				perror("Server sctp_recvmsg");
 				close(sock);
