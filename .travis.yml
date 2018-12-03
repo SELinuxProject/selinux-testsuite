@@ -1,4 +1,4 @@
-language: minimal
+language: c
 
 dist: xenial
 
@@ -7,6 +7,9 @@ addons:
     packages:
       - astyle
       - perltidy
+      - libselinux1-dev
+      - libsctp-dev
 
 script:
   - tools/check-syntax -f && git diff --exit-code
+  - make
