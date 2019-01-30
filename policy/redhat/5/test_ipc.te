@@ -77,7 +77,6 @@ corecmd_bin_entry_type(ipcdomain)
 userdom_sysadm_bin_spec_domtrans_to(ipcdomain)
 
 allow test_ipc_base_t self:sem create_sem_perms;
-allow test_ipc_base_t self:shm create_sem_perms;
-allow test_ipc_base_t self:shm lock;
+allow test_ipc_base_t self:shm create_shm_perms;
 # ipcrm needs this... 
 userdom_search_generic_user_home_dirs(test_ipc_base_t)
