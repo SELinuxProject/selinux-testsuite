@@ -1,0 +1,28 @@
+#!/usr/bin/perl
+
+use Test;
+BEGIN { plan tests => 2 }
+
+my $ret;
+
+# Create a new cgroupfs directory and relabel it.
+mkdir("/sys/fs/cgroup/unified/test");
+system("chcon -R -t test_cgroup_t /sys/fs/cgroup/unified/test");
+
+# Create a subdirectory in it.
+mkdir("/sys/fs/cgroup/unified/test/subdir");
+
+$ret =
+  system("test `secon -tf /sys/fs/cgroup/unified/test/subdir` = test_cgroup_t");
+ok( $ret, 0 );    # Did the subdirectory inherit the parent's label?
+
+$ret = system(
+"test `secon -tf /sys/fs/cgroup/unified/test/subdir/cgroup.type` = test_cgroup_t"
+);
+ok( $ret, 0 );    # Did also files in the subdirectory inherit the label?
+
+# Cleanup.
+rmdir("/sys/fs/cgroup/unified/test/subdir");
+rmdir("/sys/fs/cgroup/unified/test");
+
+exit;

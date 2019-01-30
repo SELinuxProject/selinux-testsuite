@@ -1,0 +1,13 @@
+#################################
+#
+# Policy for testing cgroupfs labeling
+#
+
+# Types for test file.
+type test_cgroup_t;
+files_type(test_cgroup_t)
+
+require {
+	type cgroup_t;
+}
+allow test_cgroup_t cgroup_t:filesystem { associate };
