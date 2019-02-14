@@ -79,12 +79,12 @@ integrated into the `coreutils` package, with support for the `chcon` and
 If the base distribution does not include the SELinux userland, then the
 source code for the core SELinux userland packages can be obtained from:
 
-* https://github.com/SELinuxProject/selinux/wiki/Releases
+* https://github.com/SELinuxProject/selinux/releases
 
 If the base distribution does not include a policy configuration, then
 the reference policy can be obtained from:
 
-* https://github.com/TresysTechnology/refpolicy/wiki/DownloadRelease
+* https://github.com/SELinuxProject/refpolicy/releases
 
 ### Optional Prerequisites
 
@@ -182,7 +182,7 @@ to help identify the cause.  When run by hand, the test script displays the
 expected number of tests, a status for each test, and any error messages from
 the test script or its helper programs.
 
-Please report any failures to the selinux@tycho.nsa.gov mailing list,
+Please report any failures to the selinux@vger.kernel.org mailing list,
 including a copy of the test summary output, the raw output from test scripts
 that failed, a description of your base platform, and the particular release
 of SELinux that you are using.
