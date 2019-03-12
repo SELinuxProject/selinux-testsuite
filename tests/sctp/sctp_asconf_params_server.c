@@ -5,6 +5,7 @@ static void usage(char *progname)
 	fprintf(stderr,
 		"usage:  %s -v addr new_pri_addr port\n"
 		"\nWhere:\n\t"
+		"-f           Write a line to the file when listening starts.\n\t"
 		"-v           Print status information.\n\t"
 		"addr         IPv4/IPv6 address for initial connection.\n\t"
 		"new_pri_addr IPv4/IPv6 address that the server will bindx\n\t"
@@ -30,9 +31,13 @@ int main(int argc, char **argv)
 	struct sctp_setpeerprim setpeerprim;
 	bool verbose = false, is_ipv6 = false;
 	char buffer[128];
+	char *flag_file = NULL;
 
-	while ((opt = getopt(argc, argv, "v")) != -1) {
+	while ((opt = getopt(argc, argv, "f:v")) != -1) {
 		switch (opt) {
+		case 'f':
+			flag_file = optarg;
+			break;
 		case 'v':
 			verbose = true;
 			break;
@@ -96,6 +101,16 @@ int main(int argc, char **argv)
 	}
 
 	listen(srv_sock, 1);
+
+	if (flag_file) {
+		FILE *f = fopen(flag_file, "a");
+		if (!f) {
+			perror("Flag file open");
+			exit(1);
+		}
+		fprintf(f, "listening\n");
+		fclose(f);
+	}
 
 	new_sock = accept(srv_sock, (struct sockaddr *)&sin, &sinlen);
 	if (new_sock < 0) {

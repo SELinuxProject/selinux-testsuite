@@ -3,10 +3,11 @@
 static void usage(char *progname)
 {
 	fprintf(stderr,
-		"usage:  %s [-4] [-b ipv4_addr] [-h addr] [-i] [-n] [-v] stream|seq port\n"
+		"usage:  %s [-4] [-b ipv4_addr] [-f file] [-h addr] [-i] [-n] [-v] stream|seq port\n"
 		"\nWhere:\n\t"
 		"-4      Listen on IPv4 addresses only (used for CIPSO tests).\n\t"
 		"-b      Call sctp_bindx(3) with the supplied IPv4 address.\n\t"
+		"-f      Write a line to the file when listening starts.\n\t"
 		"-h      IPv4 or IPv6 listen address. If IPv6 link-local address,\n\t"
 		"        then requires the %%<if_name> to obtain scopeid. e.g.\n\t"
 		"            fe80::7629:afff:fe0f:8e5d%%wlp6s0\n\t"
@@ -31,17 +32,20 @@ int main(int argc, char **argv)
 	char getsockopt_peerlabel[1024];
 	char byte, *peerlabel, msglabel[1024], if_name[30];
 	bool nopeer = false,  verbose = false,  ipv4 = false, snd_opt = false;
-	char *context, *host_addr = NULL, *bindx_addr = NULL;
+	char *context, *host_addr = NULL, *bindx_addr = NULL, *flag_file = NULL;
 	struct sockaddr_in ipv4_addr;
 	unsigned short port;
 
-	while ((opt = getopt(argc, argv, "4b:h:inv")) != -1) {
+	while ((opt = getopt(argc, argv, "4b:f:h:inv")) != -1) {
 		switch (opt) {
 		case '4':
 			ipv4 = true;
 			break;
 		case 'b':
 			bindx_addr = optarg;
+			break;
+		case 'f':
+			flag_file = optarg;
 			break;
 		case 'h':
 			host_addr = optarg;
@@ -168,6 +172,16 @@ int main(int argc, char **argv)
 		perror("Server listen");
 		close(sock);
 		exit(1);
+	}
+
+	if (flag_file) {
+		FILE *f = fopen(flag_file, "a");
+		if (!f) {
+			perror("Flag file open");
+			exit(1);
+		}
+		fprintf(f, "listening\n");
+		fclose(f);
 	}
 
 	if (hints.ai_socktype == SOCK_STREAM) {

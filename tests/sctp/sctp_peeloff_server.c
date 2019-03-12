@@ -6,6 +6,7 @@ static void usage(char *progname)
 		"usage:  %s [-4] [-i] [-n] [-v] port\n"
 		"\nWhere:\n\t"
 		"-4      Listen on IPv4 addresses only.\n\t"
+		"-f      Write a line to the file when listening starts.\n\t"
 		"-i      Send IP Options as msg (default is peer label).\n\t"
 		"-n      No peer context will be available therefore send\n\t"
 		"        \"nopeer\" message to client, otherwise the peer context\n\t"
@@ -66,14 +67,17 @@ int main(int argc, char **argv)
 	socklen_t sinlen, opt_len;
 	struct sockaddr_storage sin;
 	struct addrinfo hints, *res;
-	char *peerlabel, *context, msglabel[256];
+	char *peerlabel, *context, *flag_file = NULL, msglabel[256];
 	bool nopeer = false,  verbose = false, ipv4 = false, snd_opt = false;
 	unsigned short port;
 
-	while ((opt = getopt(argc, argv, "4inv")) != -1) {
+	while ((opt = getopt(argc, argv, "4f:inv")) != -1) {
 		switch (opt) {
 		case '4':
 			ipv4 = true;
+			break;
+		case 'f':
+			flag_file = optarg;
 			break;
 		case 'i':
 			snd_opt = true;
@@ -149,6 +153,16 @@ int main(int argc, char **argv)
 		perror("Server listen");
 		close(sock);
 		exit(1);
+	}
+
+	if (flag_file) {
+		FILE *f = fopen(flag_file, "a");
+		if (!f) {
+			perror("Flag file open");
+			exit(1);
+		}
+		fprintf(f, "listening\n");
+		fclose(f);
 	}
 
 	do {
