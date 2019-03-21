@@ -23,11 +23,12 @@
 int main(int argc, char **argv)
 {
 
-	int fd;
+	int fd, pipefd[2];
 	int rc;
 	int flags;
 	pid_t pid;
 	char key = '\r';
+	char buf[1];
 
 	/*
 	 * ctermid returns controlling terminal, which could be console, pts,..
@@ -48,6 +49,12 @@ int main(int argc, char **argv)
 	}
 	fd = slave;
 
+	rc = pipe(pipefd);
+	if (rc == -1) {
+		perror("test_sigiotask:pipe");
+		exit(2);
+	}
+
 	/*
 	 * Spawn off the child process to handle the information protocol.
 	 */
@@ -61,21 +68,27 @@ int main(int argc, char **argv)
 	 */
 	if( pid == 0 ) {
 		char ex_name[255];
+		char pipefd_str[16];
 		/* Create the path to the executable the child will run */
 		sprintf(ex_name, "%s/wait_io", dirname(strdup(argv[0])));
-		if( execl(ex_name, "wait_io", (char *) 0) < 0 ) {
+		sprintf(pipefd_str, "%i", pipefd[1]);
+		if( execl(ex_name, "wait_io", pipefd_str, (char *) 0) < 0 ) {
 			perror("test_sigiotask:execl");
 			exit(2);
 		}
 	}
 
-	/* Allow the child time to start up.
+	/* Wait for the child to start up.
 	 * If the fcntls below occurs before child sets up its signal handler
 	 * and there is some new data on tty then it will die by SIGIO.
 	 * Example 1: fd is /dev/console and kernel prints message to it
 	 * Example 2: if you run it through ptrace, ptrace will print to the same fd
 	 */
-	sleep(1);
+	rc = read(pipefd[0], buf, 1);
+	if( rc == -1 ) {
+		perror("test_sigiotask:read");
+		exit(2);
+	}
 
 	/*
 	 * parent process
