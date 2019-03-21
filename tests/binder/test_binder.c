@@ -251,6 +251,7 @@ static void request_manager_fd(int fd, struct binder_transaction_data *txn_in)
 	int result;
 	unsigned int writebuf[1024];
 	struct binder_fd_object obj;
+	binder_size_t offset = 0;
 	struct binder_write_read bwr;
 	struct binder_transaction_data *txn;
 
@@ -271,7 +272,7 @@ static void request_manager_fd(int fd, struct binder_transaction_data *txn_in)
 	txn->cookie = txn_in->cookie;
 	txn->code = txn_in->code;
 	txn->flags = TF_ACCEPT_FDS;
-	memset(&obj, 0, sizeof(struct binder_fd_object));
+	memset(&obj, 0, sizeof(obj));
 	obj.hdr.type = BINDER_TYPE_FD;
 	obj.pad_flags = 0x7f | FLAT_BINDER_FLAG_ACCEPTS_FDS;
 	obj.cookie = txn->cookie;
@@ -291,11 +292,10 @@ static void request_manager_fd(int fd, struct binder_transaction_data *txn_in)
 		printf("Manager handle: %d and its FD: %d\n",
 		       txn->target.handle, fd);
 
-	txn->data_size = sizeof(struct flat_binder_object);
+	txn->data_size = sizeof(obj);
+	txn->offsets_size = sizeof(offset);
 	txn->data.ptr.buffer = (uintptr_t)&obj;
-	txn->data.ptr.offsets = (uintptr_t)&obj +
-				sizeof(struct flat_binder_object);
-	txn->offsets_size = sizeof(binder_size_t);
+	txn->data.ptr.offsets = (uintptr_t)&offset;
 
 	memset(&bwr, 0, sizeof(bwr));
 	bwr.write_buffer = (uintptr_t)writebuf;
@@ -494,6 +494,7 @@ int main(int argc, char **argv)
 	size_t map_size = 1024 * 8;
 	struct binder_write_read bwr;
 	struct flat_binder_object obj;
+	binder_size_t offset = 0;
 	struct {
 		uint32_t cmd;
 		struct binder_transaction_data txn;
@@ -625,17 +626,17 @@ int main(int argc, char **argv)
 		writebuf.txn.code = ADD_TEST_SERVICE;
 		writebuf.txn.flags = TF_ACCEPT_FDS;
 
+		memset(&obj, 0, sizeof(obj));
 		obj.hdr.type = BINDER_TYPE_BINDER;
 		obj.flags = 0x7f | FLAT_BINDER_FLAG_ACCEPTS_FDS;
 		obj.binder = (uintptr_t)NULL;
 		obj.cookie = 0;
 
-		writebuf.txn.data_size = sizeof(struct flat_binder_object);
-		writebuf.txn.offsets_size = sizeof(binder_size_t);
+		writebuf.txn.data_size = sizeof(obj);
+		writebuf.txn.offsets_size = sizeof(offset);
 
 		writebuf.txn.data.ptr.buffer = (uintptr_t)&obj;
-		writebuf.txn.data.ptr.offsets = (uintptr_t)&obj +
-						sizeof(struct flat_binder_object);
+		writebuf.txn.data.ptr.offsets = (uintptr_t)&offset;
 
 		bwr.write_buffer = (uintptr_t)&writebuf;
 		bwr.write_size = sizeof(writebuf);
