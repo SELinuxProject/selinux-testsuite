@@ -20,6 +20,14 @@ int main(int argc, char **argv)
 {
 
 	struct sigaction siga;
+	int fd;
+
+	if (argc != 2) {
+		fprintf(stderr, "wait_io:  incorrect number of arguments\n");
+		exit(2);
+	}
+
+	fd = atoi(argv[1]);
 
 	/*
 	 * Set up signal handler for SIGIO.
@@ -28,6 +36,8 @@ int main(int argc, char **argv)
 	sigemptyset(&siga.sa_mask);
 	siga.sa_flags = 0;
 	sigaction(SIGIO, &siga, NULL);
+	write(fd, "x", 1);
+	close(fd);
 	sleep(5);
 	printf("wait_io:  exiting without receiving sigio\n");
 	exit(1);
