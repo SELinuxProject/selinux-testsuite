@@ -30,15 +30,33 @@ BEGIN {
     plan tests => $test_count;
 }
 
+sub server_start {
+    my ( $runcon_args, $args ) = @_;
+    my $pid;
+
+    system("mkfifo $basedir/flag");
+
+    if ( ( $pid = fork() ) == 0 ) {
+        exec "runcon $runcon_args $basedir/server -f $basedir/flag $args";
+    }
+
+    # Wait for it to initialize.
+    system("cat $basedir/flag >/dev/null");
+    return $pid;
+}
+
+sub server_end {
+    my ($pid) = @_;
+
+    kill KILL, $pid;
+    system("rm -f $basedir/flag");
+}
+
 # Load NetLabel configuration for full CIPSO/IPv4 labeling over loopback.
 system "/bin/sh $basedir/cipso-fl-load";
 
 # Start the stream server.
-if ( ( $pid = fork() ) == 0 ) {
-    exec "runcon -t test_inet_server_t $basedir/server stream 65535";
-}
-
-select( undef, undef, undef, 0.25 );    # Give it a moment to initialize.
+$pid = server_start( "-t test_inet_server_t", "stream 65535" );
 
 # Verify that authorized client can communicate with the server.
 $result =
@@ -51,14 +69,10 @@ $result = system
 ok( $result >> 8 eq 5 );
 
 # Kill the server.
-kill TERM, $pid;
+server_end($pid);
 
 # Start the dgram server.
-if ( ( $pid = fork() ) == 0 ) {
-    exec "runcon -t test_inet_server_t $basedir/server dgram 65535";
-}
-
-select( undef, undef, undef, 0.25 );    # Give it a moment to initialize
+$pid = server_start( "-t test_inet_server_t", "dgram 65535" );
 
 # Verify that authorized client can communicate with the server.
 $result =
@@ -71,7 +85,7 @@ $result = system
 ok( $result >> 8 eq 9 );
 
 # Kill the server.
-kill TERM, $pid;
+server_end($pid);
 
 # Flush NetLabel configuration.
 system "/bin/sh $basedir/cipso-fl-flush";
@@ -80,12 +94,7 @@ system "/bin/sh $basedir/cipso-fl-flush";
 system "/bin/sh $basedir/cipso-load-t1";
 
 # Start the stream server with a defined level.
-if ( ( $pid = fork() ) == 0 ) {
-    exec
-"runcon -t test_inet_server_t -l s0:c20.c250 $basedir/server stream 65535";
-}
-
-select( undef, undef, undef, 0.25 );    # Give it a moment to initialize.
+$pid = server_start( "-t test_inet_server_t -l s0:c20.c250", "stream 65535" );
 
 # Verify that authorized client can communicate with the server using level within T1 range.
 $result = system
@@ -103,15 +112,10 @@ $result = system
 ok( $result >> 8 eq 5 );
 
 # Kill the server.
-kill TERM, $pid;
+server_end($pid);
 
 # Start the dgram server with a defined level.
-if ( ( $pid = fork() ) == 0 ) {
-    exec
-      "runcon -t test_inet_server_t -l s0:c20.c50 $basedir/server dgram 65535";
-}
-
-select( undef, undef, undef, 0.25 );    # Give it a moment to initialize.
+$pid = server_start( "-t test_inet_server_t -l s0:c20.c50", "dgram 65535" );
 
 # Verify that authorized client can communicate with the server using same levels.
 $result = system
@@ -124,7 +128,7 @@ $result = system
 ok( $result >> 8 eq 9 );
 
 # Kill the server.
-kill TERM, $pid;
+server_end($pid);
 
 # Flush NetLabel configuration.
 system "/bin/sh $basedir/cipso-flush";
@@ -133,12 +137,7 @@ system "/bin/sh $basedir/cipso-flush";
 system "/bin/sh $basedir/cipso-load-t2";
 
 # Start the stream server with a defined level.
-if ( ( $pid = fork() ) == 0 ) {
-    exec
-      "runcon -t test_inet_server_t -l s0:c0.c100 $basedir/server stream 65535";
-}
-
-select( undef, undef, undef, 0.25 );    # Give it a moment to initialize.
+$pid = server_start( "-t test_inet_server_t -l s0:c0.c100", "stream 65535" );
 
 # Verify that authorized client can communicate with the server using level.
 $result = system
@@ -161,15 +160,10 @@ $result = system
 ok( $result >> 8 eq 5 );
 
 # Kill the server.
-kill TERM, $pid;
+server_end($pid);
 
 # Start the dgram server with a defined level.
-if ( ( $pid = fork() ) == 0 ) {
-    exec
-      "runcon -t test_inet_server_t -l s0:c0.c14 $basedir/server dgram 65535";
-}
-
-select( undef, undef, undef, 0.25 );    # Give it a moment to initialize.
+$pid = server_start( "-t test_inet_server_t -l s0:c0.c14", "dgram 65535" );
 
 # Verify that authorized client can communicate with the server using same levels.
 $result = system
@@ -182,7 +176,7 @@ $result = system
 ok( $result >> 8 eq 9 );
 
 # Kill the server.
-kill TERM, $pid;
+server_end($pid);
 
 # Flush NetLabel configuration.
 system "/bin/sh $basedir/cipso-flush";
@@ -197,12 +191,7 @@ system "/bin/sh $basedir/cipso-flush";
 system "/bin/sh $basedir/cipso-load-t5";
 
 # Start the stream server with a defined level.
-if ( ( $pid = fork() ) == 0 ) {
-    exec
-      "runcon -t test_inet_server_t -l s0:c0.c100 $basedir/server stream 65535";
-}
-
-select( undef, undef, undef, 0.25 );    # Give it a moment to initialize.
+$pid = server_start( "-t test_inet_server_t -l s0:c0.c100", "stream 65535" );
 
 # Verify that authorized client can communicate with the server using level.
 $result = system
@@ -230,15 +219,10 @@ $result = system
 ok( $result >> 8 eq 5 );
 
 # Kill the server.
-kill TERM, $pid;
+server_end($pid);
 
 # Start the dgram server with a defined level.
-if ( ( $pid = fork() ) == 0 ) {
-    exec
-      "runcon -t test_inet_server_t -l s0:c0.c100 $basedir/server dgram 65535";
-}
-
-select( undef, undef, undef, 0.25 );    # Give it a moment to initialize.
+$pid = server_start( "-t test_inet_server_t -l s0:c0.c100", "dgram 65535" );
 
 # Verify that authorized client can communicate with the server using same levels.
 $result = system
@@ -251,7 +235,7 @@ $result = system
 ok( $result >> 8 eq 9 );
 
 # Kill the server.
-kill TERM, $pid;
+server_end($pid);
 
 # Flush NetLabel configuration.
 system "/bin/sh $basedir/cipso-flush";
@@ -300,11 +284,7 @@ if ($test_ipsec) {
     system "/bin/sh $basedir/ipsec-load";
 
     # Start the stream server.
-    if ( ( $pid = fork() ) == 0 ) {
-        exec "runcon -t test_inet_server_t $basedir/server stream 65535";
-    }
-
-    select( undef, undef, undef, 0.25 );    # Give it a moment to initialize.
+    $pid = server_start( "-t test_inet_server_t", "stream 65535" );
 
     # Verify that authorized client can communicate with the server.
     $result =
@@ -328,14 +308,10 @@ if ($test_ipsec) {
     ok( $result >> 8 eq 5 );
 
     # Kill the server.
-    kill TERM, $pid;
+    server_end($pid);
 
     # Start the dgram server.
-    if ( ( $pid = fork() ) == 0 ) {
-        exec "runcon -t test_inet_server_t $basedir/server dgram 65535";
-    }
-
-    select( undef, undef, undef, 0.25 );    # Give it a moment to initialize
+    $pid = server_start( "-t test_inet_server_t", "dgram 65535" );
 
     # Verify that authorized client can communicate with the server.
     $result =
@@ -354,14 +330,10 @@ if ($test_ipsec) {
     ok( $result >> 8 eq 8 );
 
     # Kill the server.
-    kill TERM, $pid;
+    server_end($pid);
 
 # Start the dgram server for IPSEC test using IPv6 but do not request peer context.
-    if ( ( $pid = fork() ) == 0 ) {
-        exec "runcon -t test_inet_server_t $basedir/server -n dgram 65535";
-    }
-
-    select( undef, undef, undef, 0.25 );    # Give it a moment to initialize
+    $pid = server_start( "-t test_inet_server_t", "-n dgram 65535" );
 
     # This test now passes.
     $result = system
@@ -369,7 +341,7 @@ if ($test_ipsec) {
     ok( $result eq 0 );
 
     # Kill the server.
-    kill TERM, $pid;
+    server_end($pid);
 
     # Flush IPSEC configuration.
     system "/bin/sh $basedir/ipsec-flush";
@@ -379,11 +351,7 @@ if ($test_ipsec) {
 system "/bin/sh $basedir/iptables-load";
 
 # Start the stream server.
-if ( ( $pid = fork() ) == 0 ) {
-    exec "runcon -t test_inet_server_t -- $basedir/server -n stream 65535";
-}
-
-select( undef, undef, undef, 0.25 );    # Give it a moment to initialize.
+$pid = server_start( "-t test_inet_server_t", "-n stream 65535" );
 
 # Verify that authorized client can communicate with the server.
 $result = system
@@ -406,14 +374,10 @@ $result = system
 ok( $result >> 8 eq 5 );
 
 # Kill the server.
-kill TERM, $pid;
+server_end($pid);
 
 # Start the dgram server.
-if ( ( $pid = fork() ) == 0 ) {
-    exec "runcon -t test_inet_server_t $basedir/server -n dgram 65535";
-}
-
-select( undef, undef, undef, 0.25 );    # Give it a moment to initialize
+$pid = server_start( "-t test_inet_server_t", "-n dgram 65535" );
 
 # Verify that authorized client can communicate with the server.
 $result = system
@@ -436,7 +400,7 @@ $result = system
 ok( $result >> 8 eq 8 );
 
 # Kill the server.
-kill TERM, $pid;
+server_end($pid);
 
 # Flush iptables configuration.
 system "/bin/sh $basedir/iptables-flush";
@@ -447,12 +411,7 @@ if ($test_calipso_stream) {
     system "/bin/sh $basedir/calipso-load";
 
     # Start the stream server.
-    if ( ( $pid = fork() ) == 0 ) {
-        exec
-"runcon -t test_inet_server_t -l s0:c0.c10 $basedir/server stream 65535";
-    }
-
-    select( undef, undef, undef, 0.25 );    # Give it a moment to initialize.
+    $pid = server_start( "-t test_inet_server_t -l s0:c0.c10", "stream 65535" );
 
     # Verify that authorized client can communicate with the server.
     $result = system
@@ -470,7 +429,7 @@ if ($test_calipso_stream) {
     ok( $result >> 8 eq 5 );
 
     # Kill the stream server.
-    kill TERM, $pid;
+    server_end($pid);
 
     system "/bin/sh $basedir/calipso-flush";
 }

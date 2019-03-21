@@ -19,6 +19,9 @@ type_transition test_unix_server_t test_file_t:sock_file test_unix_server_sockfi
 allow test_unix_server_t test_file_t:dir rw_dir_perms;
 allow test_unix_server_t test_unix_server_sockfile_t:sock_file { create unlink };
 
+# For writing to flag file:
+allow test_unix_server_t test_file_t:fifo_file rw_file_perms;
+
 # Domain for stream client process.
 type test_unix_stream_client_t;
 domain_type(test_unix_stream_client_t)

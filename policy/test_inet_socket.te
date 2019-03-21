@@ -33,6 +33,9 @@ corenet_udp_bind_all_nodes(test_inet_server_t)
 corenet_inout_generic_if(test_inet_server_t)
 corenet_inout_generic_node(test_inet_server_t)
 
+# For writing to flag file:
+allow test_inet_server_t test_file_t:fifo_file rw_file_perms;
+
 # We need to ensure that the test domain is MCS constrained.
 ## newer systems, e.g. Fedora and RHEL >= 7.x
 ifdef(`mcs_constrained', `

@@ -60,6 +60,28 @@ BEGIN {
     }
 }
 
+sub server_start {
+    my ( $runcon_args, $prog, $args ) = @_;
+    my $pid;
+
+    system("mkfifo $basedir/flag");
+
+    if ( ( $pid = fork() ) == 0 ) {
+        exec "runcon $runcon_args $basedir/$prog -f $basedir/flag $args";
+    }
+
+    # Wait for it to initialize.
+    system("cat $basedir/flag >/dev/null");
+    return $pid;
+}
+
+sub server_end {
+    my ($pid) = @_;
+
+    kill KILL, $pid;
+    system("rm -f $basedir/flag");
+}
+
 #
 # NOTE: direction flow is given as Client->Server (STREAM->SEQ)
 #
@@ -70,10 +92,8 @@ BEGIN {
 print "# Testing base configuration.\n";
 
 # Start the stream server.
-if ( ( $pid = fork() ) == 0 ) {
-    exec "runcon -t test_sctp_server_t $basedir/sctp_server $v -n stream 1035";
-}
-select( undef, undef, undef, 0.25 );    # Give it a moment to initialize.
+$pid =
+  server_start( "-t test_sctp_server_t", "sctp_server", "$v -n stream 1035" );
 
 # Verify that authorized client can communicate with the server STREAM->STREAM with client using connect(2).
 $result = system
@@ -103,7 +123,7 @@ $result = system
 ok( $result >> 8 eq 8 );
 
 # Kill the stream server.
-kill TERM, $pid;
+server_end($pid);
 
 ######## This test requires setting a portcon statement in policy ###########
 # Verify that the server cannot start when using port not allowed STREAM->STREAM.
@@ -159,11 +179,11 @@ if ($test_asconf) {
     ok( $result eq 0 );
 
     # Start the asconf server.
-    if ( ( $pid = fork() ) == 0 ) {
-        exec
-"runcon -t test_sctp_set_peer_addr_t $basedir/sctp_asconf_params_server $v $ipaddress[0] $ipaddress[1] 1035";
-    }
-    select( undef, undef, undef, 0.25 );    # Give it a moment to initialize.
+    $pid = server_start(
+        "-t test_sctp_set_peer_addr_t",
+        "sctp_asconf_params_server",
+        "$v $ipaddress[0] $ipaddress[1] 1035"
+    );
 
 # This should fail connect permission attempting to send SCTP_PARAM_ADD_IP to client.
     $result = system
@@ -171,7 +191,7 @@ if ($test_asconf) {
     ok($result);
 
     # The server should automatically exit.
-    kill TERM, $pid;
+    server_end($pid);
 
     system("echo 0 > /proc/sys/net/sctp/addip_enable");
     system("echo 0 > /proc/sys/net/sctp/addip_noauth_enable");
@@ -188,10 +208,7 @@ print "# Testing NetLabel fallback peer labeling.\n";
 system "/bin/sh $basedir/fb-label-load";
 
 # Start stream server.
-if ( ( $pid = fork() ) == 0 ) {
-    exec "runcon -t test_sctp_server_t $basedir/sctp_server $v stream 1035";
-}
-select( undef, undef, undef, 0.25 );    # Give it a moment to initialize.
+$pid = server_start( "-t test_sctp_server_t", "sctp_server", "$v stream 1035" );
 
 # Verify that authorized client can communicate with the server STREAM->STREAM.
 $result = system
@@ -209,13 +226,10 @@ $result = system
 ok( $result >> 8 eq 6 );
 
 # Kill the stream server.
-kill TERM, $pid;
+server_end($pid);
 
 # Start seq server.
-if ( ( $pid = fork() ) == 0 ) {
-    exec "runcon -t test_sctp_server_t $basedir/sctp_server $v seq 1035";
-}
-select( undef, undef, undef, 0.25 );    # Give it a moment to initialize
+$pid = server_start( "-t test_sctp_server_t", "sctp_server", "$v seq 1035" );
 
 # Verify that authorized client can communicate with the server SEQ->SEQ.
 $result = system
@@ -243,7 +257,7 @@ $result = system
 ok( $result >> 8 eq 13 );
 
 # Kill the seq server.
-kill TERM, $pid;
+server_end($pid);
 
 system "/bin/sh $basedir/fb-label-flush";
 
@@ -253,10 +267,7 @@ system "/bin/sh $basedir/fb-label-flush";
 print "# Testing deny association.\n";
 system "/bin/sh $basedir/fb-deny-label-load";
 
-if ( ( $pid = fork() ) == 0 ) {
-    exec "runcon -t test_sctp_server_t $basedir/sctp_server $v stream 1035";
-}
-select( undef, undef, undef, 0.25 );    # Give it a moment to initialize
+$pid = server_start( "-t test_sctp_server_t", "sctp_server", "$v stream 1035" );
 
 # Verify that authorized client can communicate with the server STREAM->STREAM.
 # This sets the servers initial peer context to netlabel_sctp_peer_t:s0
@@ -270,7 +281,7 @@ $result = system
 ok( $result >> 8 eq 6 );
 
 # Kill the seq server.
-kill TERM, $pid;
+server_end($pid);
 
 system "/bin/sh $basedir/fb-deny-label-flush";
 
@@ -281,11 +292,11 @@ print "# Testing CIPSO/IPv4 - TAG 1 using socket ip_option data\n";
 system "/bin/sh $basedir/cipso-load-t1";
 
 # Start the stream server for IPv4 only.
-if ( ( $pid = fork() ) == 0 ) {
-    exec
-"runcon -t test_sctp_server_t -l s0:c182.c192 $basedir/sctp_server $v -4 -i stream 1035";
-}
-select( undef, undef, undef, 0.25 );    # Give it a moment to initialize.
+$pid = server_start(
+    "-t test_sctp_server_t -l s0:c182.c192",
+    "sctp_server",
+    "$v -4 -i stream 1035"
+);
 
 # Verify that authorized client can communicate with the server STREAM->STREAM with client using sctp_connectx(3).
 $result = system
@@ -313,14 +324,14 @@ $result = system
 ok( $result >> 8 eq 6 );
 
 # Kill the stream server.
-kill TERM, $pid;
+server_end($pid);
 
 # Start the seq server.
-if ( ( $pid = fork() ) == 0 ) {
-    exec
-"runcon -t test_sctp_server_t -l s0:c20.c300 $basedir/sctp_server $v -i -4 seq 1035";
-}
-select( undef, undef, undef, 0.25 );    # Give it a moment to initialize
+$pid = server_start(
+    "-t test_sctp_server_t -l s0:c20.c300",
+    "sctp_server",
+    "$v -4 -i seq 1035"
+);
 
 # Verify that authorized client can communicate with the server. SEQ->SEQ
 $result = system
@@ -348,16 +359,16 @@ $result = system
 ok( $result >> 8 eq 7 );
 
 # Kill server.
-kill TERM, $pid;
+server_end($pid);
 
 print "# Testing CIPSO/IPv4 - TAG 1 PEELOFF using socket ip_option data\n";
 
 # Test sctp_peeloff(3) using 1 to Many SOCK_SEQPACKET
-if ( ( $pid = fork() ) == 0 ) {
-    exec
-"runcon -t test_sctp_server_t -l s0:c0.c10 $basedir/sctp_peeloff_server $v -4 -i 1035";
-}
-select( undef, undef, undef, 0.25 );    # Give it a moment to initialize
+$pid = server_start(
+    "-t test_sctp_server_t -l s0:c0.c10",
+    "sctp_peeloff_server",
+    "$v -4 -i 1035"
+);
 
 # Verify that authorized client can communicate with the server using SEQ->SEQ->Peeloff with same level.
 $result = system
@@ -375,7 +386,7 @@ $result = system
 ok( $result >> 8 eq 6 );
 
 # Kill the seq server.
-kill TERM, $pid;
+server_end($pid);
 
 system "/bin/sh $basedir/cipso-flush";
 
@@ -386,11 +397,9 @@ print "# Testing CIPSO/IPv4 - TAG 2 using socket ip_option data\n";
 system "/bin/sh $basedir/cipso-load-t2";
 
 # Start the stream server for IPv4 only.
-if ( ( $pid = fork() ) == 0 ) {
-    exec
-"runcon -t test_sctp_server_t -l s0:c782,c714,c769,c788,c803,c842,c864 $basedir/sctp_server $v -4 -i stream 1035";
-}
-select( undef, undef, undef, 0.25 );    # Give it a moment to initialize.
+$pid = server_start(
+    "-t test_sctp_server_t -l s0:c782,c714,c769,c788,c803,c842,c864",
+    "sctp_server", "$v -4 -i stream 1035" );
 
 # Verify that authorized client can communicate with the server STREAM->STREAM with client using sctp_connectx(3).
 $result = system
@@ -418,14 +427,14 @@ $result = system
 ok( $result >> 8 eq 6 );
 
 # Kill the stream server.
-kill TERM, $pid;
+server_end($pid);
 
 # Start the seq server.
-if ( ( $pid = fork() ) == 0 ) {
-    exec
-"runcon -t test_sctp_server_t -l s0:c20.c335 $basedir/sctp_server $v -i -4 seq 1035";
-}
-select( undef, undef, undef, 0.25 );    # Give it a moment to initialize
+$pid = server_start(
+    "-t test_sctp_server_t -l s0:c20.c335",
+    "sctp_server",
+    "$v -4 -i seq 1035"
+);
 
 # Verify that authorized client can communicate with the server. SEQ->SEQ
 $result = system
@@ -453,16 +462,16 @@ $result = system
 ok( $result >> 8 eq 7 );
 
 # Kill server.
-kill TERM, $pid;
+server_end($pid);
 
 print "# Testing CIPSO/IPv4 - TAG 2 PEELOFF using socket ip_option data\n";
 
 # Test sctp_peeloff(3) using 1 to Many SOCK_SEQPACKET
-if ( ( $pid = fork() ) == 0 ) {
-    exec
-"runcon -t test_sctp_server_t -l s0:c0.c10 $basedir/sctp_peeloff_server $v -4 -i 1035";
-}
-select( undef, undef, undef, 0.25 );    # Give it a moment to initialize
+$pid = server_start(
+    "-t test_sctp_server_t -l s0:c0.c10",
+    "sctp_peeloff_server",
+    "$v -4 -i 1035"
+);
 
 # Verify that authorized client can communicate with the server using SEQ->SEQ->Peeloff with same level.
 $result = system
@@ -480,7 +489,7 @@ $result = system
 ok( $result >> 8 eq 6 );
 
 # Kill the seq server.
-kill TERM, $pid;
+server_end($pid);
 
 system "/bin/sh $basedir/cipso-flush";
 
@@ -491,11 +500,9 @@ print "# Testing CIPSO/IPv4 - TAG 5 using socket ip_option data\n";
 system "/bin/sh $basedir/cipso-load-t5";
 
 # Start the stream server for IPv4 only.
-if ( ( $pid = fork() ) == 0 ) {
-    exec
-"runcon -t test_sctp_server_t -l s0:c782,c714,c769,c788,c803,c842,c864 $basedir/sctp_server $v -4 -i stream 1035";
-}
-select( undef, undef, undef, 0.25 );    # Give it a moment to initialize.
+$pid = server_start(
+    "-t test_sctp_server_t -l s0:c782,c714,c769,c788,c803,c842,c864",
+    "sctp_server", "$v -4 -i stream 1035" );
 
 # Verify that authorized client can communicate with the server STREAM->STREAM with client using sctp_connectx(3).
 $result = system
@@ -523,14 +530,14 @@ $result = system
 ok( $result >> 8 eq 6 );
 
 # Kill the stream server.
-kill TERM, $pid;
+server_end($pid);
 
 # Start the seq server.
-if ( ( $pid = fork() ) == 0 ) {
-    exec
-"runcon -t test_sctp_server_t -l s0:c20.c50 $basedir/sctp_server $v -i -4 seq 1035";
-}
-select( undef, undef, undef, 0.25 );    # Give it a moment to initialize
+$pid = server_start(
+    "-t test_sctp_server_t -l s0:c20.c50",
+    "sctp_server",
+    "$v -4 -i seq 1035"
+);
 
 # Verify that authorized client can communicate with the server. SEQ->SEQ
 $result = system
@@ -558,16 +565,16 @@ $result = system
 ok( $result >> 8 eq 7 );
 
 # Kill server.
-kill TERM, $pid;
+server_end($pid);
 
 print "# Testing CIPSO/IPv4 - TAG 5 PEELOFF using socket ip_option data\n";
 
 # Test sctp_peeloff(3) using 1 to Many SOCK_SEQPACKET
-if ( ( $pid = fork() ) == 0 ) {
-    exec
-"runcon -t test_sctp_server_t -l s0:c0.c10 $basedir/sctp_peeloff_server $v -4 -i 1035";
-}
-select( undef, undef, undef, 0.25 );    # Give it a moment to initialize
+$pid = server_start(
+    "-t test_sctp_server_t -l s0:c0.c10",
+    "sctp_peeloff_server",
+    "$v -4 -i 1035"
+);
 
 # Verify that authorized client can communicate with the server using SEQ->SEQ->Peeloff with same level.
 $result = system
@@ -585,7 +592,7 @@ $result = system
 ok( $result >> 8 eq 6 );
 
 # Kill the seq server.
-kill TERM, $pid;
+server_end($pid);
 
 system "/bin/sh $basedir/cipso-flush";
 
@@ -597,10 +604,8 @@ print "# Testing CIPSO/IPv4 full labeling over loopback.\n";
 system "/bin/sh $basedir/cipso-fl-load";
 
 # Start the stream server for IPv4 only.
-if ( ( $pid = fork() ) == 0 ) {
-    exec "runcon -t test_sctp_server_t $basedir/sctp_server $v -4 stream 1035";
-}
-select( undef, undef, undef, 0.25 );    # Give it a moment to initialize.
+$pid =
+  server_start( "-t test_sctp_server_t", "sctp_server", "$v -4 stream 1035" );
 
 # Verify that authorized client can communicate with the server STREAM->STREAM.
 $result = system
@@ -613,13 +618,10 @@ $result = system
 ok( $result >> 8 eq 6 );
 
 # Kill the stream server.
-kill TERM, $pid;
+server_end($pid);
 
 # Start the seq server for IPv4 only.
-if ( ( $pid = fork() ) == 0 ) {
-    exec "runcon -t test_sctp_server_t $basedir/sctp_server $v -4 seq 1035";
-}
-select( undef, undef, undef, 0.25 );    # Give it a moment to initialize
+$pid = server_start( "-t test_sctp_server_t", "sctp_server", "$v -4 seq 1035" );
 
 # Verify that authorized client can communicate with the server SEQ->STREAM.
 $result =
@@ -633,7 +635,7 @@ $result = system
 ok( $result >> 8 eq 6 );
 
 # Kill the seq server.
-kill TERM, $pid;
+server_end($pid);
 
 system "/bin/sh $basedir/cipso-fl-flush";
 
@@ -646,11 +648,11 @@ if ($test_calipso) {
     system "/bin/sh $basedir/calipso-load";
 
     # Start the stream server.
-    if ( ( $pid = fork() ) == 0 ) {
-        exec
-"runcon -t test_sctp_server_t -l  s0:c0,c12,c24,c36,c28,c610,c712,c414,c516,c318,c820,c622,c924,c726,c128,c330,c832,c534,c936,c138,c740,c42,c44,c246,c648,c950,c152,c354,c856,c158,c960,c662,c634,c686,c368,c570,c782,c714,c769,c788,c803,c842,c864,c986,c788,c290,c392,c594,c896,c698,c1023  $basedir/sctp_server $v -i stream 1035";
-    }
-    select( undef, undef, undef, 0.25 );    # Give it a moment to initialize.
+    $pid = server_start(
+"-t test_sctp_server_t -l  s0:c0,c12,c24,c36,c28,c610,c712,c414,c516,c318,c820,c622,c924,c726,c128,c330,c832,c534,c936,c138,c740,c42,c44,c246,c648,c950,c152,c354,c856,c158,c960,c662,c634,c686,c368,c570,c782,c714,c769,c788,c803,c842,c864,c986,c788,c290,c392,c594,c896,c698,c1023",
+        "sctp_server",
+        "$v -i stream 1035"
+    );
 
 # Verify that authorized client can communicate with the server STREAM->STREAM with client using sctp_connectx(3).
     $result = system
@@ -678,14 +680,14 @@ if ($test_calipso) {
     ok( $result >> 8 eq 6 );
 
     # Kill the stream server.
-    kill TERM, $pid;
+    server_end($pid);
 
     # Start the seq server.
-    if ( ( $pid = fork() ) == 0 ) {
-        exec
-"runcon -t test_sctp_server_t -l s0:c20.c50 $basedir/sctp_server $v -i seq 1035";
-    }
-    select( undef, undef, undef, 0.25 );    # Give it a moment to initialize
+    $pid = server_start(
+        "-t test_sctp_server_t -l s0:c20.c50",
+        "sctp_server",
+        "$v -i seq 1035"
+    );
 
     # Verify that authorized client can communicate with the server. SEQ->SEQ
     $result = system
@@ -713,16 +715,16 @@ if ($test_calipso) {
     ok( $result >> 8 eq 6 );
 
     # Kill server.
-    kill TERM, $pid;
+    server_end($pid);
 
     print "# Testing CALIPSO/IPv6 PEELOFF using socket ip_option data\n";
 
     # Test sctp_peeloff(3) using 1 to Many SOCK_SEQPACKET
-    if ( ( $pid = fork() ) == 0 ) {
-        exec
-"runcon -t test_sctp_server_t -l s0:c0.c10 $basedir/sctp_peeloff_server $v -i 1035";
-    }
-    select( undef, undef, undef, 0.25 );    # Give it a moment to initialize
+    $pid = server_start(
+        "-t test_sctp_server_t -l s0:c0.c10",
+        "sctp_peeloff_server",
+        "$v -i 1035"
+    );
 
 # Verify that authorized client can communicate with the server using SEQ->SEQ->Peeloff with same level.
     $result = system
@@ -740,7 +742,7 @@ if ($test_calipso) {
     ok( $result >> 8 eq 6 );
 
     # Kill the seq server.
-    kill TERM, $pid;
+    server_end($pid);
 
     system "/bin/sh $basedir/calipso-flush";
 }
@@ -752,10 +754,8 @@ print "# Testing iptables (IPv4/IPv6).\n";
 system "/bin/sh $basedir/iptables-load";
 
 # Start the stream server.
-if ( ( $pid = fork() ) == 0 ) {
-    exec "runcon -t test_sctp_server_t $basedir/sctp_server $v -n stream 1035";
-}
-select( undef, undef, undef, 0.25 );    # Give it a moment to initialize.
+$pid =
+  server_start( "-t test_sctp_server_t", "sctp_server", "$v -n stream 1035" );
 
 # Verify that authorized client can communicate with the server STREAM->STREAM.
 $result = system
@@ -778,13 +778,10 @@ $result = system
 ok( $result >> 8 eq 6 );
 
 # Kill the stream server.
-kill TERM, $pid;
+server_end($pid);
 
 # Start the seq server.
-if ( ( $pid = fork() ) == 0 ) {
-    exec "runcon -t test_sctp_server_t $basedir/sctp_server $v -n seq 1035";
-}
-select( undef, undef, undef, 0.25 );    # Give it a moment to initialize.
+$pid = server_start( "-t test_sctp_server_t", "sctp_server", "$v -n seq 1035" );
 
 # Verify that authorized client can communicate with the server SEQ->SEQ.
 $result = system
@@ -807,7 +804,7 @@ $result = system
 ok( $result >> 8 eq 6 );
 
 # Kill the seq server.
-kill TERM, $pid;
+server_end($pid);
 
 system "/bin/sh $basedir/iptables-flush";
 

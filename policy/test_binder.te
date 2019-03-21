@@ -21,6 +21,9 @@ allow_map(test_binder_mgr_t, tmpfs_t, file)
 fs_manage_tmpfs_dirs(test_binder_mgr_t)
 fs_manage_tmpfs_files(test_binder_mgr_t)
 
+# For writing to flag file:
+allow test_binder_mgr_t test_file_t:fifo_file rw_file_perms;
+
 #
 ########################## Manager no fd {use} ###############################
 #
@@ -39,6 +42,9 @@ allow test_binder_mgr_no_fd_t tmpfs_t:file { read write open };
 allow_map(test_binder_mgr_no_fd_t, tmpfs_t, file)
 fs_manage_tmpfs_dirs(test_binder_mgr_no_fd_t)
 fs_manage_tmpfs_files(test_binder_mgr_no_fd_t)
+
+# For writing to flag file:
+allow test_binder_mgr_no_fd_t test_file_t:fifo_file rw_file_perms;
 
 #
 ########################## Service Provider ################################
