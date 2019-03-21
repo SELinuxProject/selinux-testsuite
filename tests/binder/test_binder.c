@@ -570,10 +570,10 @@ int main(int argc, char **argv)
 			goto brexit;
 		}
 
-		readbuf[0] = BC_ENTER_LOOPER;
-		bwr.write_size = sizeof(readbuf[0]);
+		writebuf.cmd = BC_ENTER_LOOPER;
+		bwr.write_size = sizeof(writebuf.cmd);
 		bwr.write_consumed = 0;
-		bwr.write_buffer = (uintptr_t)readbuf;
+		bwr.write_buffer = (uintptr_t)&writebuf;
 
 		bwr.read_size = 0;
 		bwr.read_consumed = 0;
