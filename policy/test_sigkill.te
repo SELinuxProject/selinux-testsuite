@@ -12,6 +12,9 @@ unconfined_runs_test(test_kill_server_t)
 typeattribute test_kill_server_t killdomain;
 typeattribute test_kill_server_t testdomain;
 
+# For writing to flag file:
+allow test_kill_server_t test_file_t:fifo_file rw_file_perms;
+
 # Domain for process that is allowed to send sigkill.
 type test_kill_sigkill_t;
 domain_type(test_kill_sigkill_t)

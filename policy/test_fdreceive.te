@@ -49,6 +49,9 @@ allow test_fdreceive_server_t test_fdreceive_client_t:fd use;
 ## Access the test file.
 allow test_fdreceive_server_t test_fdreceive_file_t:file rw_file_perms;
 
+# For writing to flag file:
+allow test_fdreceive_server_t test_file_t:fifo_file rw_file_perms;
+
 # Grant the necessary permissions for the client domain.
 ## Open the test files.
 allow test_fdreceive_client_t test_fdreceive_file_t:file rw_file_perms;

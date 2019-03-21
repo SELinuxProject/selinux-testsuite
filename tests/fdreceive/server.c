@@ -25,16 +25,16 @@ int main(int argc, char **argv)
 	struct iovec iov;
 	struct cmsghdr *cmsg;
 	char cmsgbuf[CMSG_SPACE(sizeof(int))];
+	FILE *f;
 
-	if (argc != 2) {
-		fprintf(stderr, "usage:  %s address\n", argv[0]);
+	if (argc != 3) {
+		fprintf(stderr, "usage:  %s flagfile address\n", argv[0]);
 		exit(-1);
 	}
 
 	for (i = 0; i < 32; i++) {
 		signal(i, handler);
 	}
-
 
 	s = socket(AF_UNIX, SOCK_STREAM, 0);
 	if (s < 0) {
@@ -44,7 +44,7 @@ int main(int argc, char **argv)
 
 	sun.sun_family = AF_UNIX;
 	sunlen = sizeof(struct sockaddr_un);
-	strcpy(sun.sun_path, argv[1]);
+	strcpy(sun.sun_path, argv[2]);
 	sunlen = strlen(sun.sun_path) + 1 + sizeof(short);
 	strcpy(my_path, sun.sun_path);
 	ret = bind(s, (struct sockaddr *)&sun, sunlen);
@@ -58,6 +58,14 @@ int main(int argc, char **argv)
 		perror("listen");
 		CLEANUP_AND_EXIT;
 	}
+
+	f = fopen(argv[1], "w");
+	if (!f) {
+		perror("Flag file open");
+		CLEANUP_AND_EXIT;
+	}
+	fprintf(f, "listening\n");
+	fclose(f);
 
 	while (1) {
 		sunlen = sizeof(struct sockaddr_un);
