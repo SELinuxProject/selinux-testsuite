@@ -45,8 +45,9 @@ static int shm_size = 32;
 static void usage(char *progname)
 {
 	fprintf(stderr,
-		"usage:  %s [-r replies] [-v] manager | provider\n"
+		"usage:  %s [-f file] [-r replies] [-v] manager | provider\n"
 		"Where:\n\t"
+		"-f       Write a line to the file when listening starts.\n\t"
 		"-r       Number of replies to expect from test - default 0.\n\t"
 		"-v       Print context and command information.\n\t"
 		"manager  Act as Service Manager.\n\t"
@@ -490,6 +491,7 @@ int main(int argc, char **argv)
 	pid_t pid;
 	char *driver = "/dev/binder";
 	char *context;
+	char *flag_file = NULL;
 	void *map_base;
 	size_t map_size = 1024 * 8;
 	struct binder_write_read bwr;
@@ -503,8 +505,11 @@ int main(int argc, char **argv)
 
 	verbose = false;
 
-	while ((opt = getopt(argc, argv, "vr:")) != -1) {
+	while ((opt = getopt(argc, argv, "f:vr:")) != -1) {
 		switch (opt) {
+		case 'f':
+			flag_file = optarg;
+			break;
 		case 'v':
 			verbose = true;
 			break;
@@ -587,6 +592,17 @@ int main(int argc, char **argv)
 				strerror(errno));
 			result = 5;
 			goto brexit;
+		}
+
+		if (flag_file) {
+			FILE *f = fopen(flag_file, "w");
+			if (!f) {
+				perror("Flag file open");
+				result = 9;
+				goto brexit;
+			}
+			fprintf(f, "listening\n");
+			fclose(f);
 		}
 
 		while (true) {

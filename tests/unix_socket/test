@@ -10,13 +10,30 @@ $basedir =~ s|(.*)/[^/]*|$1|;
 # Tests for sockets in the abstract namespace.
 #
 
-# Start the stream server.
-if ( ( $pid = fork() ) == 0 ) {
-    exec
-      "runcon -t test_unix_server_t $basedir/server -a stream test_server_sock";
+sub server_start {
+    my ( $runcon_args, $args ) = @_;
+    my $pid;
+
+    system("mkfifo $basedir/flag");
+
+    if ( ( $pid = fork() ) == 0 ) {
+        exec "runcon $runcon_args $basedir/server -f $basedir/flag $args";
+    }
+
+    # Wait for it to initialize.
+    system("cat $basedir/flag >/dev/null");
+    return $pid;
 }
 
-sleep 1;    # Give it a moment to initialize.
+sub server_end {
+    my ($pid) = @_;
+
+    kill KILL, $pid;
+    system("rm -f $basedir/flag");
+}
+
+# Start the stream server.
+$pid = server_start( "-t test_unix_server_t", "-a stream test_server_sock" );
 
 # Verify that stream client can connectto server.
 $result = system
@@ -29,15 +46,10 @@ $result = system
 ok($result);
 
 # Kill the server.
-kill TERM, $pid;
+server_end($pid);
 
 # Start the dgram server.
-if ( ( $pid = fork() ) == 0 ) {
-    exec
-      "runcon -t test_unix_server_t $basedir/server -a dgram test_server_sock";
-}
-
-sleep 1;    # Give it a moment to initialize
+$pid = server_start( "-t test_unix_server_t", "-a dgram test_server_sock" );
 
 # Verify that dgram client can sendto server.
 $result = system
@@ -50,19 +62,15 @@ $result = system
 ok($result);
 
 # Kill the server.
-kill TERM, $pid;
+server_end($pid);
 
 #
 # Tests for sockets in the file namespace.
 #
 
 # Start the stream server.
-if ( ( $pid = fork() ) == 0 ) {
-    exec
-"runcon -t test_unix_server_t $basedir/server stream $basedir/test_server_sock";
-}
-
-sleep 1;    # Give it a moment to initialize.
+$pid =
+  server_start( "-t test_unix_server_t", "stream $basedir/test_server_sock" );
 
 # Verify that stream client can connectto server.
 $result = system
@@ -75,15 +83,11 @@ $result = system
 ok($result);
 
 # Kill the server.
-kill TERM, $pid;
+server_end($pid);
 
 # Start the dgram server.
-if ( ( $pid = fork() ) == 0 ) {
-    exec
-"runcon -t test_unix_server_t $basedir/server dgram $basedir/test_server_sock";
-}
-
-sleep 1;    # Give it a moment to initialize
+$pid =
+  server_start( "-t test_unix_server_t", "dgram $basedir/test_server_sock" );
 
 # Verify that dgram client can sendto server.
 $result = system
@@ -96,7 +100,7 @@ $result = system
 ok($result);
 
 # Kill the server.
-kill TERM, $pid;
+server_end($pid);
 
 # Clean up.
 system "rm -f $basedir/test_client_sock $basedir/test_server_sock";

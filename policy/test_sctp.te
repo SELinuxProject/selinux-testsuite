@@ -33,6 +33,9 @@ allow sctp_assoc_peers sctp_assoc_peers:sctp_socket { association };
 corenet_sctp_bind_all_unreserved_ports(sctpsocketdomain)
 corenet_sctp_connect_all_unreserved_ports(sctpsocketdomain)
 
+# For writing to flag file:
+allow sctpsocketdomain test_file_t:fifo_file rw_file_perms;
+
 #
 ################################## Server ###################################
 #

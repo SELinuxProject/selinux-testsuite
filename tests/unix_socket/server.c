@@ -18,14 +18,15 @@
 
 void usage(char *progname)
 {
-	fprintf(stderr, "usage:  %s [-a] [stream|dgram] socket-name\n", progname);
+	fprintf(stderr,
+		"usage:  %s [-a] [-f file] [stream|dgram] socket-name\n",
+		progname);
 	exit(1);
 }
 
 static const int on = 1;
 
-int
-main(int argc, char **argv)
+int main(int argc, char **argv)
 {
 	int sock;
 	int result;
@@ -35,11 +36,16 @@ main(int argc, char **argv)
 	char byte;
 	int opt;
 	bool abstract = false;
+	char *flag_file = NULL;
 
-	while ((opt = getopt(argc, argv, "a")) != -1) {
+
+	while ((opt = getopt(argc, argv, "af:")) != -1) {
 		switch (opt) {
 		case 'a':
 			abstract = true;
+			break;
+		case 'f':
+			flag_file = optarg;
 			break;
 		default:
 			usage(argv[0]);
@@ -96,7 +102,20 @@ main(int argc, char **argv)
 			close(sock);
 			exit(1);
 		}
+	}
 
+	if (flag_file) {
+		FILE *f = fopen(flag_file, "w");
+		if (!f) {
+			perror("Flag file open");
+			close(sock);
+			exit(1);
+		}
+		fprintf(f, "listening\n");
+		fclose(f);
+	}
+
+	if (type == SOCK_STREAM) {
 		do {
 			int newsock;
 			char peerlabel[256];

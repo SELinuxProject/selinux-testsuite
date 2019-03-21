@@ -21,8 +21,9 @@
 void usage(char *progname)
 {
 	fprintf(stderr,
-		"usage:  %s [-n] [stream|dgram] port\n"
+		"usage:  %s [-f file] [-n] [stream|dgram] port\n"
 		"\nWhere:\n\t"
+		"-f      Write a line to the file when listening starts.\n\t"
 		"-n      No peer context will be available therefore send\n\t"
 		"        \"nopeer\" message to client, otherwise the peer context\n\t"
 		"        will be retrieved and sent to client.\n\t"
@@ -40,9 +41,13 @@ int main(int argc, char **argv)
 	struct addrinfo hints, *res;
 	char byte;
 	bool nopeer = false;
+	char *flag_file = NULL;
 
-	while ((opt = getopt(argc, argv, "n")) != -1) {
+	while ((opt = getopt(argc, argv, "f:n")) != -1) {
 		switch (opt) {
+		case 'f':
+			flag_file = optarg;
+			break;
 		case 'n':
 			nopeer = true;
 			break;
@@ -111,7 +116,20 @@ int main(int argc, char **argv)
 			close(sock);
 			exit(1);
 		}
+	}
 
+	if (flag_file) {
+		FILE *f = fopen(flag_file, "w");
+		if (!f) {
+			perror("Flag file open");
+			close(sock);
+			exit(1);
+		}
+		fprintf(f, "listening\n");
+		fclose(f);
+	}
+
+	if (hints.ai_socktype == SOCK_STREAM) {
 		do {
 			int newsock;
 			char peerlabel[256];
