@@ -15,11 +15,14 @@ system("chcon -t test_fdreceive_file_t $basedir/test_file");
 system("chcon -t test_fdreceive_file2_t $basedir/test_file2");
 
 # Start server process in test_fdreceive_server_t.
+system("mkfifo $basedir/flag");
 if ( ( $pid = fork() ) == 0 ) {
-    exec "runcon -t test_fdreceive_server_t $basedir/server $basedir/test_sock";
+    exec
+"runcon -t test_fdreceive_server_t $basedir/server $basedir/flag $basedir/test_sock";
 }
 
-sleep 1;    # Give it a moment to initialize.
+# Wait for it to initialize.
+system("cat $basedir/flag >/dev/null");
 
 # Verify that test_fdreceive_server_t can receive a rw fd to the test_file
 # from test_fdreceive_client_t.
@@ -41,9 +44,10 @@ $result = system
 ok($result);
 
 # Kill the server.
-kill TERM, $pid;
+kill KILL, $pid;
 
-# Cleanup.
-system("rm -rf $basedir/test_file $basedir/test_file2 $basedir/test_sock");
+# Clean up.
+system
+"rm -rf $basedir/test_file $basedir/test_file2 $basedir/test_sock $basedir/flag";
 
 exit;

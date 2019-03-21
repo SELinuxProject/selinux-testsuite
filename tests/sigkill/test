@@ -7,11 +7,13 @@ $basedir = $0;
 $basedir =~ s|(.*)/[^/]*|$1|;
 
 # Start the process that will receive the signal.
+system("mkfifo $basedir/flag");
 if ( ( $pid = fork() ) == 0 ) {
-    exec "runcon -t test_kill_server_t $basedir/server";
+    exec "runcon -t test_kill_server_t $basedir/server $basedir/flag";
 }
 
-sleep 1;    # Give it a moment to initialize.
+# Wait for it to initialize.
+system("cat $basedir/flag >/dev/null");
 
 # Verify that test_kill_signal_t cannot send CHLD, STOP, or KILL to the server.
 $result = system "runcon -t test_kill_signal_t -- kill -s CHLD $pid 2>&1";
@@ -63,6 +65,9 @@ kill CONT, $pid;
 # Verify that test_kill_sigkill_t can send a KILL signal to the server.
 $result = system "runcon -t test_kill_sigkill_t -- kill -s KILL $pid 2>&1";
 ok( $result, 0 );
+
+# Clean up.
+system "rm -f $basedir/flag";
 
 # Bye.
 
