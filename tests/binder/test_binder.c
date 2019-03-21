@@ -326,6 +326,8 @@ static void extract_fd_and_respond(struct binder_transaction_data *txn_in,
 	} __attribute__((packed)) writebuf;
 	unsigned int readbuf[32];
 
+	memset(readbuf, 0, sizeof readbuf);
+
 	binder_size_t *offs = (binder_size_t *)
 			      (uintptr_t)txn_in->data.ptr.offsets;
 
@@ -587,6 +589,7 @@ int main(int argc, char **argv)
 		}
 
 		while (true) {
+			memset(readbuf, 0, sizeof readbuf);
 			bwr.read_size = sizeof(readbuf);
 			bwr.read_consumed = 0;
 			bwr.read_buffer = (uintptr_t)readbuf;
@@ -643,6 +646,7 @@ int main(int argc, char **argv)
 
 		/* Each test will expect a different number of replies */
 		while (provider_replies) {
+			memset(readbuf, 0, sizeof readbuf);
 			bwr.read_size = sizeof(readbuf);
 			bwr.read_consumed = 0;
 			bwr.read_buffer = (uintptr_t)readbuf;
