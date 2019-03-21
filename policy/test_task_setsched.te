@@ -10,8 +10,12 @@ attribute test_setsched_d;
 type test_setsched_target_t;
 domain_type(test_setsched_target_t)
 unconfined_runs_test(test_setsched_target_t)
+corecmd_shell_entry_type(test_setsched_target_t)
 typeattribute test_setsched_target_t test_setsched_d;
 typeattribute test_setsched_target_t testdomain;
+
+# For writing to flag file:
+allow test_setsched_target_t test_file_t:fifo_file rw_file_perms;
 
 # Domain that can change the target's priority and scheduling policy.
 type test_setsched_yes_t;

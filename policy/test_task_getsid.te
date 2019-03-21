@@ -9,8 +9,12 @@ attribute test_getsid_d;
 type test_getsid_target_t;
 domain_type(test_getsid_target_t)
 unconfined_runs_test(test_getsid_target_t)
+corecmd_shell_entry_type(test_getsid_target_t)
 typeattribute test_getsid_target_t test_getsid_d;
 typeattribute test_getsid_target_t testdomain;
+
+# For writing to flag file:
+allow test_getsid_target_t test_file_t:fifo_file rw_file_perms;
 
 # Domain that can get the target's session ID.
 type test_getsid_yes_t;

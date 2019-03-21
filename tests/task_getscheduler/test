@@ -7,11 +7,14 @@ $basedir = $0;
 $basedir =~ s|(.*)/[^/]*|$1|;
 
 # Start the target process.
+system("mkfifo $basedir/flag");
 if ( ( $pid = fork() ) == 0 ) {
-    exec "runcon -t test_getsched_target_t $basedir/target";
+    exec
+"runcon -t test_getsched_target_t sh -c 'echo >$basedir/flag; while :; do :; done'";
 }
 
-sleep 1;    # Give it a second to start
+# Wait for it to start.
+system("cat $basedir/flag >/dev/null");
 
 # Verify that test_getsched_yes_t can get the scheduling.
 # SCHED_OTHER	0	priority must == 0
@@ -26,5 +29,8 @@ ok($result);
 
 # Kill the target
 kill KILL, $pid;
+
+# Clean up.
+system "rm -f $basedir/flag";
 
 exit;
