@@ -7,11 +7,14 @@ $basedir = $0;
 $basedir =~ s|(.*)/[^/]*|$1|;
 
 # Start the process that will have its priority changed.
+system("mkfifo $basedir/flag");
 if ( ( $pid = fork() ) == 0 ) {
-    exec "runcon -t test_setsched_target_t $basedir/target";
+    exec
+"runcon -t test_setsched_target_t sh -c 'echo >$basedir/flag; while :; do :; done'";
 }
 
-sleep 1;    # Give it a second to start
+# Wait for it to start.
+system("cat $basedir/flag >/dev/null");
 
 # Verify that test_setsched_yes_t can change the priority up and down.
 $result = system "runcon -t test_setsched_yes_t -- renice +10 -p $pid 2>&1";
@@ -30,5 +33,8 @@ ok($result);
 
 # Kill the target
 kill KILL, $pid;
+
+# Clean up.
+system "rm -f $basedir/flag";
 
 exit;

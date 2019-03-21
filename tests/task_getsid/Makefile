@@ -1,4 +1,3 @@
-all: target source
+all: source
 clean:
-	rm -f target
 	rm -f source

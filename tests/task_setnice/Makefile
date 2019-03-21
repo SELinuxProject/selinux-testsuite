@@ -1,3 +1,2 @@
-all: target
+all:
 clean:
-	rm -f target

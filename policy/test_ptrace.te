@@ -25,8 +25,12 @@ allow test_ptrace_nottracer_t self:capability sys_ptrace;
 type test_ptrace_traced_t;
 domain_type(test_ptrace_traced_t)
 unconfined_runs_test(test_ptrace_traced_t)
+corecmd_shell_entry_type(test_ptrace_traced_t)
 typeattribute test_ptrace_traced_t ptracedomain;
 typeattribute test_ptrace_traced_t testdomain;
+
+# For writing to flag file:
+allow test_ptrace_traced_t test_file_t:fifo_file rw_file_perms;
 
 # Allow the tracer domain to trace the traced domain.
 allow test_ptrace_tracer_t test_ptrace_traced_t:process ptrace;

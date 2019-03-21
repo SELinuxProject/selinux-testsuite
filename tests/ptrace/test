@@ -6,15 +6,16 @@ BEGIN { plan tests => 2 }
 $basedir = $0;
 $basedir =~ s|(.*)/[^/]*|$1|;
 
-system "chmod +x $basedir/wait";
-
 # Start the process to be traced.
+system("mkfifo $basedir/flag");
 if ( ( $pid = fork() ) == 0 ) {
-    exec "runcon -t test_ptrace_traced_t $basedir/wait";
+    exec
+"runcon -t test_ptrace_traced_t sh -c 'echo >$basedir/flag; while :; do :; done'";
     exit;
 }
 
-sleep 1;    # Give the process a moment to initialize.
+# Wait for it to start.
+system("cat $basedir/flag >/dev/null");
 
 # Verify that the nottracer domain cannot attach to the process.
 # Should fail on the ptrace permission check.
@@ -27,5 +28,8 @@ ok( $result, 0 );
 
 # Kill the process.
 kill KILL, $pid;
+
+# Clean up.
+system "rm -f $basedir/flag";
 
 exit;

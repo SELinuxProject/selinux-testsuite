@@ -1,5 +1,0 @@
-#!/usr/bin/perl
-
-while () {
-    sleep 1;
-}
