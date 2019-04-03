@@ -1,126 +1,118 @@
-
 attribute binderdomain;
 
 #
-################################## Manager ###################################
+################################## Manager ##################################
 #
 type test_binder_mgr_t;
 domain_type(test_binder_mgr_t)
 unconfined_runs_test(test_binder_mgr_t)
 typeattribute test_binder_mgr_t testdomain;
 typeattribute test_binder_mgr_t binderdomain;
-allow test_binder_mgr_t self:binder { set_context_mgr call };
-allow test_binder_mgr_t test_binder_provider_t:binder call;
+allow test_binder_mgr_t test_binder_client_t:binder { transfer };
 allow test_binder_mgr_t device_t:chr_file { ioctl open read write };
 allow_map(test_binder_mgr_t, device_t, chr_file)
-allow test_binder_mgr_t self:capability { sys_nice };
-allow test_binder_provider_t test_binder_mgr_t:fd use;
-fs_getattr_tmpfs(test_binder_mgr_t)
-allow test_binder_mgr_t tmpfs_t:file { read write open };
-allow_map(test_binder_mgr_t, tmpfs_t, file)
-fs_manage_tmpfs_dirs(test_binder_mgr_t)
-fs_manage_tmpfs_files(test_binder_mgr_t)
-
+allow test_binder_mgr_t self:binder { set_context_mgr };
 # For writing to flag file:
 allow test_binder_mgr_t test_file_t:fifo_file rw_file_perms;
 
 #
-########################## Manager no fd {use} ###############################
-#
-type test_binder_mgr_no_fd_t;
-domain_type(test_binder_mgr_no_fd_t)
-unconfined_runs_test(test_binder_mgr_no_fd_t)
-typeattribute test_binder_mgr_no_fd_t testdomain;
-typeattribute test_binder_mgr_no_fd_t binderdomain;
-allow test_binder_mgr_no_fd_t self:binder { set_context_mgr call };
-allow test_binder_mgr_no_fd_t test_binder_provider_t:binder { call };
-allow test_binder_mgr_no_fd_t device_t:chr_file { ioctl open read write };
-allow_map(test_binder_mgr_no_fd_t, device_t, chr_file)
-allow test_binder_provider_t test_binder_mgr_no_fd_t:binder { call transfer impersonate };
-fs_getattr_tmpfs(test_binder_mgr_no_fd_t)
-allow test_binder_mgr_no_fd_t tmpfs_t:file { read write open };
-allow_map(test_binder_mgr_no_fd_t, tmpfs_t, file)
-fs_manage_tmpfs_dirs(test_binder_mgr_no_fd_t)
-fs_manage_tmpfs_files(test_binder_mgr_no_fd_t)
-
-# For writing to flag file:
-allow test_binder_mgr_no_fd_t test_file_t:fifo_file rw_file_perms;
-
-#
-########################## Service Provider ################################
+########################### Service Provider ################################
 #
 type test_binder_provider_t;
 domain_type(test_binder_provider_t)
 unconfined_runs_test(test_binder_provider_t)
 typeattribute test_binder_provider_t testdomain;
 typeattribute test_binder_provider_t binderdomain;
-allow test_binder_provider_t self:binder { call };
-allow test_binder_provider_t test_binder_mgr_t:binder { call transfer impersonate };
+allow test_binder_provider_t test_binder_mgr_t:binder { call transfer };
 allow test_binder_provider_t device_t:chr_file { ioctl open read write };
 allow_map(test_binder_provider_t, device_t, chr_file)
-# For fstat:
-allow test_binder_provider_t device_t:chr_file getattr;
-fs_getattr_tmpfs(test_binder_provider_t)
-allow test_binder_provider_t tmpfs_t:file { read write open };
-allow_map(test_binder_provider_t, tmpfs_t, file)
-fs_manage_tmpfs_dirs(test_binder_provider_t)
-fs_manage_tmpfs_files(test_binder_provider_t)
+# For writing to flag file:
+allow test_binder_provider_t test_file_t:fifo_file rw_file_perms;
 
 #
-#################### Service Provider no call ################################
-#
-type test_binder_provider_no_call_t;
-domain_type(test_binder_provider_no_call_t)
-unconfined_runs_test(test_binder_provider_no_call_t)
-typeattribute test_binder_provider_no_call_t testdomain;
-typeattribute test_binder_provider_no_call_t binderdomain;
-allow test_binder_provider_no_call_t device_t:chr_file { ioctl open read write };
-allow_map(test_binder_provider_no_call_t, device_t, chr_file)
-fs_getattr_tmpfs(test_binder_provider_no_call_t)
-allow test_binder_provider_no_call_t tmpfs_t:file { read write open };
-allow_map(test_binder_provider_no_call_t, tmpfs_t, file)
-fs_manage_tmpfs_dirs(test_binder_provider_no_call_t)
-fs_manage_tmpfs_files(test_binder_provider_no_call_t)
+#################### Service Provider no fd {use} ###########################
+# test 7
+type test_binder_provider_no_fd_t;
+domain_type(test_binder_provider_no_fd_t)
+unconfined_runs_test(test_binder_provider_no_fd_t)
+typeattribute test_binder_provider_no_fd_t testdomain;
+typeattribute test_binder_provider_no_fd_t binderdomain;
+allow test_binder_provider_no_fd_t test_binder_mgr_t:binder { call transfer };
+allow test_binder_client_t test_binder_provider_no_fd_t:binder { call impersonate };
+allow test_binder_provider_no_fd_t device_t:chr_file { ioctl open read write };
+allow_map(test_binder_provider_no_fd_t, device_t, chr_file)
+# For writing to flag file:
+allow test_binder_provider_no_fd_t test_file_t:fifo_file rw_file_perms;
 
 #
-#################### Service Provider no transfer #############################
+################################# Client ####################################
 #
-type test_binder_provider_no_transfer_t;
-domain_type(test_binder_provider_no_transfer_t)
-unconfined_runs_test(test_binder_provider_no_transfer_t)
-typeattribute test_binder_provider_no_transfer_t testdomain;
-typeattribute test_binder_provider_no_transfer_t binderdomain;
-allow test_binder_provider_no_transfer_t test_binder_mgr_t:binder { call };
-allow test_binder_provider_no_transfer_t device_t:chr_file { ioctl open read write };
-allow_map(test_binder_provider_no_transfer_t, device_t, chr_file)
-fs_getattr_tmpfs(test_binder_provider_no_transfer_t)
-allow test_binder_provider_no_transfer_t tmpfs_t:file { read write open };
-allow_map(test_binder_provider_no_transfer_t, tmpfs_t, file)
-fs_manage_tmpfs_dirs(test_binder_provider_no_transfer_t)
-fs_manage_tmpfs_files(test_binder_provider_no_transfer_t)
+type test_binder_client_t;
+domain_type(test_binder_client_t)
+unconfined_runs_test(test_binder_client_t)
+typeattribute test_binder_client_t testdomain;
+typeattribute test_binder_client_t binderdomain;
+allow test_binder_client_t test_binder_provider_t:binder { call impersonate };
+allow test_binder_client_t test_binder_mgr_t:binder { call };
+allow test_binder_client_t test_binder_provider_t:fd { use };
+allow test_binder_client_t device_t:chr_file { getattr ioctl open read write };
+allow_map(test_binder_client_t, device_t, chr_file)
 
 #
-#################### Service Provider no impersonate ##########################
+######################## Client No call Manager #############################
 #
-type test_binder_provider_no_im_t;
-domain_type(test_binder_provider_no_im_t)
-unconfined_runs_test(test_binder_provider_no_im_t)
-typeattribute test_binder_provider_no_im_t testdomain;
-typeattribute test_binder_provider_no_im_t binderdomain;
-allow test_binder_provider_no_im_t self:binder { call };
-allow test_binder_provider_no_im_t test_binder_mgr_t:binder { call transfer };
-allow test_binder_provider_no_im_t device_t:chr_file { ioctl open read write };
-allow_map(test_binder_provider_no_im_t, device_t, chr_file)
-allow test_binder_provider_no_im_t test_binder_mgr_t:fd use;
-allow test_binder_provider_no_im_t device_t:chr_file getattr;
-fs_getattr_tmpfs(test_binder_provider_no_im_t)
-allow test_binder_provider_no_im_t tmpfs_t:file { read write open };
-allow_map(test_binder_provider_no_im_t, tmpfs_t, file)
-fs_manage_tmpfs_dirs(test_binder_provider_no_im_t)
-fs_manage_tmpfs_files(test_binder_provider_no_im_t)
+type test_binder_client_no_call_mgr_t;
+domain_type(test_binder_client_no_call_mgr_t)
+unconfined_runs_test(test_binder_client_no_call_mgr_t)
+typeattribute test_binder_client_no_call_mgr_t testdomain;
+typeattribute test_binder_client_no_call_mgr_t binderdomain;
+allow test_binder_client_no_call_mgr_t test_binder_provider_t:binder { call impersonate };
+allow test_binder_client_no_call_mgr_t device_t:chr_file { getattr ioctl open read write };
+allow_map(test_binder_client_no_call_mgr_t, device_t, chr_file)
 
 #
-############ Allow these domains to be entered from sysadm domain ############
+################## Client No call Service Provider ##########################
+#
+type test_binder_client_no_call_sp_t;
+domain_type(test_binder_client_no_call_sp_t)
+unconfined_runs_test(test_binder_client_no_call_sp_t)
+typeattribute test_binder_client_no_call_sp_t testdomain;
+typeattribute test_binder_client_no_call_sp_t binderdomain;
+allow test_binder_mgr_t test_binder_client_no_call_sp_t:binder { transfer };
+allow test_binder_client_no_call_sp_t test_binder_mgr_t:binder { call };
+allow test_binder_client_no_call_sp_t device_t:chr_file { getattr ioctl open read write };
+allow_map(test_binder_client_no_call_sp_t, device_t, chr_file)
+
+#
+######################## Client No impersonate ##############################
+#
+type test_binder_client_no_im_t;
+domain_type(test_binder_client_no_im_t)
+unconfined_runs_test(test_binder_client_no_im_t)
+typeattribute test_binder_client_no_im_t testdomain;
+typeattribute test_binder_client_no_im_t binderdomain;
+allow test_binder_mgr_t test_binder_client_no_im_t:binder { transfer };
+allow test_binder_client_no_im_t test_binder_provider_t:binder { call };
+allow test_binder_client_no_im_t test_binder_mgr_t:binder { call };
+allow test_binder_client_no_im_t test_binder_provider_t:fd { use };
+allow test_binder_client_no_im_t device_t:chr_file { getattr ioctl open read write };
+allow_map(test_binder_client_no_im_t, device_t, chr_file)
+
+#
+########################## Client No transfer ###############################
+#
+type test_binder_client_no_transfer_t;
+domain_type(test_binder_client_no_transfer_t)
+unconfined_runs_test(test_binder_client_no_transfer_t)
+typeattribute test_binder_client_no_transfer_t testdomain;
+typeattribute test_binder_client_no_transfer_t binderdomain;
+allow test_binder_client_no_transfer_t test_binder_mgr_t:binder { call };
+allow test_binder_client_no_transfer_t test_binder_provider_t:binder { call impersonate };
+allow test_binder_client_no_transfer_t device_t:chr_file { getattr ioctl open read write };
+allow_map(test_binder_client_no_transfer_t, device_t, chr_file)
+
+#
+########### Allow these domains to be entered from sysadm domain ############
 #
 miscfiles_domain_entry_test_files(binderdomain)
 userdom_sysadm_entry_spec_domtrans_to(binderdomain)

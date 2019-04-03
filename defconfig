@@ -59,3 +59,6 @@ CONFIG_OVERLAY_FS=m
 CONFIG_ANDROID=y
 CONFIG_ANDROID_BINDER_DEVICES="binder"
 CONFIG_ANDROID_BINDER_IPC=y
+# This will configure the Dynamically Allocated Binder Devices added
+# to 5.0+ kernels:
+CONFIG_ANDROID_BINDERFS=y
