@@ -14,7 +14,7 @@ if ( ( $pid = fork() ) == 0 ) {
 }
 
 # Wait for it to start.
-system("cat $basedir/flag >/dev/null");
+system("read -t 5 <>$basedir/flag");
 
 $cgroup_cpu = "/sys/fs/cgroup/cpu/tasks";
 if ( -w $cgroup_cpu ) {

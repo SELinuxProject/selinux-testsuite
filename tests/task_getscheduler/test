@@ -14,7 +14,7 @@ if ( ( $pid = fork() ) == 0 ) {
 }
 
 # Wait for it to start.
-system("cat $basedir/flag >/dev/null");
+system("read -t 5 <>$basedir/flag");
 
 # Verify that test_getsched_yes_t can get the scheduling.
 # SCHED_OTHER	0	priority must == 0
