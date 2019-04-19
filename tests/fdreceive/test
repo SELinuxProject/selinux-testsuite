@@ -22,7 +22,7 @@ if ( ( $pid = fork() ) == 0 ) {
 }
 
 # Wait for it to initialize.
-system("cat $basedir/flag >/dev/null");
+system("read -t 5 <>$basedir/flag");
 
 # Verify that test_fdreceive_server_t can receive a rw fd to the test_file
 # from test_fdreceive_client_t.

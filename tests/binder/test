@@ -89,7 +89,7 @@ sub service_start {
     }
 
     # Wait for it to initialize.
-    system("cat $basedir/$flag >/dev/null");
+    system("read -t 5 <>$basedir/flag");
     return $pid;
 }
 

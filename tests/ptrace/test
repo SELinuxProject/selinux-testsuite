@@ -15,7 +15,7 @@ if ( ( $pid = fork() ) == 0 ) {
 }
 
 # Wait for it to start.
-system("cat $basedir/flag >/dev/null");
+system("read -t 5 <>$basedir/flag");
 
 # Verify that the nottracer domain cannot attach to the process.
 # Should fail on the ptrace permission check.

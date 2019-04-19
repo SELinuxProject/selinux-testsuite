@@ -14,7 +14,7 @@ if ( ( $pid = fork() ) == 0 ) {
 }
 
 # Wait for it to start.
-system("cat $basedir/flag >/dev/null");
+system("read -t 5 <>$basedir/flag");
 
 # Verify that test_getpgid_yes_t can get the target's process group ID.
 $result = system "runcon -t test_getpgid_yes_t -- $basedir/source $pid 2>&1";

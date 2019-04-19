@@ -14,7 +14,7 @@ if ( ( $pid = fork() ) == 0 ) {
 }
 
 # Wait for it to start.
-system("cat $basedir/flag >/dev/null");
+system("read -t 5 <>$basedir/flag");
 
 # Verify that test_setsched_yes_t can change the priority up and down.
 $result = system "runcon -t test_setsched_yes_t -- renice +10 -p $pid 2>&1";

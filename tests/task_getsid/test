@@ -14,7 +14,7 @@ if ( ( $pid = fork() ) == 0 ) {
 }
 
 # Wait for it to start.
-system("cat $basedir/flag >/dev/null");
+system("read -t 5 <>$basedir/flag");
 
 # Verify that test_getsid_yes_t can get the session ID.
 $result = system "runcon -t test_getsid_yes_t -- $basedir/source $pid 2>&1";
