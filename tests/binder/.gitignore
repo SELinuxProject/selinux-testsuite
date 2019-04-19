@@ -1,3 +1,5 @@
 check_binder
-test_binder
-thread
+check_binderfs
+manager
+service_provider
+client

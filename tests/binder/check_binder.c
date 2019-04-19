@@ -1,13 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <errno.h>
-#include <stdbool.h>
-#include <sys/mman.h>
-#include <sys/ioctl.h>
-#include <linux/android/binder.h>
+#include "binder_common.h"
 
 static void usage(char *progname)
 {
@@ -21,10 +12,8 @@ static void usage(char *progname)
 int main(int argc, char **argv)
 {
 	int opt, result, fd;
-	char *driver = "/dev/binder";
-	bool verbose;
 	void *mapped;
-	size_t mapsize = 1024;
+	size_t mapsize = BINDER_MMAP_SIZE;
 	struct binder_version vers;
 
 	while ((opt = getopt(argc, argv, "v")) != -1) {
@@ -37,14 +26,15 @@ int main(int argc, char **argv)
 		}
 	}
 
-	fd = open(driver, O_RDWR | O_CLOEXEC);
+	fd = open(BINDER_DEV, O_RDWR | O_CLOEXEC);
 	if (fd < 0) {
 		fprintf(stderr, "Cannot open: %s error: %s\n",
-			driver, strerror(errno));
-		exit(1);
+			BINDER_DEV, strerror(errno));
+		result = 1;
+		return result;
 	}
 
-	/* Need this or no VMA error from kernel */
+	/* Need this or 'no VMA error' from kernel */
 	mapped = mmap(NULL, mapsize, PROT_READ, MAP_PRIVATE, fd, 0);
 	if (mapped == MAP_FAILED) {
 		fprintf(stderr, "mmap error: %s\n", strerror(errno));
@@ -69,8 +59,7 @@ int main(int argc, char **argv)
 	}
 
 	if (verbose)
-		fprintf(stderr, "Binder kernel version: %d\n",
-			vers.protocol_version);
+		printf("Binder kernel version: %d\n", vers.protocol_version);
 
 brexit:
 	munmap(mapped, mapsize);

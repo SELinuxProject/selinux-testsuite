@@ -5,7 +5,11 @@ BEGIN {
     $basedir = $0;
     $basedir =~ s|(.*)/[^/]*|$1|;
 
-    # allow binder info to be shown
+    $test_count      = 0;
+    $test_binderfs   = 0;
+    $test_binder_ctx = 0;
+
+    # Allow binder info to be shown.
     $v = $ARGV[0];
     if ($v) {
         if ( $v ne "-v" ) {
@@ -17,10 +21,10 @@ BEGIN {
     }
 
     # check if binder driver available and kernel/userspace versions.
-    $result = system("$basedir/check_binder 2> /dev/null");
+    $result = system("$basedir/check_binder $v 2>/dev/null");
 
     if ( $result >> 8 eq 0 ) {
-        plan tests => 6;
+        $test_count += 7;
     }
     elsif ( $result >> 8 eq 1 ) {
         plan skip_all => "Binder not supported by kernel";
@@ -31,16 +35,57 @@ BEGIN {
     else {
         plan skip_all => "Error checking Binder driver";
     }
+
+    # Check if kernel may have "binder: Add thread->process_todo flag" patch.
+    # This has been backported to some earlier kernels.
+    # Patch available from: https://lore.kernel.org/patchwork/patch/851324/
+    $kvercur = `uname -r`;
+    chomp($kvercur);
+    $kverminstream = "4.16";
+    $result        = `$basedir/../kvercmp $kvercur $kverminstream`;
+    if ( $result < 0 ) {
+        print "This $kvercur kernel may fail some tests, if so may require\n";
+        print
+          "\"binder: Add thread->process_todo flag\" patch available from:\n";
+        print "https://lore.kernel.org/patchwork/patch/851324/\n";
+    }
+
+    # Check if kernel supports binderfs and return of security context.
+    $kverminstream = "5.0";
+    $result        = `$basedir/../kvercmp $kvercur $kverminstream`;
+
+    if ( $result > 0 ) {
+        $test_binder_ctx = 1;
+        $test_count += 1;
+        system("mkdir /dev/binderfs 2>/dev/null");
+        system(
+"mount -t binder binder /dev/binderfs -o context=system_u:object_r:device_t:s0 2>/dev/null"
+        );
+        $result = system("$basedir/check_binderfs $v 2>/dev/null");
+        if ( $result == 0 ) {
+            $test_binderfs = 1;
+            $test_count += 8;
+        }
+        elsif ( $result >> 8 eq 1 or $result >> 8 eq 2 ) {
+            print
+"Error BINDERFS: May require kernel \"CONFIG_ANDROID_BINDERFS=y\" or test rebuild.\n";
+            system("umount binder 2>/dev/null");
+            system("rmdir /dev/binderfs 2>/dev/null");
+        }
+    }
+
+    plan tests => $test_count;
 }
 
-sub manager_start {
-    my ( $runcon_args, $args ) = @_;
+sub service_start {
+    my ( $service, $runcon_args, $args ) = @_;
     my $pid;
+    my $flag = $service . "_flag";
 
-    system("mkfifo $basedir/flag");
+    system("mkfifo $basedir/$flag");
 
     if ( ( $pid = fork() ) == 0 ) {
-        exec "runcon $runcon_args $basedir/test_binder -f $basedir/flag $args";
+        exec "runcon $runcon_args $basedir/$service -f $basedir/$flag $args";
     }
 
     # Wait for it to initialize.
@@ -48,56 +93,180 @@ sub manager_start {
     return $pid;
 }
 
-sub manager_end {
-    my ($pid) = @_;
+sub service_end {
+    my ( $service, $pid ) = @_;
+    my $flag = $service . "_flag";
 
     kill KILL, $pid;
-    system("rm -f $basedir/flag");
+    system("rm -f $basedir/$flag");
 }
 
-$pid = manager_start( "-t test_binder_mgr_t", "$v manager" );
+$sm_pid = service_start( "manager", "-t test_binder_mgr_t", "$v" );
+$sp_pid =
+  service_start( "service_provider", "-t test_binder_provider_t", "$v" );
 
-# 1 Verify that authorized provider can transact with the manager.
-$result =
-  system
-  "runcon -t test_binder_provider_t $basedir/test_binder $v -r 1 provider";
+# 1 Verify that authorized client and service provider can communicate with the binder service manager.
+$result = system "runcon -t test_binder_client_t $basedir/client $v -c -r 3";
 ok( $result eq 0 );
 
-# 2 Verify that provider cannot call manager (no call perm).
-$result = system
-"runcon -t test_binder_provider_no_call_t $basedir/test_binder $v -r 2 provider 2>&1";
-ok( $result >> 8 eq 8 );
-
-# 3 Verify that provider cannot communicate with manager (no impersonate perm).
-$result = system
-"runcon -t test_binder_provider_no_im_t $basedir/test_binder $v -r 2 provider 2>&1";
-ok( $result >> 8 eq 103 );
-
-# 4 Verify that provider cannot communicate with manager (no transfer perm).
-$result = system
-"runcon -t test_binder_provider_no_transfer_t $basedir/test_binder $v -r 1 provider 2>&1";
-ok( $result >> 8 eq 8 );
-
-# Kill the manager.
-manager_end($pid);
-
-# 5 Verify that provider cannot become a manager (no set_context_mgr perm).
+# 2 Verify that client cannot call manager (no call perm).
 $result =
   system
-  "runcon -t test_binder_provider_t $basedir/test_binder $v manager 2>&1";
-ok( $result >> 8 eq 4 );
+  "runcon -t test_binder_client_no_call_mgr_t $basedir/client $v -r 1 2>&1";
+ok( $result >> 8 eq 125 );
 
-# Start manager to test that selinux_binder_transfer_file() fails when fd { use } is denied by policy.
-$pid = manager_start( "-t test_binder_mgr_no_fd_t", "$v manager" );
-
-# 6 Verify that authorized provider can communicate with the server, however the fd passed will not be valid for manager
-# domain and binder will return BR_FAILED_REPLY.
+# 3 Verify that client cannot call service provider (no call perm).
 $result =
   system
-  "runcon -t test_binder_provider_t $basedir/test_binder $v provider -r 2 2>&1";
-ok( $result >> 8 eq 8 );
+  "runcon -t test_binder_client_no_call_sp_t $basedir/client $v -r 2 2>&1";
+ok( $result >> 8 eq 141 );
 
-# Kill the manager
-manager_end($pid);
+# 4 Verify that client cannot communicate with service provider (no impersonate perm).
+$result =
+  system "runcon -t test_binder_client_no_im_t $basedir/client $v -r 2 2>&1";
+ok( $result >> 8 eq 133 );
+
+# 5 Verify that client cannot communicate with service provider (no transfer perm).
+$result =
+  system
+  "runcon -t test_binder_client_no_transfer_t $basedir/client $v -r 2 2>&1";
+ok( $result >> 8 eq 125 );
+
+# Kill the service provider & manager before next tests:
+service_end( "service_provider", $sp_pid );
+service_end( "manager",          $sm_pid );
+
+# 6 Verify that provider domain cannot become a manager (no set_context_mgr perm).
+$result = system "runcon -t test_binder_provider_t $basedir/manager $v 2>&1";
+ok( $result >> 8 eq 14 );
+
+# 7 Test that selinux_binder_transfer_file() fails when fd { use } is denied by policy.
+#   Note that this test requires the Reference Policy boolean "allow_domain_fd_use" set to FALSE.
+#   (setsebool allow_domain_fd_use=0)
+# 7a Start Manager
+$sm_pid = service_start( "manager", "-t test_binder_mgr_t", "$v" );
+
+# 7b Start Service Provider
+$sp_pid =
+  service_start( "service_provider", "-t test_binder_provider_no_fd_t", "$v" );
+
+# 7c Verify that authorized client can communicate with the service provider, however the sp's binder fd passed
+#    to the client will not be valid for service provider domain and binder will return BR_FAILED_REPLY.
+$result = system "runcon -t test_binder_client_t $basedir/client $v -r2 2>&1";
+ok( $result >> 8 eq 141 );
+
+# Kill the service provider & manager
+service_end( "service_provider", $sp_pid );
+service_end( "manager",          $sm_pid );
+
+if ($test_binder_ctx) {
+    #### Binder return security context test ######################
+    #
+    $sm_pid = service_start( "manager", "-t test_binder_mgr_t", "$v" );
+    $sp_pid = service_start(
+        "service_provider",
+        "-t test_binder_provider_t",
+        "$v -e unconfined_u:unconfined_r:test_binder_client_t:s0-s0:c0.c1023"
+    );
+
+# 8 Verify that authorized client and service provider can communicate with the binder service manager.
+#   Also check that the service provider can receive the Clients security context.
+    $result =
+      system "runcon -t test_binder_client_t $basedir/client $v -c -r 3";
+    ok( $result eq 0 );
+
+    # Kill the service provider & manager.
+    service_end( "service_provider", $sp_pid );
+    service_end( "manager",          $sm_pid );
+}
+
+if ($test_binderfs) {
+    #### Linux 5.0+ Test binder 'Dynamically Allocated Binder Devices'.
+    $sm_pid = service_start( "manager", "-t test_binder_mgr_t", "$v -n" );
+    $sp_pid =
+      service_start( "service_provider", "-t test_binder_provider_t", "$v -n" );
+
+# 9 Verify that authorized client and service provider can communicate with the binder service manager.
+    $result =
+      system "runcon -t test_binder_client_t $basedir/client $v -n -c -r 3";
+    ok( $result eq 0 );
+
+    # 10 Verify that client cannot call manager (no call perm).
+    $result =
+      system
+"runcon -t test_binder_client_no_call_mgr_t $basedir/client $v -n -r 1 2>&1";
+    ok( $result >> 8 eq 125 );
+
+    # 11 Verify that client cannot call service provider (no call perm).
+    $result =
+      system
+"runcon -t test_binder_client_no_call_sp_t $basedir/client $v -n -r 2 2>&1";
+    ok( $result >> 8 eq 141 );
+
+# 12 Verify that client cannot communicate with service provider (no impersonate perm).
+    $result =
+      system
+      "runcon -t test_binder_client_no_im_t $basedir/client $v -n -r 2 2>&1";
+    ok( $result >> 8 eq 133 );
+
+# 13 Verify that client cannot communicate with service provider (no transfer perm).
+    $result =
+      system
+"runcon -t test_binder_client_no_transfer_t $basedir/client $v -n -r 2 2>&1";
+    ok( $result >> 8 eq 125 );
+
+    # Kill the service provider & manager before next tests:
+    service_end( "service_provider", $sp_pid );
+    service_end( "manager",          $sm_pid );
+
+# 14 Verify that provider domain cannot become a manager (no set_context_mgr perm).
+    $result =
+      system "runcon -t test_binder_provider_t $basedir/manager $v -n 2>&1";
+    ok( $result >> 8 eq 14 );
+
+# 15 Test that selinux_binder_transfer_file() fails when fd { use } is denied by policy.
+#    Note that this test requires the Reference Policy boolean "allow_domain_fd_use" set to FALSE.
+#    (setsebool allow_domain_fd_use=0)
+# 15a Start Manager
+    $sm_pid = service_start( "manager", "-t test_binder_mgr_t", "$v -n" );
+
+    # 15b Start Service Provider
+    $sp_pid =
+      service_start( "service_provider", "-t test_binder_provider_no_fd_t",
+        "$v -n" );
+
+# 15c Verify that authorized client can communicate with the service provider, however the sp's binder fd passed
+#    to the client will not be valid for service provider domain and binder will return BR_FAILED_REPLY.
+    $result =
+      system "runcon -t test_binder_client_t $basedir/client $v -n -r2 2>&1";
+    ok( $result >> 8 eq 141 );
+
+    # Kill the service provider & manager
+    service_end( "service_provider", $sp_pid );
+    service_end( "manager",          $sm_pid );
+
+    #### Binder return security context test #########################
+    #
+    $sm_pid = service_start( "manager", "-t test_binder_mgr_t", "$v -n" );
+    $sp_pid = service_start(
+        "service_provider",
+        "-t test_binder_provider_t",
+        "$v -n -e unconfined_u:unconfined_r:test_binder_client_t:s0-s0:c0.c1023"
+    );
+
+# 16 Verify that authorized client and service provider can communicate with the binder service manager.
+#    Also check that the service provider can receive the Clients security context.
+    $result =
+      system "runcon -t test_binder_client_t $basedir/client $v -n -c -r 3";
+    ok( $result eq 0 );
+
+    # Kill the service provider & manager.
+    service_end( "service_provider", $sp_pid );
+    service_end( "manager",          $sm_pid );
+
+    # Cleanup binderfs stuff.
+    system("umount binder 2>/dev/null");
+    system("rmdir /dev/binderfs 2>/dev/null");
+}
 
 exit;
