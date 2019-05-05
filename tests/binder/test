@@ -98,6 +98,7 @@ sub service_end {
     my $flag = $service . "_flag";
 
     kill KILL, $pid;
+    waitpid $pid, 0;
     system("rm -f $basedir/$flag");
 }
 

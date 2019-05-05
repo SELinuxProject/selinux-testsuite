@@ -29,6 +29,7 @@ sub server_end {
     my ($pid) = @_;
 
     kill KILL, $pid;
+    waitpid $pid, 0;
     system("rm -f $basedir/flag");
 }
 
