@@ -1,18 +1,38 @@
 #!/usr/bin/perl
 
-use Test;
-BEGIN { plan tests => 2 }
+use Test::More;
 
+my ( $cgroup_dir, $cgroup_file );
+
+BEGIN {
+    if ( -d "/sys/fs/cgroup/unified" ) {
+
+        # Cgroupfs v2 + v1, use v2.
+        $cgroup_dir  = "/sys/fs/cgroup/unified";
+        $cgroup_file = "cgroup.type";
+        plan tests => 2;
+    }
+    elsif ( -d "/sys/fs/cgroup/devices" ) {
+
+        # Cgroupfs v1 only.
+        $cgroup_dir  = "/sys/fs/cgroup/devices";
+        $cgroup_file = "cgroup.procs";
+        plan tests => 2;
+    }
+    elsif ( -d "/sys/fs/cgroup" ) {
+
+        # Assume cgroupfs v2 only.
+        $cgroup_dir  = "/sys/fs/cgroup";
+        $cgroup_file = "cgroup.type";
+        plan tests => 2;
+    }
+    else {
+        plan skip_all => "No cgroupfs mount detected";
+    }
+}
+
+my $dir = "$cgroup_dir/selinuxtest";
 my $ret;
-
-# Older systems use /sys/fs/cgroup/unified, newer use /sys/fs/cgroup.
-my $dir;
-if ( -d "/sys/fs/cgroup/unified" ) {
-    $dir = "/sys/fs/cgroup/unified/selinuxtest";
-}
-else {
-    $dir = "/sys/fs/cgroup/selinuxtest";
-}
 
 # Create a new cgroupfs directory and relabel it.
 mkdir("$dir");
@@ -22,10 +42,11 @@ system("chcon -R -t test_cgroup_t $dir");
 mkdir("$dir/subdir");
 
 $ret = system("secon -tf $dir/subdir | grep -q '^test_cgroup_t\$'");
-ok( $ret, 0 );    # Did the subdirectory inherit the parent's label?
+ok( $ret eq 0 );    # Did the subdirectory inherit the parent's label?
 
-$ret = system("secon -tf $dir/subdir/cgroup.type | grep -q '^test_cgroup_t\$'");
-ok( $ret, 0 );    # Did also files in the subdirectory inherit the label?
+$ret =
+  system("secon -tf $dir/subdir/$cgroup_file | grep -q '^test_cgroup_t\$'");
+ok( $ret eq 0 );    # Did also files in the subdirectory inherit the label?
 
 # Cleanup.
 rmdir("$dir/subdir");
