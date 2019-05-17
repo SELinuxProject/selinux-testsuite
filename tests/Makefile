@@ -11,8 +11,7 @@ SUBDIRS:= domain_trans entrypoint execshare exectrace execute_no_trans \
 	task_setnice task_setscheduler task_getscheduler task_getsid \
 	task_getpgid task_setpgid file ioctl capable_file capable_net \
 	capable_sys dyntrans dyntrace bounds nnp_nosuid mmap unix_socket \
-	inet_socket overlay checkreqprot mqueue mac_admin atsecure \
-	cgroupfs_label
+	inet_socket overlay checkreqprot mqueue mac_admin atsecure
 
 ifeq ($(shell grep -q cap_userns $(POLDEV)/include/support/all_perms.spt && echo true),true)
 ifneq ($(shell ./kvercmp $$(uname -r) 4.7),-1)
@@ -48,6 +47,10 @@ endif
 
 ifeq ($(shell grep "^SELINUX_INFINIBAND_PKEY_TEST=" infiniband_pkey/ibpkey_test.conf | cut -d'=' -f 2),1)
 SUBDIRS += infiniband_pkey
+endif
+
+ifneq ($(shell ./kvercmp $$(uname -r) 5.2),-1)
+SUBDIRS += cgroupfs_label
 endif
 
 ifeq ($(DISTRO),RHEL4)
