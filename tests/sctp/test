@@ -33,8 +33,8 @@ BEGIN {
         for my $line ( split /\n/, $ipaddress_list ) {
             if ( $line =~ /inet ([^ \/]+)/ && $count < 2 ) {
                 $ipaddress[$count] = $1;
+                $count++;
             }
-            $count++;
         }
 
         if ( $ipaddress[1] ne 0 ) {
