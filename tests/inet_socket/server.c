@@ -39,12 +39,16 @@ int main(int argc, char **argv)
 	socklen_t sinlen;
 	struct sockaddr_storage sin;
 	struct addrinfo hints, *res;
+	sa_family_t family = AF_INET;
 	char byte;
 	bool nopeer = false;
 	char *flag_file = NULL;
 
-	while ((opt = getopt(argc, argv, "f:n")) != -1) {
+	while ((opt = getopt(argc, argv, "6f:n")) != -1) {
 		switch (opt) {
+		case '6':
+			family = AF_INET6;
+			break;
 		case 'f':
 			flag_file = optarg;
 			break;
@@ -61,7 +65,7 @@ int main(int argc, char **argv)
 
 	memset(&hints, 0, sizeof(struct addrinfo));
 	hints.ai_flags = AI_PASSIVE;
-	hints.ai_family = AF_INET6;
+	hints.ai_family = family;
 
 	if (!strcmp(argv[optind], "stream")) {
 		hints.ai_socktype = SOCK_STREAM;
