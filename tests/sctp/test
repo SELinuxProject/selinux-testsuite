@@ -46,12 +46,8 @@ BEGIN {
         $test_calipso = 0;
         $netlabelctl  = `netlabelctl -V`;
         $netlabelctl =~ s/\D//g;
-        $kvercur = `uname -r`;
-        chomp($kvercur);
-        $kvermincalipso = "4.8";
 
-        $rc = `$basedir/../kvercmp $kvercur $kvermincalipso`;
-        if ( $netlabelctl gt "021" && $rc > 0 ) {
+        if ( $netlabelctl gt "021" && system("$basedir/../kver_ge 4.8") eq 0 ) {
             $test_count += 13;
             $test_calipso = 1;
         }

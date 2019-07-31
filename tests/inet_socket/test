@@ -17,12 +17,8 @@ BEGIN {
     $test_calipso_stream = 0;
     $netlabelctl         = `netlabelctl -V`;
     $netlabelctl =~ s/\D//g;
-    $kvercur = `uname -r`;
-    chomp($kvercur);
-    $kverminstream = "4.8";
 
-    $rc = `$basedir/../kvercmp $kvercur $kverminstream`;
-    if ( $netlabelctl gt "021" and $rc > 0 ) {
+    if ( $netlabelctl gt "021" and system("$basedir/../kver_ge 4.8") eq 0 ) {
         $test_count += 3;
         $test_calipso_stream = 1;
     }

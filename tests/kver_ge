@@ -1,0 +1,7 @@
+#!/bin/bash
+
+function version_le() {
+    { echo "$1"; echo "$2"; } | sort -V | tail -n 1 | grep -qx "$2"
+}
+
+version_le "$1" "$(uname -r)"

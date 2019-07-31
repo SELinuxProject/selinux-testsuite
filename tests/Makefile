@@ -15,7 +15,7 @@ SUBDIRS:= domain_trans entrypoint execshare exectrace execute_no_trans \
 	cgroupfs_label
 
 ifeq ($(shell grep -q cap_userns $(POLDEV)/include/support/all_perms.spt && echo true),true)
-ifneq ($(shell ./kvercmp $$(uname -r) 4.7),-1)
+ifeq ($(shell ./kver_ge 4.7 && echo true),true)
 SUBDIRS += cap_userns
 endif
 endif
@@ -25,7 +25,7 @@ SUBDIRS += extended_socket_class
 endif
 
 ifeq ($(shell grep -q corenet_sctp_bind_all_nodes $(POLDEV)/include/kernel/corenetwork.if && grep -q 1 /sys/fs/selinux/policy_capabilities/extended_socket_class && echo true),true)
-ifneq ($(shell ./kvercmp $$(uname -r) 4.20.17),-1)
+ifeq ($(shell ./kver_ge 4.20.17 && echo true),true)
 SUBDIRS += sctp
 endif
 endif

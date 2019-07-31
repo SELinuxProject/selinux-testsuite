@@ -39,11 +39,7 @@ BEGIN {
     # Check if kernel may have "binder: Add thread->process_todo flag" patch.
     # This has been backported to some earlier kernels.
     # Patch available from: https://lore.kernel.org/patchwork/patch/851324/
-    $kvercur = `uname -r`;
-    chomp($kvercur);
-    $kverminstream = "4.16";
-    $result        = `$basedir/../kvercmp $kvercur $kverminstream`;
-    if ( $result < 0 ) {
+    if ( system("$basedir/../kver_ge 4.16") ne 0 ) {
         print "This $kvercur kernel may fail some tests, if so may require\n";
         print
           "\"binder: Add thread->process_todo flag\" patch available from:\n";
@@ -51,10 +47,7 @@ BEGIN {
     }
 
     # Check if kernel supports binderfs and return of security context.
-    $kverminstream = "5.0";
-    $result        = `$basedir/../kvercmp $kvercur $kverminstream`;
-
-    if ( $result > 0 ) {
+    if ( system("$basedir/../kver_ge 5.0") eq 0 ) {
         $test_binder_ctx = 1;
         $test_count += 1;
         system("mkdir /dev/binderfs 2>/dev/null");
