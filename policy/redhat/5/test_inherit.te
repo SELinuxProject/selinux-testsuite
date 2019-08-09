@@ -43,7 +43,7 @@ userdom_sysadm_entry_spec_domtrans_to(inheritdomain)
 allow test_inherit_parent_t test_inherit_file_t:file rw_file_perms;
 
 # Grant the necessary permissions for the child domain.
-domain_trans(test_inherit_parent_t, test_file_t, test_inherit_child_t)
+domain_transition_pattern(test_inherit_parent_t, test_file_t, test_inherit_child_t)
 allow test_inherit_parent_t test_inherit_child_t:fd use;
 allow test_inherit_child_t test_inherit_parent_t:fd use;
 allow test_inherit_child_t test_inherit_parent_t:fifo_file rw_file_perms;
@@ -56,7 +56,7 @@ allow test_inherit_nouse_t test_file_t:file { read getattr execute entrypoint };
 allow test_inherit_nouse_t test_inherit_file_t:file rw_file_perms;
 
 # Grant the nowrite domain all of the same permissions except for file write.
-domain_trans(test_inherit_parent_t, test_file_t, test_inherit_nowrite_t)
+domain_transition_pattern(test_inherit_parent_t, test_file_t, test_inherit_nowrite_t)
 allow test_inherit_parent_t test_inherit_nowrite_t:fd use;
 allow test_inherit_nowrite_t test_inherit_parent_t:fd use;
 allow test_inherit_nowrite_t test_inherit_parent_t:fifo_file rw_file_perms;

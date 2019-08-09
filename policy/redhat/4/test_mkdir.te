@@ -34,5 +34,5 @@ allow test_nocreate_t test_mkdir_dir_t:dir { search getattr write add_name };
 allow test_nocreate_t test_create_dir_t:dir { search getattr };
 
 # Allow all of these domains to be entered from sysadm domain
-domain_trans(sysadm_t, bin_t, test_mkdir_domain)
+domain_transition_pattern(sysadm_t, bin_t, test_mkdir_domain)
 

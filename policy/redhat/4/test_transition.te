@@ -13,8 +13,8 @@ type test_transition_notfromdomain_t, domain, transitiondomain, testdomain;
 type test_transition_todomain_t, domain, transitiondomain, testdomain;
 
 # Allow the fromdomain to transition to the new domain.
-domain_trans(test_transition_fromdomain_t,bin_t,test_transition_todomain_t)
+domain_transition_pattern(test_transition_fromdomain_t,bin_t,test_transition_todomain_t)
 
 # Allow all of these domains to be entered from the sysadm domain.
-domain_trans(sysadm_t, bin_t, transitiondomain)
+domain_transition_pattern(sysadm_t, bin_t, transitiondomain)
 

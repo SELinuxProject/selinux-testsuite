@@ -31,4 +31,4 @@ require {
 	type ls_exec_t;
 }
 domain_entry_file(test_rxdir_domain, ls_exec_t)
-domain_trans(sysadm_t, ls_exec_t, test_rxdir_domain)
+domain_transition_pattern(sysadm_t, ls_exec_t, test_rxdir_domain)

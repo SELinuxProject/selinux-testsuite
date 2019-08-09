@@ -22,7 +22,7 @@ allow test_ptrace_traced_t test_ptrace_tracer_t:process sigchld;
 
 # Allow all of these domains to be entered from the sysadm domains.
 # via a program in the test directory.
-domain_trans(sysadm_t, test_file_t, ptracedomain)
+domain_transition_pattern(sysadm_t, test_file_t, ptracedomain)
 
 
 
