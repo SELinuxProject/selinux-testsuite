@@ -53,7 +53,7 @@ sysadm_bin_spec_domtrans_to(capabledomain)
 require {
 	type ifconfig_exec_t;
 }
-domain_trans(sysadm_t, ifconfig_exec_t, capabledomain)
+domain_transition_pattern(sysadm_t, ifconfig_exec_t, capabledomain)
 domain_entry_file(capabledomain, ifconfig_exec_t)
 
 # Permissions for the good domain

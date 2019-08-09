@@ -23,6 +23,6 @@ allow test_norelabelto_t test_relabel_oldtype_t:file { getattr relabelfrom };
 allow test_norelabelto_t test_relabel_newtype_t:file { getattr };
 
 # Allow all of these domains to be entered from sysadm domain
-domain_trans(sysadm_t, bin_t, test_relabel_domain)
+domain_transition_pattern(sysadm_t, bin_t, test_relabel_domain)
 
 

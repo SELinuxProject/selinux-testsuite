@@ -38,8 +38,8 @@ libs_exec_lib_files(setnicedomain)
 # Allow all of these domains to be entered from sysadm domain
 # via a shell script in the test directory or by....
 miscfiles_domain_entry_test_files(setnicedomain)
-domain_trans(sysadm_t, test_file_t, setnicedomain)
-domain_trans(test_setnice_change_t, test_file_t, {test_setnice_set_t test_setnice_noset_t})
+domain_transition_pattern(sysadm_t, test_file_t, setnicedomain)
+domain_transition_pattern(test_setnice_change_t, test_file_t, {test_setnice_set_t test_setnice_noset_t})
 allow test_setnice_change_t test_setnice_set_t:fd use;
 allow test_setnice_set_t test_setnice_change_t:fd use;
 allow test_setnice_set_t test_setnice_change_t:fifo_file rw_file_perms;

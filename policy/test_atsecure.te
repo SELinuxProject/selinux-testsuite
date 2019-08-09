@@ -32,8 +32,8 @@ corecmd_bin_entry_type(atsecuredomain)
 corecmd_shell_entry_type(atsecuredomain)
 corecmd_exec_bin(atsecuredomain)
 domain_entry_file(test_atsecure_newdomain_t, test_file_t)
-domain_trans(test_atsecure_denied_t, test_file_t, test_atsecure_newdomain_t)
-domain_trans(test_atsecure_allowed_t, test_file_t, test_atsecure_newdomain_t)
+domain_transition_pattern(test_atsecure_denied_t, test_file_t, test_atsecure_newdomain_t)
+domain_transition_pattern(test_atsecure_allowed_t, test_file_t, test_atsecure_newdomain_t)
 allow test_atsecure_newdomain_t test_atsecure_denied_t:fd use;
 allow test_atsecure_newdomain_t test_atsecure_allowed_t:fd use;
 allow_map(atsecuredomain, test_file_t, file)
