@@ -5,7 +5,11 @@ BEGIN { plan tests => 2 }
 
 my $ret;
 
-my $dir = "/sys/fs/cgroup/selinuxtest";
+# Older systems use /sys/fs/cgroup/unified, newer use /sys/fs/cgroup.
+my $dir = "/sys/fs/cgroup/unified";
+if ( !-d $dir ) {
+    $dir = "/sys/fs/cgroup/selinuxtest";
+}
 
 # Create a new cgroupfs directory and relabel it.
 mkdir("$dir");
