@@ -37,7 +37,7 @@ BEGIN {
             }
         }
 
-        if ( $ipaddress[1] ne 0 ) {
+        if ( $ipaddress[1] ne 0 and $ipaddress[0] ne $ipaddress[1] ) {
             $test_count += 2;
             $test_asconf = 1;
         }
