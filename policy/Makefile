@@ -13,6 +13,7 @@ DISTRO=$(shell ../tests/os_detect)
 POL_VERS := $(shell $(CHECKPOLICY) -V |cut -f 1 -d ' ')
 MOD_POL_VERS := $(shell $(CHECKMODULE) -V |cut -f 2 -d '-')
 MAX_KERNEL_POLICY := $(shell cat $(SELINUXFS)/policyvers)
+POL_TYPE := $(shell ../tests/pol_detect $(SELINUXFS))
 
 TARGETS = \
 	test_global.te test_capable_file.te test_capable_net.te \
@@ -28,6 +29,16 @@ TARGETS = \
 	test_transition.te test_unix_socket.te \
 	test_mmap.te test_overlayfs.te test_mqueue.te \
 	test_ibpkey.te test_atsecure.te test_cgroupfs.te
+
+
+ifeq ($(shell [[ $(MAX_KERNEL_POLICY) -ge 32 && $(POL_VERS) -ge 32 ]] && echo true),true)
+# If other MLS tests get written this can be moved outside of the glblub test
+ifeq ($(POL_TYPE), MLS)
+CIL_TARGETS = test_glblub.cil
+else ifeq ($(POL_TYPE), MCS)
+CIL_TARGETS = test_add_levels.cil test_glblub.cil
+endif
+endif # GLBLUB
 
 ifeq ($(shell [ $(POL_VERS) -ge 24 ] && echo true),true)
 TARGETS += test_bounds.te test_nnp_nosuid.te
@@ -151,12 +162,12 @@ build: $(TARGETS)
 load: expand_check all
 	# General policy load
 	@-/usr/sbin/setsebool allow_domain_fd_use=0
-	$(SEMODULE) -i test_policy/test_policy.pp
+	$(SEMODULE) -i test_policy/test_policy.pp $(CIL_TARGETS)
 
 unload:
 	# General policy unload
 	@-/usr/sbin/setsebool allow_domain_fd_use=1
-	$(SEMODULE) -r test_policy
+	$(SEMODULE) -r test_policy $(subst .cil,,$(CIL_TARGETS))
 
 clean:
 	rm -rf test_policy tmp

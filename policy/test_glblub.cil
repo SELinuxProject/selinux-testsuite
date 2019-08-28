@@ -1,0 +1,4 @@
+(defaultrange db_table glblub)
+
+(class new_class_no_default_range (foobar))
+(classorder (unordered new_class_no_default_range))

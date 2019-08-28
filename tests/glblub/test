@@ -1,0 +1,66 @@
+#!/usr/bin/perl
+
+use Test;
+BEGIN { plan tests => 9 }
+
+$basedir = $0;
+$basedir =~ s|(.*)/[^/]*|$1|;
+
+sub run_test {
+    my ( $src, $tgt, $objclass, $res ) = @_;
+    my $con = "system_u:object_r:kernel_t";
+
+    my $result =
+      system("$basedir/default_range $con:$src $con:$tgt $objclass $con:$res");
+
+    ok( $result, 0 );
+}
+
+sub run_test_fail {
+    my ( $src, $tgt ) = @_;
+    my $con = "system_u:object_r:kernel_t";
+
+    my $result = system("$basedir/default_range $con:$src $con:$tgt db_table");
+
+    ok( $result >> 8, 3 );
+}
+
+# Verify glblub range_transition behavior
+run_test(
+    "s0:c0.c100-s10:c0.c150", "s5:c50.c100-s15:c0.c149",
+    "db_table",               "s5:c50.c100-s10:c0.c149"
+);
+
+run_test(
+    "s5:c50.c100-s15:c0.c149", "s0:c0.c100-s10:c0.c150",
+    "db_table",                "s5:c50.c100-s10:c0.c149"
+);
+
+run_test( "s0:c0.c100-s10:c0.c150", "s0", "db_table", "s0" );
+
+run_test(
+    "s5:c512.c550,c552.c1023-s5:c0.c550,c552.c1023",
+    "s5:c512.c550,c553.c1023-s5:c0,c1,c4,c5,c6,c512.c550,c553.c1023",
+    "db_table",
+    "s5:c512.c550,c553.c1023-s5:c0,c1,c4.c6,c512.c550,c553.c1023"
+);
+
+run_test( "s5:c50.c100-s15:c0.c149",
+    "s5:c512.c550,c552.c1023-s5:c0.c550,c552.c1023",
+    "db_table", "s5-s5:c0.c149" );
+
+# Verify incompatible contexts
+run_test_fail( "s5:c50.c100-s15:c0.c149", "s4-s4:c0.c1023" );
+
+run_test_fail( "s4-s4:c0.c1023", "s5:c50.c100-s15:c0.c149" );
+
+# Verify default (source-low) behavior
+run_test(
+    "s0:c0.c100-s10:c0.c150",     "s5:c50.c100-s15:c0.c149",
+    "new_class_no_default_range", "s0:c0.c100"
+);
+
+run_test(
+    "s5:c50.c100-s15:c0.c149",    "s0:c0.c100-s10:c0.c150",
+    "new_class_no_default_range", "s5:c50.c100"
+);
