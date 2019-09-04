@@ -6,8 +6,11 @@ BEGIN { plan tests => 2 }
 my $ret;
 
 # Older systems use /sys/fs/cgroup/unified, newer use /sys/fs/cgroup.
-my $dir = "/sys/fs/cgroup/unified";
-if ( !-d $dir ) {
+my $dir;
+if ( -d "/sys/fs/cgroup/unified" ) {
+    $dir = "/sys/fs/cgroup/unified/selinuxtest";
+}
+else {
     $dir = "/sys/fs/cgroup/selinuxtest";
 }
 
