@@ -54,8 +54,8 @@ allow domain tmpfs_t:file {read write};
 
 # Allow all of these domains to be entered from user domains.
 # via a shell script in the test directory or by another program.
-domain_transition_pattern(sysadm_t, test_file_t, ipcdomain)
-domain_transition_pattern(sysadm_t, bin_t, ipcdomain)
+domain_trans(sysadm_t, test_file_t, ipcdomain)
+domain_trans(sysadm_t, bin_t, ipcdomain)
 
 # Allow the user shell to read the /proc/PID entries for these domains.
 allow sysadm_t ipcdomain:dir r_dir_perms;

@@ -11,7 +11,7 @@ type test_nosysctl_t, domain, sysctldomain, testdomain;
 
 # Allow all of these domains to be entered from sysadm domain
 # via /sbin/sysctl.
-domain_transition_pattern(sysadm_t, sbin_t, sysctldomain)
+domain_trans(sysadm_t, sbin_t, sysctldomain)
 
 # Allow the first domain to perform sysctl operations.
 can_sysctl(test_sysctl_t)

@@ -35,5 +35,5 @@ allow test_create_no_t sysadm_tty_device_t:chr_file rw_file_perms;
 # Allow domain to be entered from the sysadm domain.
 role sysadm_r types test_create_d;
 role system_r types test_create_d;
-domain_transition_pattern(sysadm_t, test_file_t, test_create_d)
+domain_trans(sysadm_t, test_file_t, test_create_d)
 

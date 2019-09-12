@@ -15,7 +15,7 @@ type test_setsched_yes_t, domain, test_setsched_d, testdomain;
 type test_setsched_no_t, domain, test_setsched_d, testdomain;
 
 # Allow domain to be entered from the sysadm domain.
-domain_transition_pattern(sysadm_t, test_file_t, test_setsched_d)
+domain_trans(sysadm_t, test_file_t, test_setsched_d)
 
 # Allow these domains to execute renice.
 allow test_setsched_d bin_t:file rx_file_perms;

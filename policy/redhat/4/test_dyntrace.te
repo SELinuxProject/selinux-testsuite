@@ -15,7 +15,7 @@ type test_dyntrace_child_t, domain, dyntracedomain, testdomain;
 type test_dyntrace_notchild_t, domain, dyntracedomain, testdomain;
 
 # Allow all of these domains to be entered from the sysadm domain.
-domain_transition_pattern(sysadm_t, test_file_t, dyntracedomain)
+domain_trans(sysadm_t, test_file_t, dyntracedomain)
 can_exec(dyntracedomain, test_file_t)
 
 # Grant the necessary permissions for the child domain.

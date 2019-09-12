@@ -15,7 +15,7 @@ type test_getpgid_no_t, domain, test_getpgid_d, testdomain;
 
 
 # Allow domain to be entered from the sysadm domain
-domain_transition_pattern(sysadm_t, test_file_t, test_getpgid_d)
+domain_trans(sysadm_t, test_file_t, test_getpgid_d)
 
 # Give test_getpgid_yes_t the permission needed.
 allow test_getpgid_yes_t test_getpgid_target_t:process getpgid;

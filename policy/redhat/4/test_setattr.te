@@ -17,5 +17,5 @@ allow test_nosetattr_t self:capability chown;
 allow test_nosetattr_t test_setattr_file_t:file { getattr write };
 
 # Allow all of these domains to be entered from sysadm domain
-domain_transition_pattern(sysadm_t, bin_t, test_setattr_domain)
+domain_trans(sysadm_t, bin_t, test_setattr_domain)
 

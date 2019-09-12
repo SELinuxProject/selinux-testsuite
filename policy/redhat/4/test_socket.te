@@ -81,10 +81,10 @@ allow socketdomain test_file_t:sock_file rw_file_perms;
 
 # Allow all of these domains to be entered from user domains.
 # via a shell script in the test directory.
-domain_transition_pattern(sysadm_t, test_file_t, socketdomain)
+domain_trans(sysadm_t, test_file_t, socketdomain)
 
 # Also allow entry via some other programs.
-domain_transition_pattern(sysadm_t, bin_t, socketdomain)
+domain_trans(sysadm_t, bin_t, socketdomain)
 
 # Allow the user shell to read the /proc/PID entries for these domains.
 allow sysadm_t socketdomain:dir r_dir_perms;
