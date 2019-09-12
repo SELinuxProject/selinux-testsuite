@@ -15,7 +15,7 @@ type test_getsid_no_t, domain, test_getsid_d, testdomain;
 
 
 # Allow domain to be entered from the sysadm domain.
-domain_transition_pattern(sysadm_t, test_file_t, test_getsid_d)
+domain_trans(sysadm_t, test_file_t, test_getsid_d)
 
 # Give test_getsid_yes_t the permission needed.
 allow test_getsid_yes_t test_getsid_target_t:process getsession;

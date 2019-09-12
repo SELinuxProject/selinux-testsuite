@@ -13,5 +13,5 @@ type test_entrypoint_t, domain, testdomain;
 can_exec(test_entrypoint_t,bin_t)
 
 # Allow this domain to be entered via its entrypoint type.
-domain_transition_pattern(sysadm_t, test_entrypoint_execute_t, test_entrypoint_t)
+domain_trans(sysadm_t, test_entrypoint_execute_t, test_entrypoint_t)
 

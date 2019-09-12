@@ -15,7 +15,7 @@ type test_getsched_no_t, domain, test_getsched_d, testdomain;
 
 
 # Allow domain to be entered from the sysadm domain.
-domain_transition_pattern(sysadm_t, test_file_t, test_getsched_d)
+domain_trans(sysadm_t, test_file_t, test_getsched_d)
 
 # Give test_getsched_yes_t the permission needed.
 allow test_getsched_yes_t test_getsched_target_t:process getsched;

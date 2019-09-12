@@ -29,7 +29,7 @@ userdom_sysadm_entry_spec_domtrans_to(waitdomain)
 
 # Grant permissions for a domain transition from parent to child,
 # including the ability to wait on the child.
-domain_transition_pattern(test_wait_parent_t, test_file_t, test_wait_child_t)
+domain_trans(test_wait_parent_t, test_file_t, test_wait_child_t)
 allow test_wait_parent_t test_wait_child_t:fd use;
 allow test_wait_child_t test_wait_parent_t:fd use;
 allow test_wait_child_t test_wait_parent_t:fifo_file rw_file_perms;

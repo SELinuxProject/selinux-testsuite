@@ -45,5 +45,5 @@ allow test_nounlink2_t test_link_dir_t:dir { search getattr write };
 allow test_nounlink2_t test_link_file_t:file { getattr unlink };
 
 # Allow all of these domains to be entered from sysadm domain
-domain_transition_pattern(sysadm_t, bin_t, test_link_domain)
+domain_trans(sysadm_t, bin_t, test_link_domain)
 

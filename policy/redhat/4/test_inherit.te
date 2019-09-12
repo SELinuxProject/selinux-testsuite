@@ -21,13 +21,13 @@ type test_inherit_nouse_t, domain, inheritdomain, testdomain;
 type test_inherit_nowrite_t, domain, inheritdomain, testdomain;
 
 # Allow all of these domains to be entered from the sysadm domain.
-domain_transition_pattern(sysadm_t, test_file_t, inheritdomain)
+domain_trans(sysadm_t, test_file_t, inheritdomain)
 
 # Grant the necessary permissions for the parent domain.
 allow test_inherit_parent_t test_inherit_file_t:file rw_file_perms;
 
 # Grant the necessary permissions for the child domain.
-domain_transition_pattern(test_inherit_parent_t, test_file_t, test_inherit_child_t)
+domain_trans(test_inherit_parent_t, test_file_t, test_inherit_child_t)
 allow test_inherit_child_t test_inherit_file_t:file rw_file_perms;
 
 # Grant the nouse domain all of the same permissions except for fd use.
@@ -36,6 +36,6 @@ allow test_inherit_nouse_t test_file_t:file { read getattr execute entrypoint };
 allow test_inherit_nouse_t test_inherit_file_t:file rw_file_perms;
 
 # Grant the nowrite domain all of the same permissions except for file write.
-domain_transition_pattern(test_inherit_parent_t, test_file_t, test_inherit_nowrite_t)
+domain_trans(test_inherit_parent_t, test_file_t, test_inherit_nowrite_t)
 allow test_inherit_nowrite_t test_inherit_file_t:file r_file_perms;
 

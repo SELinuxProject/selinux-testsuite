@@ -19,5 +19,5 @@ type test_append_t, domain, test_open_domain, testdomain;
 allow test_append_t test_open_file_t:file { getattr append };
 
 # Allow all of these domains to be entered from sysadm domain
-domain_transition_pattern(sysadm_t, test_file_t, test_open_domain)
+domain_trans(sysadm_t, test_file_t, test_open_domain)
 

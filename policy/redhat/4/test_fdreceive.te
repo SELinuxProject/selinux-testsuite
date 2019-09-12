@@ -21,7 +21,7 @@ type test_fdreceive_client2_t, domain, fdreceivedomain, testdomain;
 type test_fdreceive_server_t, domain, fdreceivedomain, testdomain;
 
 # Allow all of these domains to be entered from the sysadm domain.
-domain_transition_pattern(sysadm_t, test_file_t, fdreceivedomain)
+domain_trans(sysadm_t, test_file_t, fdreceivedomain)
 
 # Grant the necessary permissions for the server domain.
 ## Create the Unix domain socket file.

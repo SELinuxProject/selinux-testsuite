@@ -14,5 +14,5 @@ allow test_stat_t test_stat_file_t:file getattr;
 type test_nostat_t, domain, test_stat_domain, testdomain;
 
 # Allow all of these domains to be entered from sysadm domain
-domain_transition_pattern(sysadm_t, ls_exec_t, test_stat_domain)
+domain_trans(sysadm_t, ls_exec_t, test_stat_domain)
 

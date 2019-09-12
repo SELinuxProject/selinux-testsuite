@@ -17,5 +17,5 @@ allow test_xdir_t test_rxdir_dir_t:dir { getattr search };
 allow test_xdir_t test_rxdir_dir_t:file { getattr };
 
 # Allow all of these domains to be entered from sysadm domain
-domain_transition_pattern(sysadm_t, ls_exec_t, test_rxdir_domain)
+domain_trans(sysadm_t, ls_exec_t, test_rxdir_domain)
 

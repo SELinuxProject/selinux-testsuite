@@ -28,13 +28,13 @@ type nofileop_ra_file_t, file_type, sysadmfile;
 can_exec_any(fileopdomain)
 
 # Allow all of these domains to be entered from sysadm domain
-domain_transition_pattern(sysadm_t, test_file_t, fileopdomain)
-domain_transition_pattern(sysadm_t, bin_t, fileopdomain)
-domain_transition_pattern(sysadm_t, sbin_t, fileopdomain)
-domain_transition_pattern(test_fileop_t, fileop_exec_t, fileop_t)
-domain_transition_pattern(test_nofileop_t, fileop_exec_t, fileop_t)
+domain_trans(sysadm_t, test_file_t, fileopdomain)
+domain_trans(sysadm_t, bin_t, fileopdomain)
+domain_trans(sysadm_t, sbin_t, fileopdomain)
+domain_auto_trans(test_fileop_t, fileop_exec_t, fileop_t)
+domain_auto_trans(test_nofileop_t, fileop_exec_t, fileop_t)
 ifdef(`fsadm.te', `
-domain_transition_pattern(sysadm_t, fsadm_exec_t, fileopdomain)
+domain_trans(sysadm_t, fsadm_exec_t, fileopdomain)
 ', `
 ')
 

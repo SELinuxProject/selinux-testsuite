@@ -67,13 +67,13 @@ corecmd_bin_entry_type(fileopdomain)
 sysadm_bin_spec_domtrans_to(fileopdomain)
 
 domain_entry_file(fileop_t, fileop_exec_t)
-domain_transition_pattern(test_fileop_t, fileop_exec_t, fileop_t)
+domain_auto_trans(test_fileop_t, fileop_exec_t, fileop_t)
 allow test_fileop_t fileop_t:fd use;
 allow fileop_t test_fileop_t:fd use;
 allow fileop_t test_fileop_t:fifo_file rw_file_perms;
 allow fileop_t test_fileop_t:process sigchld;
 
-domain_transition_pattern(test_nofileop_t, fileop_exec_t, fileop_t)
+domain_auto_trans(test_nofileop_t, fileop_exec_t, fileop_t)
 allow test_nofileop_t fileop_t:fd use;
 allow fileop_t test_nofileop_t:fd use;
 allow fileop_t test_nofileop_t:fifo_file rw_file_perms;

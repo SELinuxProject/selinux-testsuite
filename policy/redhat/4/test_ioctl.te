@@ -17,8 +17,8 @@ can_exec_any(ioctldomain)
 
 # Allow all of these domains to be entered from sysadm domain
 # via a shell script in the test directory or by....
-domain_transition_pattern(sysadm_t, test_file_t, ioctldomain)
-domain_transition_pattern(sysadm_t, bin_t, ioctldomain)
+domain_trans(sysadm_t, test_file_t, ioctldomain)
+domain_trans(sysadm_t, bin_t, ioctldomain)
 
 # Allow the test domains some access to the temp file
 allow test_ioctl_t test_ioctl_file_t:file { read getattr setattr ioctl };

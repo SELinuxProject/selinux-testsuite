@@ -21,10 +21,10 @@ type test_nofcap_t, domain, capabledomain, testdomain;
 can_exec_any(capabledomain)
 
 # Allow all of these domains to be entered from admin roles.
-domain_transition_pattern(sysadm_t, test_file_t, capabledomain)
-domain_transition_pattern(sysadm_t, bin_t, capabledomain)
+domain_trans(sysadm_t, test_file_t, capabledomain)
+domain_trans(sysadm_t, bin_t, capabledomain)
 ifdef(`su.te', `
-domain_transition_pattern(sysadm_t, su_exec_t, capabledomain)
+domain_trans(sysadm_t, su_exec_t, capabledomain)
 ', `
 ')
 
