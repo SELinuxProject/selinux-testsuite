@@ -86,7 +86,7 @@ ifeq (x$(DISTRO),$(filter x$(DISTRO),xRHEL4 xRHEL5 xRHEL6))
 TARGETS:=$(filter-out test_overlayfs.te test_mqueue.te test_ibpkey.te, $(TARGETS))
 endif
 
-all: build
+all: test_policy/test_policy.pp
 
 expand_check:
 	# Test for "expand-check = 0" in /etc/selinux/semanage.conf
@@ -94,7 +94,7 @@ expand_check:
 		(echo "ERROR: set 'expand-check = 0' in /etc/selinux/semanage.conf"; \
 		 /bin/false)
 
-build: $(TARGETS)
+test_policy/test_policy.pp: $(TARGETS) test_policy.if
 	# General policy build
 	@if [ -d $(POLDEV) ]; then \
 		mkdir -p test_policy; \
