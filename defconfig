@@ -62,3 +62,8 @@ CONFIG_ANDROID_BINDER_IPC=y
 # This will configure the Dynamically Allocated Binder Devices added
 # to 5.0+ kernels:
 CONFIG_ANDROID_BINDERFS=y
+
+# Test BPF + check in selinux_file_receive and selinux_binder_transfer_files.
+# They are not required for SELinux operation itself.
+CONFIG_BPF=y
+CONFIG_BPF_SYSCALL=y

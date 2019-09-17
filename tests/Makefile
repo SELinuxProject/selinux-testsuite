@@ -42,6 +42,13 @@ ifeq ($(shell grep -q binder $(POLDEV)/include/support/all_perms.spt && test -e 
 SUBDIRS += binder
 endif
 
+ifeq ($(shell grep -q bpf $(POLDEV)/include/support/all_perms.spt && echo true),true)
+ifneq ($(shell ./kvercmp $$(uname -r) 4.4),-1)
+SUBDIRS += bpf
+export CFLAGS += -DHAVE_BPF
+endif
+endif
+
 ifeq ($(shell grep "^SELINUX_INFINIBAND_ENDPORT_TEST=" infiniband_endport/ibendport_test.conf | cut -d'=' -f 2),1)
 SUBDIRS += infiniband_endport
 endif

@@ -1,0 +1,64 @@
+#!/usr/bin/perl
+use Test::More;
+
+BEGIN {
+    $basedir = $0;
+    $basedir =~ s|(.*)/[^/]*|$1|;
+
+    $test_count = 7;
+
+    # allow info to be shown during tests
+    $v = $ARGV[0];
+    if ($v) {
+        if ( $v ne "-v" ) {
+            plan skip_all => "Invalid option (use -v)";
+        }
+    }
+    else {
+        $v = " ";
+    }
+
+    plan tests => $test_count;
+}
+
+#
+# These tests are run with: kernel.unprivileged_bpf_disabled = FALSE
+#
+
+#
+################ Core BPF Tests #######################
+#
+# BPF map - BPF_MAP_TYPE_ARRAY
+$result = system "runcon -t test_bpf_t $basedir/bpf_test -m $v";
+ok( $result eq 0 );
+
+# BPF prog - BPF_PROG_TYPE_SOCKET_FILTER
+$result = system "runcon -t test_bpf_t $basedir/bpf_test -p $v";
+ok( $result eq 0 );
+
+# Deny map_create permission
+$result =
+  system "runcon -t test_bpf_deny_map_create_t $basedir/bpf_test -m $v 2>&1";
+ok($result);
+
+# Deny map_read permission
+$result =
+  system "runcon -t test_bpf_deny_map_read_t $basedir/bpf_test -m $v 2>&1";
+ok($result);
+
+# Deny map_write permission
+$result =
+  system "runcon -t test_bpf_deny_map_write_t $basedir/bpf_test -m $v 2>&1";
+ok($result);
+
+# Deny prog_load permission
+$result =
+  system "runcon -t test_bpf_deny_prog_load_t $basedir/bpf_test -p $v 2>&1";
+ok($result);
+
+# Deny prog_run permission
+$result =
+  system "runcon -t test_bpf_deny_prog_run_t $basedir/bpf_test -p $v 2>&1";
+ok($result);
+
+exit;

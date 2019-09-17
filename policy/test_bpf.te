@@ -1,0 +1,78 @@
+#
+################# BPF selinux-testsuite policy module ######################
+#
+
+attribute bpfdomain;
+
+################################### Main ###################################
+type test_bpf_t;
+domain_type(test_bpf_t)
+unconfined_runs_test(test_bpf_t)
+typeattribute test_bpf_t testdomain;
+typeattribute test_bpf_t bpfdomain;
+
+allow test_bpf_t self:process { setrlimit };
+#allow test_bpf_t self:capability { sys_resource sys_admin };
+allow test_bpf_t self:capability { sys_resource };
+allow test_bpf_t self:bpf { map_create map_read map_write prog_load prog_run };
+
+############################## Deny map_create #############################
+type test_bpf_deny_map_create_t;
+domain_type(test_bpf_deny_map_create_t)
+unconfined_runs_test(test_bpf_deny_map_create_t)
+typeattribute test_bpf_deny_map_create_t testdomain;
+typeattribute test_bpf_deny_map_create_t bpfdomain;
+
+allow test_bpf_deny_map_create_t self:process { setrlimit };
+allow test_bpf_deny_map_create_t self:capability { sys_resource };
+allow test_bpf_deny_map_create_t self:bpf { map_read map_write prog_load prog_run };
+
+############################## Deny map_read ##############################
+type test_bpf_deny_map_read_t;
+domain_type(test_bpf_deny_map_read_t)
+unconfined_runs_test(test_bpf_deny_map_read_t)
+typeattribute test_bpf_deny_map_read_t testdomain;
+typeattribute test_bpf_deny_map_read_t bpfdomain;
+
+allow test_bpf_deny_map_read_t self:process { setrlimit };
+allow test_bpf_deny_map_read_t self:capability { sys_resource };
+allow test_bpf_deny_map_read_t self:bpf { map_create map_write prog_load prog_run };
+
+############################## Deny map_write ##############################
+type test_bpf_deny_map_write_t;
+domain_type(test_bpf_deny_map_write_t)
+unconfined_runs_test(test_bpf_deny_map_write_t)
+typeattribute test_bpf_deny_map_write_t testdomain;
+typeattribute test_bpf_deny_map_write_t bpfdomain;
+
+allow test_bpf_deny_map_write_t self:process { setrlimit };
+allow test_bpf_deny_map_write_t self:capability { sys_resource };
+allow test_bpf_deny_map_write_t self:bpf { map_create map_read prog_load prog_run };
+
+############################## Deny prog_load ##############################
+type test_bpf_deny_prog_load_t;
+domain_type(test_bpf_deny_prog_load_t)
+unconfined_runs_test(test_bpf_deny_prog_load_t)
+typeattribute test_bpf_deny_prog_load_t testdomain;
+typeattribute test_bpf_deny_prog_load_t bpfdomain;
+
+allow test_bpf_deny_prog_load_t self:process { setrlimit };
+allow test_bpf_deny_prog_load_t self:capability { sys_resource };
+allow test_bpf_deny_prog_load_t self:bpf { map_create map_read map_write prog_run };
+
+############################## Deny prog_run ###############################
+type test_bpf_deny_prog_run_t;
+domain_type(test_bpf_deny_prog_run_t)
+unconfined_runs_test(test_bpf_deny_prog_run_t)
+typeattribute test_bpf_deny_prog_run_t testdomain;
+typeattribute test_bpf_deny_prog_run_t bpfdomain;
+
+allow test_bpf_deny_prog_run_t self:process { setrlimit };
+allow test_bpf_deny_prog_run_t self:capability { sys_resource };
+allow test_bpf_deny_prog_run_t self:bpf { map_create map_read map_write prog_load };
+
+#
+############ Allow these domains to be entered from sysadm domain ############
+#
+miscfiles_domain_entry_test_files(bpfdomain)
+userdom_sysadm_entry_spec_domtrans_to(bpfdomain)
