@@ -1,0 +1,60 @@
+#################################
+#
+# Policy for testing BPF file descriptor transfer via socket IPC
+#
+
+attribute fdreceivebpfdomain;
+
+# Domain for bpf client process.
+type test_fdreceive_bpf_client_t;
+domain_type(test_fdreceive_bpf_client_t)
+unconfined_runs_test(test_fdreceive_bpf_client_t)
+typeattribute test_fdreceive_bpf_client_t fdreceivebpfdomain;
+typeattribute test_fdreceive_bpf_client_t testdomain;
+allow test_fdreceive_bpf_client_t test_fdreceive_file_t:file { rw_file_perms };
+allow test_fdreceive_bpf_client_t test_file_t:sock_file { rw_sock_file_perms };
+allow test_fdreceive_bpf_client_t test_fdreceive_server_t:unix_stream_socket { connectto };
+allow test_fdreceive_bpf_client_t self:bpf { map_create map_read map_write prog_load prog_run };
+allow test_fdreceive_bpf_client_t self:capability { sys_resource };
+allow test_fdreceive_bpf_client_t self:process { setrlimit };
+# Server side rules:
+allow test_fdreceive_server_t test_fdreceive_bpf_client_t:fd { use };
+allow test_fdreceive_server_t test_fdreceive_bpf_client_t:bpf { map_read map_write };
+allow test_fdreceive_server_t test_fdreceive_bpf_client_t:bpf { prog_run} ;
+
+# Domain for bpf client2 process - Removes BPF prog_run perm from server.
+# Tests security_file_receive flow.
+type test_fdreceive_bpf_client2_t;
+domain_type(test_fdreceive_bpf_client2_t)
+unconfined_runs_test(test_fdreceive_bpf_client2_t)
+typeattribute test_fdreceive_bpf_client2_t fdreceivebpfdomain;
+typeattribute test_fdreceive_bpf_client2_t testdomain;
+allow test_fdreceive_bpf_client2_t test_fdreceive_file_t:file { rw_file_perms };
+allow test_fdreceive_bpf_client2_t test_file_t:sock_file { rw_sock_file_perms };
+allow test_fdreceive_bpf_client2_t test_fdreceive_server_t:unix_stream_socket { connectto };
+allow test_fdreceive_bpf_client2_t self:bpf { prog_load prog_run };
+allow test_fdreceive_bpf_client2_t self:capability { sys_resource };
+allow test_fdreceive_bpf_client2_t self:process { setrlimit };
+# Server side rules:
+allow test_fdreceive_server_t test_fdreceive_bpf_client2_t:fd { use };
+
+# Domain for bpf client3 process - Removes BPF map_read perm from server.
+# Tests security_file_receive flow.
+type test_fdreceive_bpf_client3_t;
+domain_type(test_fdreceive_bpf_client3_t)
+unconfined_runs_test(test_fdreceive_bpf_client3_t)
+typeattribute test_fdreceive_bpf_client3_t fdreceivebpfdomain;
+typeattribute test_fdreceive_bpf_client3_t testdomain;
+allow test_fdreceive_bpf_client3_t test_fdreceive_file_t:file { rw_file_perms };
+allow test_fdreceive_bpf_client3_t test_file_t:sock_file { rw_sock_file_perms };
+allow test_fdreceive_bpf_client3_t test_fdreceive_server_t:unix_stream_socket { connectto };
+allow test_fdreceive_bpf_client3_t self:bpf { map_create map_read map_write };
+allow test_fdreceive_bpf_client3_t self:capability { sys_resource };
+allow test_fdreceive_bpf_client3_t self:process { setrlimit };
+# Server side rules:
+allow test_fdreceive_server_t test_fdreceive_bpf_client3_t:fd { use };
+allow test_fdreceive_server_t test_fdreceive_bpf_client3_t:bpf { map_write };
+
+# Allow all of these domains to be entered from the sysadm domain.
+miscfiles_domain_entry_test_files(fdreceivebpfdomain)
+userdom_sysadm_entry_spec_domtrans_to(fdreceivebpfdomain)

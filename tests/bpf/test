@@ -4,8 +4,10 @@ use Test::More;
 BEGIN {
     $basedir = $0;
     $basedir =~ s|(.*)/[^/]*|$1|;
+    $fdr_basedir = "$basedir/../fdreceive/";
 
-    $test_count = 7;
+    $test_count     = 7;
+    $test_fdreceive = 0;
 
     # allow info to be shown during tests
     $v = $ARGV[0];
@@ -16,6 +18,14 @@ BEGIN {
     }
     else {
         $v = " ";
+    }
+
+    # Test if fdreceive is BPF enabled
+    $result = system("$fdr_basedir/client -t $basedir/test_sock 2>/dev/null");
+
+    if ( $result >> 8 eq 0 ) {
+        $test_fdreceive = 1;
+        $test_count += 4;
     }
 
     plan tests => $test_count;
@@ -60,5 +70,48 @@ ok($result);
 $result =
   system "runcon -t test_bpf_deny_prog_run_t $basedir/bpf_test -p $v 2>&1";
 ok($result);
+
+if ($test_fdreceive) {
+    #
+    ################ BPF Tests for fdreceive #######################
+    #
+    # Remove any leftover test file from prior failed runs.
+    system("rm -rf $basedir/test_sock");
+
+    # Start server process in test_fdreceive_server_t.
+    system("mkfifo $basedir/flag");
+    if ( ( $pid = fork() ) == 0 ) {
+        exec
+"runcon -t test_fdreceive_server_t $fdr_basedir/server $basedir/flag $basedir/test_sock";
+    }
+
+    # Wait for it to initialize.
+    system("read -t 5 <>$basedir/flag");
+
+    # Test BPF map & prog fd on transfer:
+    $result = system
+"runcon -t test_fdreceive_bpf_client_t -- $fdr_basedir/client -m $basedir/test_sock";
+    ok( $result eq 0 );
+
+    $result = system
+"runcon -t test_fdreceive_bpf_client_t -- $fdr_basedir/client -p $basedir/test_sock";
+    ok( $result eq 0 );
+
+    # Remove BPF prog_run permission from server:
+    $result = system
+"runcon -t test_fdreceive_bpf_client2_t -- $fdr_basedir/client -p $basedir/test_sock";
+    ok($result);
+
+    # Remove BPF map_read permission from server:
+    $result = system
+"runcon -t test_fdreceive_bpf_client3_t -- $fdr_basedir/client -m $basedir/test_sock";
+    ok($result);
+
+    # Kill the server.
+    kill KILL, $pid;
+
+    # Clean up.
+    system "rm -rf $basedir/test_sock $basedir/flag";
+}
 
 exit;
