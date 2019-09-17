@@ -3,13 +3,15 @@
  * the raw ioctl commands to test the SELinux binder permissions:
  *     set_context_mgr, call, transfer, impersonate.
  *
+ * If configured, the BPF permissions are also tested.
+ *
  * Using binder test policy the following will be validated:
  *    security_binder_set_context_mgr() binder { set_context_mgr }
  *    security_binder_transaction()     binder { call impersonate }
  *    security_binder_transfer_binder() binder { transfer }
  *    security_binder_transfer_file()   fd { use }
- *
- * TODO security_binder_transfer_file() uses BPF if configured in kernel.
+ *					bpf { map_create map_read map_write };
+ *					bpf { prog_load prog_run };
  */
 
 #include "binder_common.h"
@@ -67,8 +69,8 @@ void print_trans_data(const struct binder_transaction_data *txn_in)
 	case TEST_SERVICE_GET:
 		printf("\tcode: TEST_SERVICE_GET\n");
 		break;
-	case TEST_SERVICE_SEND_CLIENT_SP_FD:
-		printf("\tcode: TEST_SERVICE_SEND_CLIENT_SP_FD\n");
+	case TEST_SERVICE_SEND_FD:
+		printf("\tcode: TEST_SERVICE_SEND_FD\n");
 		break;
 	default:
 		printf("Unknown binder_transaction_data->code: %x\n",

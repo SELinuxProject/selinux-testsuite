@@ -15,6 +15,9 @@
 #if HAVE_BINDERFS
 #include <linux/android/binderfs.h>
 #endif
+#if HAVE_BPF
+#include "../bpf/bpf_common.h"
+#endif
 
 #define BINDER_DEV "/dev/binder"
 #define BINDERFS_DEV "/dev/binderfs"
@@ -26,12 +29,20 @@
 /* These are the Binder txn->code values used by the Service Provider, Client
  * and Manager to request/retrieve a binder handle or file descriptor.
  */
-#define TEST_SERVICE_ADD		240616 /* Sent by Service Provider */
-#define TEST_SERVICE_GET		290317 /* Sent by Client */
-#define TEST_SERVICE_SEND_CLIENT_SP_FD	120419 /* Sent by Client */
+#define TEST_SERVICE_ADD	240616 /* Sent by Service Provider */
+#define TEST_SERVICE_GET	290317 /* Sent by Client */
+#define TEST_SERVICE_SEND_FD	311019 /* Sent by Client */
 
 bool verbose;
 
 const char *cmd_name(uint32_t cmd);
 void print_trans_data(const struct binder_transaction_data *txn_in);
 int binder_write(int fd, void *data, size_t len);
+
+enum {
+	BINDER_FD,
+	BPF_MAP_FD,
+	BPF_PROG_FD,
+	BPF_TEST
+} fd_type;
+char *fd_type_str;
