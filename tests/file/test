@@ -51,6 +51,7 @@ system "chcon -t fileop_exec_t $basedir/wait_io 2>&1 > /dev/null";
 #
 $good_file_sid =
   `getfattr --only-values -n security.selinux $basedir/temp_file`;
+chop($good_file_sid);
 
 #
 # Attempt to access a restricted file as the 'good' domain.  The first test
