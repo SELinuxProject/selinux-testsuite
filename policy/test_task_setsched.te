@@ -11,6 +11,7 @@ type test_setsched_target_t;
 domain_type(test_setsched_target_t)
 unconfined_runs_test(test_setsched_target_t)
 corecmd_shell_entry_type(test_setsched_target_t)
+corecmd_exec_bin(test_setsched_target_t)
 typeattribute test_setsched_target_t test_setsched_d;
 typeattribute test_setsched_target_t testdomain;
 
