@@ -51,6 +51,7 @@ similar dependencies):
 * iptables _(to load the `iptables SECMARK` rules during `inet_socket` tests)_
 * lksctp-tools-devel _(to build the SCTP test programs)_
 * attr _(tools used by the overlayfs tests)_
+* libbpf-devel _(tools used by the bpf tests)_
 
 On a modern Fedora system you can install these dependencies with the
 following command:
@@ -65,7 +66,8 @@ following command:
 		netlabel_tools \
 		iptables \
 		lksctp-tools-devel \
-		attr
+		attr \
+		libbpf-devel
 
 The testsuite requires a pre-existing base policy configuration of SELinux,
 using either the old example policy or the reference policy as the baseline.
