@@ -8,11 +8,29 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#if HAVE_BPF
+#include "../bpf/bpf_common.h"
+#endif
+
+static void usage(char *progname)
+{
+	fprintf(stderr,
+		"usage:  %s [-m|-p|t] [file] addr\n"
+		"\nWhere:\n\t"
+		"-m    Create BPF map fd\n\t"
+		"-p    Create BPF prog fd\n\t"
+		"-t    Test if BPF enabled\n\t"
+		"   If -m or -p not supplied, create a file fd using:\n\t"
+		"file  Test file fd sent to server\n\t"
+		"addr  Servers address\n", progname);
+	exit(-1);
+}
+
 int main(int argc, char **argv)
 {
 	struct sockaddr_un sun;
-	char buf[1024];
-	int s, sunlen, ret, buflen;
+	char buf[1024], *addr = NULL;
+	int opt, s, sunlen, ret, buflen;
 	struct msghdr msg = { 0 };
 	struct iovec iov;
 	struct cmsghdr *cmsg;
@@ -20,15 +38,71 @@ int main(int argc, char **argv)
 	char cmsgbuf[CMSG_SPACE(sizeof myfd)];
 	int *fdptr;
 
-	if (argc != 3) {
-		fprintf(stderr, "usage:  %s testfile address\n", argv[0]);
-		exit(-1);
+	enum {
+		FILE_FD,
+		MAP_FD,
+		PROG_FD,
+		BPF_TEST
+	} client_fd_type;
+
+	client_fd_type = FILE_FD;
+
+	while ((opt = getopt(argc, argv, "mpt")) != -1) {
+		switch (opt) {
+		case 'm':
+			client_fd_type = MAP_FD;
+			break;
+		case 'p':
+			client_fd_type = PROG_FD;
+			break;
+		case 't':
+			client_fd_type = BPF_TEST;
+			break;
+		}
 	}
 
-	myfd = open(argv[1], O_RDWR);
-	if (myfd < 0) {
-		perror(argv[1]);
+	if ((client_fd_type == FILE_FD && (argc - optind) != 2) ||
+	    (client_fd_type > FILE_FD && (argc - optind) != 1))
+		usage(argv[0]);
+
+	switch (client_fd_type) {
+	case FILE_FD:
+		myfd = open(argv[optind], O_RDWR);
+		if (myfd < 0) {
+			perror(argv[optind]);
+			exit(-1);
+		}
+
+		addr = argv[optind + 1];
+		printf("client: Using a file fd\n");
+		break;
+#if HAVE_BPF
+	case MAP_FD:
+		/* If BPF enabled, then need to set limits */
+		bpf_setrlimit();
+		addr = argv[optind];
+		myfd = create_bpf_map();
+		printf("client: Using a BPF map fd\n");
+		break;
+	case PROG_FD:
+		bpf_setrlimit();
+		addr = argv[optind];
+		myfd = create_bpf_prog();
+		printf("client: Using a BPF prog fd\n");
+		break;
+	case BPF_TEST:
+		exit(0);
+		break;
+#else
+	case MAP_FD:
+	case PROG_FD:
+	case BPF_TEST:
+		fprintf(stderr, "BPF not supported by Client\n");
 		exit(-1);
+		break;
+#endif
+	default:
+		usage(argv[0]);
 	}
 
 	s = socket(AF_UNIX, SOCK_STREAM, 0);
@@ -38,7 +112,8 @@ int main(int argc, char **argv)
 	}
 
 	sun.sun_family = AF_UNIX;
-	strcpy(sun.sun_path, argv[2]);
+	strcpy(sun.sun_path, addr);
+
 	sunlen = strlen(sun.sun_path) + 1 + sizeof(short);
 	ret = connect(s, (struct sockaddr *)&sun, sunlen);
 	if (ret < 0) {
