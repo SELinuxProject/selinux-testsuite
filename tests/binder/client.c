@@ -6,7 +6,7 @@ static int transactions_complete;
 static void usage(char *progname)
 {
 	fprintf(stderr,
-		"usage:  %s [-c] [-n] [-r replies] [-v]\n"
+		"usage:  %s [-c] [-n] [-r replies] [-m|-p] [-v]\n"
 		"Where:\n\t"
 		"-c  Use the number of replies for the BR_TRANSACTION_COMPLETE"
 		" count.\n\t"
@@ -15,6 +15,8 @@ static void usage(char *progname)
 		"    It can be the number of BR_TRANSACTION_COMPLETE if\n\t"
 		"    the -c option is set or number of times to issue the\n\t"
 		"    ioctl - BINDER_WRITE_READ command if -c not set.\n\t"
+		"-m  Service Provider sending BPF map fd.\n\t"
+		"-p  Service Provider sending BPF prog fd.\n\t"
 		"-v  Print context and command information.\n\t"
 		"\nNote: Ensure this boolean command is run when "
 		"testing after a reboot:\n\t"
@@ -67,8 +69,12 @@ static void extract_fd_and_respond(const struct binder_transaction_data *txn_in)
 	}
 
 	if (verbose)
-		printf("Client retrieved Service Providers fd: %d st_dev: %ld\n",
-		       obj->fd, sb.st_dev);
+		printf("Client retrieved %s fd: %d st_dev: %ld\n",
+		       fd_type_str, obj->fd, sb.st_dev);
+
+	/* If testing BPF, then cannot do impersonate check */
+	if (fd_type > BINDER_FD)
+		return;
 
 	memset(&writebuf, 0, sizeof(writebuf));
 	memset(readbuf, 0, sizeof(readbuf));
@@ -141,7 +147,7 @@ static void request_service_provider_fd(int fd, uint32_t handle)
 	writebuf.cmd = BC_TRANSACTION;
 	writebuf.txn.target.handle = handle;
 	writebuf.txn.cookie = 0;
-	writebuf.txn.code = TEST_SERVICE_SEND_CLIENT_SP_FD;
+	writebuf.txn.code = TEST_SERVICE_SEND_FD;
 	writebuf.txn.flags = TF_ACCEPT_FDS;
 
 	writebuf.txn.data_size = 0;
@@ -270,7 +276,7 @@ static int binder_parse(int fd, binder_uintptr_t ptr, binder_size_t size)
 			if (txn->code == TEST_SERVICE_GET)
 				extract_handle_and_acquire(fd, txn);
 
-			if (txn->code == TEST_SERVICE_SEND_CLIENT_SP_FD)
+			if (txn->code == TEST_SERVICE_SEND_FD)
 				extract_fd_and_respond(txn);
 
 			ptr += sizeof(*txn);
@@ -313,8 +319,10 @@ int main(int argc, char **argv)
 	unsigned int readbuf[32];
 
 	transactions_complete = 0;
+	fd_type = BINDER_FD;
+	fd_type_str = "SP";
 
-	while ((opt = getopt(argc, argv, "cnr:v")) != -1) {
+	while ((opt = getopt(argc, argv, "cnr:vmp")) != -1) {
 		switch (opt) {
 		case 'c':
 			use_transactions_complete = true;
@@ -327,6 +335,14 @@ int main(int argc, char **argv)
 			break;
 		case 'v':
 			verbose = true;
+			break;
+		case 'm':
+			fd_type = BPF_MAP_FD;
+			fd_type_str = "BPF map";
+			break;
+		case 'p':
+			fd_type = BPF_PROG_FD;
+			fd_type_str = "BPF prog";
 			break;
 		default:
 			usage(argv[0]);

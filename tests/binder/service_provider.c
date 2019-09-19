@@ -6,11 +6,14 @@ static int binder_parse(int fd, binder_uintptr_t ptr, binder_size_t size);
 static void usage(char *progname)
 {
 	fprintf(stderr,
-		"usage:  %s [-e expected_ctx] [-f file] [-n] [-v]\n"
+		"usage:  %s -e expected_ctx] [-f file] [-n] [-m|-p|-t] [-v]\n"
 		"Where:\n\t"
 		"-e  Expected security context.\n\t"
 		"-f  Write a line to the file when listening starts.\n\t"
 		"-n  Use the /dev/binderfs name service.\n\t"
+		"-m  Use BPF map fd for transfer.\n\t"
+		"-p  Use BPF prog fd for transfer.\n\t"
+		"-t  Test if BPF enabled.\n\t"
 		"-v  Print context and command information.\n\t"
 		"\nNote: Ensure this boolean command is run when "
 		"testing after a reboot:\n\t"
@@ -34,7 +37,7 @@ static void request_service_provider_fd(int fd,
 	}
 
 	if (verbose)
-		printf("Service Provider sending BC_REPLY with its FD\n");
+		printf("Service Provider sending BC_REPLY with an FD\n");
 
 	memset(writebuf, 0, sizeof(writebuf));
 	memset(&bwr, 0, sizeof(bwr));
@@ -56,17 +59,47 @@ static void request_service_provider_fd(int fd,
 	obj.pad_flags = 0x7f | FLAT_BINDER_FLAG_ACCEPTS_FDS;
 #endif
 	obj.cookie = txn->cookie;
-	/* The Service Providers binder fd is used for testing as it allows
+
+	/*
+	 * The Service Providers binder fd is used for testing as it allows
 	 * policy to set whether the Service Provider and Client can be
 	 * allowed access (fd use) or not.
 	 * This also allows a check for the impersonate permission later as
 	 * the Client will use the Service Provider fd to send a transaction.
+	 *
+	 * If a BPF fd is required, it is generated, however it cannot be
+	 * used to check the impersonate permission.
 	 */
-	obj.fd = fd;
+	switch (fd_type) {
+	case BINDER_FD:
+		obj.fd = fd;
+		break;
+#if HAVE_BPF
+	case BPF_MAP_FD:
+		obj.fd = create_bpf_map();
+		if (obj.fd < 0)
+			exit(70);
+		break;
+	case BPF_PROG_FD:
+		obj.fd = create_bpf_prog();
+		if (obj.fd < 0)
+			exit(71);
+		break;
+#else
+	case BPF_MAP_FD:
+	case BPF_PROG_FD:
+		fprintf(stderr, "BPF not supported - Service Provider\n");
+		exit(72);
+		break;
+#endif
+	default:
+		fprintf(stderr, "Invalid fd_type: %d\n", fd_type);
+		exit(73);
+	}
 
 	if (verbose)
-		printf("Service Provider handle: %d and its FD: %d\n",
-		       txn->target.handle, fd);
+		printf("Service Provider handle: %d and %s FD: %d\n",
+		       txn->target.handle, fd_type_str, obj.fd);
 
 	txn->data_size = sizeof(obj);
 	txn->data.ptr.buffer = (binder_uintptr_t)&obj;
@@ -81,7 +114,7 @@ static void request_service_provider_fd(int fd,
 		fprintf(stderr,
 			"Service Provider ioctl BINDER_WRITE_READ error: %s\n",
 			strerror(errno));
-		exit(70);
+		exit(74);
 	}
 }
 
@@ -119,7 +152,7 @@ static int binder_parse(int fd, binder_uintptr_t ptr, binder_size_t size)
 				print_trans_data(txn);
 			}
 
-			if (txn->code == TEST_SERVICE_SEND_CLIENT_SP_FD)
+			if (txn->code == TEST_SERVICE_SEND_FD)
 				request_service_provider_fd(fd, txn);
 
 			ptr += sizeof(*txn);
@@ -148,8 +181,7 @@ static int binder_parse(int fd, binder_uintptr_t ptr, binder_size_t size)
 				}
 			}
 
-			if (txn_ctx->transaction_data.code ==
-			    TEST_SERVICE_SEND_CLIENT_SP_FD)
+			if (txn_ctx->transaction_data.code == TEST_SERVICE_SEND_FD)
 				request_service_provider_fd(fd,
 							    &txn_ctx->transaction_data);
 
@@ -209,8 +241,10 @@ int main(int argc, char **argv)
 	unsigned int readbuf[32];
 
 	expected_ctx = NULL;
+	fd_type = BINDER_FD;
+	fd_type_str = "SP";
 
-	while ((opt = getopt(argc, argv, "e:f:nv")) != -1) {
+	while ((opt = getopt(argc, argv, "e:f:nvmpt")) != -1) {
 		switch (opt) {
 		case 'e':
 			expected_ctx = optarg;
@@ -224,10 +258,36 @@ int main(int argc, char **argv)
 		case 'v':
 			verbose = true;
 			break;
+		case 'm':
+			fd_type = BPF_MAP_FD;
+			fd_type_str = "BPF map";
+			break;
+		case 'p':
+			fd_type = BPF_PROG_FD;
+			fd_type_str = "BPF prog";
+			break;
+		case 't':
+			fd_type = BPF_TEST;
+			break;
 		default:
 			usage(argv[0]);
 		}
 	}
+
+
+#if HAVE_BPF
+	if (fd_type == BPF_TEST)
+		exit(0);
+
+	/* If BPF enabed, then need to set limits */
+	if (fd_type == BPF_MAP_FD || fd_type == BPF_PROG_FD)
+		bpf_setrlimit();
+#else
+	if (fd_type == BPF_TEST) {
+		fprintf(stderr, "BPF not supported\n");
+		exit(-1);
+	}
+#endif
 
 	/* Get our context and pid */
 	result = getcon(&context);
@@ -265,19 +325,6 @@ int main(int argc, char **argv)
 		fprintf(stderr, "mmap error: %s\n", strerror(errno));
 		close(fd);
 		exit(63);
-	}
-
-	if (flag_file) {
-		flag_fd = fopen(flag_file, "w");
-		if (!flag_fd) {
-			fprintf(stderr,
-				"Service Provider failed to open %s: %s\n",
-				flag_file, strerror(errno));
-			result = 64;
-			goto brexit;
-		}
-		fprintf(flag_fd, "listening\n");
-		fclose(flag_fd);
 	}
 
 	memset(&writebuf, 0, sizeof(writebuf));
@@ -322,7 +369,7 @@ int main(int argc, char **argv)
 		fprintf(stderr,
 			"Service Provider ioctl BINDER_WRITE_READ error: %s\n",
 			strerror(errno));
-		result = 65;
+		result = 64;
 		goto brexit;
 	}
 
@@ -338,7 +385,7 @@ int main(int argc, char **argv)
 	    cmd == BR_DEAD_BINDER) {
 		fprintf(stderr, "Service Provider %s() failing command %s, exiting.\n",
 			__func__, cmd_name(cmd));
-		result = 66;
+		result = 65;
 		goto brexit;
 	}
 
@@ -358,8 +405,25 @@ int main(int argc, char **argv)
 		fprintf(stderr,
 			"Service Provider ioctl BINDER_WRITE_READ error: %s\n",
 			strerror(errno));
-		result = 67;
+		result = 66;
 		goto brexit;
+	}
+
+	/*
+	 * Ensure the Manager and Service Provider have completed the
+	 * TEST_SERVICE_ADD sequence before the Client is allowed to start.
+	 */
+	if (flag_file) {
+		flag_fd = fopen(flag_file, "w");
+		if (!flag_fd) {
+			fprintf(stderr,
+				"Service Provider failed to open %s: %s\n",
+				flag_file, strerror(errno));
+			result = 67;
+			goto brexit;
+		}
+		fprintf(flag_fd, "listening\n");
+		fclose(flag_fd);
 	}
 
 	while (true) {
