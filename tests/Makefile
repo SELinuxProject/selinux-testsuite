@@ -43,8 +43,10 @@ endif
 
 ifeq ($(shell grep -q bpf $(POLDEV)/include/support/all_perms.spt && echo true),true)
 ifneq ($(shell ./kvercmp $$(uname -r) 4.15),-1)
+ifneq (,$(wildcard $(INCLUDEDIR)/bpf/bpf.h))
 SUBDIRS += bpf
 export CFLAGS += -DHAVE_BPF
+endif
 endif
 endif
 
