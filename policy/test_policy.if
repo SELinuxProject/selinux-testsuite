@@ -61,8 +61,13 @@ interface(`userdom_sysadm_entry_spec_domtrans_to',`
 ')
 ')
 
-ifdef(`userdom_search_generic_user_home_dirs', `', ` dnl
+ifdef(`userdom_search_admin_dir', ` dnl
 interface(`userdom_search_generic_user_home_dirs', `
-    userdom_search_user_home_dirs($1)
+    userdom_search_user_home_content($1)
+    userdom_search_admin_dir($1)
+')
+', ` dnl
+interface(`userdom_search_generic_user_home_dirs', `
+    userdom_search_user_home_content($1)
 ')
 ')

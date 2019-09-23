@@ -50,8 +50,7 @@ fs_mount_xattr_fs(test_overlay_mounter_t)
 corecmd_shell_entry_type(test_overlay_mounter_t)
 corecmd_exec_bin(test_overlay_mounter_t)
 
-userdom_search_admin_dir(test_overlay_mounter_t)
-userdom_search_user_home_content(test_overlay_mounter_t)
+userdom_search_generic_user_home_dirs(test_overlay_mounter_t)
 
 mount_exec(test_overlay_mounter_t)
 mount_rw_pid_files(test_overlay_mounter_t)
@@ -122,8 +121,7 @@ corecmd_exec_bin(test_overlay_client_t)
 kernel_read_system_state(test_overlay_client_t)
 kernel_read_proc_symlinks(test_overlay_client_t)
 
-userdom_search_admin_dir(test_overlay_client_t)
-userdom_search_user_home_content(test_overlay_client_t)
+userdom_search_generic_user_home_dirs(test_overlay_client_t)
 
 fs_getattr_xattr_fs(test_overlay_client_t)
 
