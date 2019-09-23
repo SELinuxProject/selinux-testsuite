@@ -32,7 +32,7 @@ close($f);
 
 # The gid sysfs shows a fully expanded ipv6 address, just take the
 # top half.
-@tmp = unpack( '(a20)*', $gid );
+@tmp           = unpack( '(a20)*', $gid );
 $subnet_prefix = $tmp[0] . ":";
 
 @labeled_pkeys = split( /,/, $conf{SELINUX_INFINIBAND_TEST_LABELED_PKEYS} );

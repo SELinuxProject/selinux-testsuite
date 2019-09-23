@@ -40,7 +40,7 @@ ok( $result, 0 );
 
 foreach (@denied_device_port) {
     @dev_port_pair = split( / /, $_ );
-    $result = system
+    $result        = system
 "runcon -t test_ibendport_manage_subnet_t smpquery PKeyTable -C $dev_port_pair[0] -P $dev_port_pair[1] -D 1 2>/dev/null";
 
     if ( $result >> 8 eq 0 ) {
