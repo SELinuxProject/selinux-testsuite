@@ -1,6 +1,6 @@
 language: c
 
-dist: xenial
+dist: bionic
 
 addons:
   apt:
@@ -8,6 +8,14 @@ addons:
       - astyle
       - libselinux1-dev
       - libsctp-dev
+      - checkpolicy
+      - semodule-utils
+
+cache:
+  directories:
+    - selinux-policy
+    - container-selinux
+    - refpolicy
 
 before_install:
   # FYI: known good with HEAD at 8551fc60fc515cd290ba38ee8c758c1f4df52b56
@@ -17,7 +25,19 @@ before_install:
      perl Makefile.PL &&
      make &&
      sudo make install)
+  # install libbpf from sources
+  - git clone https://github.com/libbpf/libbpf
+  - (cd libbpf/src && make PREFIX=/usr/local)
+  - (cd libbpf/src && sudo make install PREFIX=/usr/local)
+  # install Fedora policy and refpolicy
+  - bash travis-ci/setup-policy-fedora.sh
+  - bash travis-ci/setup-policy-refpolicy.sh
+  # establish a fake "selinuxfs" mount (policy/Makefile just greps for selinuxfs)
+  - sudo mkdir -p /tmp/fake-selinuxfs
+  - sudo mount -t tmpfs tmpfs /tmp/fake-selinuxfs
+  - echo 31 >/tmp/fake-selinuxfs/policyvers
 
 script:
   - tools/check-syntax -f && git diff --exit-code
-  - make
+  - bash travis-ci/enable-policy.sh targeted  && make POLDEV=/usr/share/selinux/targeted
+  - bash travis-ci/enable-policy.sh refpolicy && make POLDEV=/usr/share/selinux/refpolicy
