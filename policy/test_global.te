@@ -42,7 +42,7 @@ allow testdomain self:process setfscreate;
 
 # General permissions commonly required for test operation.
 # general_domain_access
-allow testdomain self:process ~{ptrace setcurrent setexec setfscreate setrlimit execmem execstack execheap};
+allow testdomain self:process ~{ptrace setcurrent setexec setfscreate setrlimit execmem execstack execheap setkeycreate};
 allow testdomain self:fd use;
 allow testdomain self:fifo_file rw_file_perms;
 allow testdomain self:unix_dgram_socket create_socket_perms;

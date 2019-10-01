@@ -1,0 +1,109 @@
+#!/usr/bin/perl
+use Test::More;
+
+BEGIN {
+    $basedir = $0;
+    $basedir =~ s|(.*)/[^/]*|$1|;
+
+    $test_count = 17;
+
+    # allow info to be shown during tests
+    $v = $ARGV[0];
+    if ($v) {
+        if ( $v ne "-v" ) {
+            plan skip_all => "Invalid option (use -v)";
+        }
+    }
+    else {
+        $v = " ";
+    }
+
+    # From kernel 5.3 request_key() requires { link } not { search } perm
+    $kvercur = `uname -r`;
+    chomp($kvercur);
+    $kverminstream = "5.3";
+    $test_link_53  = 0;
+
+    $result = `$basedir/../kvercmp $kvercur $kverminstream`;
+    if ( $result > 0 ) {
+        $test_link_53 = 1;
+    }
+
+    plan tests => $test_count;
+}
+
+print "Test key class permissions\n";
+$result = system "runcon -t test_key_t $basedir/keyctl $v";
+ok( $result eq 0 );
+
+$result = system "runcon -t test_no_setkeycreate_t $basedir/keyctl $v 2>&1";
+ok( $result >> 8 eq 3 );
+
+$result = system "runcon -t test_key_no_create_t $basedir/keyctl $v 2>&1";
+ok( $result >> 8 eq 3 );
+
+$result = system "runcon -t test_key_no_write_t $basedir/keyctl $v 2>&1";
+ok( $result >> 8 eq 5 );
+
+$result = system "runcon -t test_key_no_search_t $basedir/keyctl $v 2>&1";
+ok( $result >> 8 eq 6 );
+
+$result = system "runcon -t test_key_no_view_t $basedir/keyctl $v 2>&1";
+ok( $result >> 8 eq 8 );
+
+$result = system "runcon -t test_key_no_read_t $basedir/keyctl $v 2>&1";
+ok( $result >> 8 eq 9 );
+
+$result = system "runcon -t test_key_no_link_t $basedir/keyctl $v 2>&1";
+if ($test_link_53) {
+    ok( $result >> 8 eq 6 );
+}
+else {
+    ok( $result >> 8 eq 10 );
+}
+
+$result = system "runcon -t test_key_no_setattr_t $basedir/keyctl $v 2>&1";
+ok( $result >> 8 eq 11 );
+
+print "Change keyring context\n";
+$result = system
+"runcon -t test_key_t $basedir/keyctl_relabel $v system_u:system_r:test_newcon_key_t:s0";
+ok( $result eq 0 );
+
+print "Test permission checks between a keyring created by another process\n";
+$result = system(
+"runcon -t test_keyring_service_t $basedir/keyring_service $v test_request_keys_t $basedir/request_keys 2>&1"
+);
+ok( $result eq 0 );
+
+$result = system(
+"runcon -t test_keyring_service_t $basedir/keyring_service $v test_request_keys_no_link_t $basedir/request_keys 2>&1"
+);
+ok( $result >> 8 eq 3 );
+
+$result = system(
+"runcon -t test_keyring_service_t $basedir/keyring_service $v test_request_keys_no_write_t $basedir/request_keys 2>&1"
+);
+ok( $result >> 8 eq 5 );
+
+$result = system(
+"runcon -t test_keyring_service_t $basedir/keyring_service $v test_request_keys_no_view_t $basedir/request_keys 2>&1"
+);
+ok( $result >> 8 eq 4 );
+
+$result = system(
+"runcon -t test_keyring_service_t $basedir/keyring_service $v test_request_keys_no_search_t $basedir/request_keys 2>&1"
+);
+ok( $result >> 8 eq 5 );
+
+$result = system(
+"runcon -t test_keyring_service_t $basedir/keyring_service $v test_request_keys_no_setattr_t $basedir/request_keys 2>&1"
+);
+ok( $result >> 8 eq 6 );
+
+$result = system(
+"runcon -t test_keyring_service_t $basedir/keyring_service $v test_request_keys_no_read_t $basedir/request_keys 2>&1"
+);
+ok( $result >> 8 eq 8 );
+
+exit;

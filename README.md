@@ -52,6 +52,7 @@ similar dependencies):
 * lksctp-tools-devel _(to build the SCTP test programs)_
 * attr _(tools used by the overlayfs tests)_
 * libbpf-devel _(tools used by the bpf tests)_
+* keyutils-libs-devel _(tools used by the keys tests)_
 
 On a modern Fedora system you can install these dependencies with the
 following command:
@@ -67,7 +68,8 @@ following command:
 		iptables \
 		lksctp-tools-devel \
 		attr \
-		libbpf-devel
+		libbpf-devel \
+		keyutils-libs-devel
 
 The testsuite requires a pre-existing base policy configuration of SELinux,
 using either the old example policy or the reference policy as the baseline.

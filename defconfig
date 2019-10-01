@@ -67,3 +67,10 @@ CONFIG_ANDROID_BINDERFS=y
 # They are not required for SELinux operation itself.
 CONFIG_BPF=y
 CONFIG_BPF_SYSCALL=y
+
+# Keys implementation.
+# These are enabled to test the key controls in tests/keys; they are
+# not required for SELinux operation itself.
+CONFIG_KEYS=y
+CONFIG_KEYS_COMPAT=y
+CONFIG_KEY_DH_OPERATIONS=y

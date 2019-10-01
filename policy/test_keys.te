@@ -1,0 +1,226 @@
+#
+################# KEY selinux-testsuite policy module ######################
+#
+attribute keydomain;
+
+#
+############################## Define Macro ################################
+#
+# Do not use domain_type() macro as it has allow 'key { link search }'
+# in base module so 'allow domain self:key ~{ link search };' will not work
+# here. Add these instead to allow key perms to be controlled by this module.
+#
+gen_require(`
+	type setrans_var_run_t, syslogd_t;
+')
+
+define(`key_domain_type',`
+	allow $1 proc_t:dir { search };
+	allow $1 proc_t:lnk_file { read };
+	allow $1 self:dir { search };
+	allow $1 self:file { open read write };
+	dontaudit init_t syslogd_t:fd use;
+	dontaudit $1 security_t:filesystem getattr;
+	dontaudit $1 self:file getattr;
+	dontaudit $1 setrans_var_run_t:dir search;
+	dontaudit unconfined_t $1:process { noatsecure rlimitinh siginh };
+')
+
+#
+####################### Main key class tests #####################
+#
+type test_key_t;
+key_domain_type(test_key_t)
+unconfined_runs_test(test_key_t)
+typeattribute test_key_t testdomain;
+typeattribute test_key_t keydomain;
+
+allow test_key_t self:process { setkeycreate };
+allow test_key_t self:key { create write search read view link setattr };
+
+# Set new context on a keyring:
+type test_newcon_key_t;
+key_domain_type(test_newcon_key_t)
+unconfined_runs_test(test_newcon_key_t)
+typeattribute test_newcon_key_t testdomain;
+typeattribute test_newcon_key_t keydomain;
+
+allow test_key_t test_newcon_key_t:key { create write search view };
+
+################# Deny process { setkeycreate } #######################
+type test_no_setkeycreate_t;
+key_domain_type(test_no_setkeycreate_t)
+unconfined_runs_test(test_no_setkeycreate_t)
+typeattribute test_no_setkeycreate_t testdomain;
+typeattribute test_no_setkeycreate_t keydomain;
+
+###################### Deny key { create } ###########################
+type test_key_no_create_t;
+key_domain_type(test_key_no_create_t)
+unconfined_runs_test(test_key_no_create_t)
+typeattribute test_key_no_create_t testdomain;
+typeattribute test_key_no_create_t keydomain;
+
+allow test_key_no_create_t self:process { setkeycreate };
+allow test_key_no_create_t self:key { write search read view link setattr };
+
+###################### Deny key { write } ###########################
+type test_key_no_write_t;
+key_domain_type(test_key_no_write_t)
+unconfined_runs_test(test_key_no_write_t)
+typeattribute test_key_no_write_t testdomain;
+typeattribute test_key_no_write_t keydomain;
+
+allow test_key_no_write_t self:process { setkeycreate };
+allow test_key_no_write_t self:key { create search read view link setattr };
+
+###################### Deny key { search } ###########################
+type test_key_no_search_t;
+key_domain_type(test_key_no_search_t)
+unconfined_runs_test(test_key_no_search_t)
+typeattribute test_key_no_search_t testdomain;
+typeattribute test_key_no_search_t keydomain;
+
+allow test_key_no_search_t self:process { setkeycreate };
+allow test_key_no_search_t self:key { create write read view link setattr };
+
+###################### Deny key { view } ###########################
+type test_key_no_view_t;
+key_domain_type(test_key_no_view_t)
+unconfined_runs_test(test_key_no_view_t)
+typeattribute test_key_no_view_t testdomain;
+typeattribute test_key_no_view_t keydomain;
+
+allow test_key_no_view_t self:process { setkeycreate };
+allow test_key_no_view_t self:key { create write search read link setattr };
+
+###################### Deny key { read } ###########################
+type test_key_no_read_t;
+key_domain_type(test_key_no_read_t)
+unconfined_runs_test(test_key_no_read_t)
+typeattribute test_key_no_read_t testdomain;
+typeattribute test_key_no_read_t keydomain;
+
+allow test_key_no_read_t self:process { setkeycreate };
+allow test_key_no_read_t self:key { create write search view link setattr };
+
+###################### Deny key { link } ###########################
+type test_key_no_link_t;
+key_domain_type(test_key_no_link_t)
+unconfined_runs_test(test_key_no_link_t)
+typeattribute test_key_no_link_t testdomain;
+typeattribute test_key_no_link_t keydomain;
+
+allow test_key_no_link_t self:process { setkeycreate };
+allow test_key_no_link_t self:key { create write search read view setattr };
+
+###################### Deny key { setattr } ###########################
+type test_key_no_setattr_t;
+key_domain_type(test_key_no_setattr_t)
+unconfined_runs_test(test_key_no_setattr_t)
+typeattribute test_key_no_setattr_t testdomain;
+typeattribute test_key_no_setattr_t keydomain;
+
+allow test_key_no_setattr_t self:process { setkeycreate };
+allow test_key_no_setattr_t self:key { create write search read view link };
+
+#
+############## keyring_service / request_keys process tests ###############
+#
+# Check between a process and a keyring created by another process in a
+# different security context.
+#
+type test_keyring_service_t;
+key_domain_type(test_keyring_service_t)
+unconfined_runs_test(test_keyring_service_t)
+typeattribute test_keyring_service_t testdomain;
+typeattribute test_keyring_service_t keydomain;
+
+allow test_keyring_service_t self:process { setkeycreate };
+allow test_keyring_service_t self:key { create write search read view link setattr };
+
+allow test_keyring_service_t test_file_t:file execute_no_trans;
+allow test_keyring_service_t self : process { dyntransition };
+allow test_keyring_service_t test_request_keys_t:process dyntransition;
+allow test_keyring_service_t test_request_keys_no_search_t:process dyntransition;
+allow test_keyring_service_t test_request_keys_no_read_t:process dyntransition;
+allow test_keyring_service_t test_request_keys_no_write_t:process dyntransition;
+allow test_keyring_service_t test_request_keys_no_view_t:process dyntransition;
+allow test_keyring_service_t test_request_keys_no_setattr_t:process dyntransition;
+allow test_keyring_service_t test_request_keys_no_link_t:process dyntransition;
+
+################################# request_keys ############################
+type test_request_keys_t;
+key_domain_type(test_request_keys_t)
+unconfined_runs_test(test_request_keys_t)
+typeattribute test_request_keys_t testdomain;
+typeattribute test_request_keys_t keydomain;
+
+allow test_request_keys_t self:key { create write search read view link setattr };
+allow test_request_keys_t test_keyring_service_t:key { search read write view link setattr };
+
+################### request_keys deny { search } ############################
+type test_request_keys_no_search_t;
+key_domain_type(test_request_keys_no_search_t)
+unconfined_runs_test(test_request_keys_no_search_t)
+typeattribute test_request_keys_no_search_t testdomain;
+typeattribute test_request_keys_no_search_t keydomain;
+
+allow test_request_keys_no_search_t self:key { create write search read view link setattr };
+allow test_request_keys_no_search_t test_keyring_service_t:key { write link view setattr };
+
+################### request_keys deny { read } ############################
+type test_request_keys_no_read_t;
+key_domain_type(test_request_keys_no_read_t)
+unconfined_runs_test(test_request_keys_no_read_t)
+typeattribute test_request_keys_no_read_t testdomain;
+typeattribute test_request_keys_no_read_t keydomain;
+
+allow test_request_keys_no_read_t self:key { create write search read view link setattr };
+allow test_request_keys_no_read_t test_keyring_service_t:key { write search view setattr link };
+
+################### request_keys deny { write } ############################
+type test_request_keys_no_write_t;
+key_domain_type(test_request_keys_no_write_t)
+unconfined_runs_test(test_request_keys_no_write_t)
+typeattribute test_request_keys_no_write_t testdomain;
+typeattribute test_request_keys_no_write_t keydomain;
+
+allow test_request_keys_no_write_t self:key { create write search read view link setattr };
+allow test_request_keys_no_write_t test_keyring_service_t:key { read search view setattr link };
+
+################### request_keys deny { view } ############################
+type test_request_keys_no_view_t;
+key_domain_type(test_request_keys_no_view_t)
+unconfined_runs_test(test_request_keys_no_view_t)
+typeattribute test_request_keys_no_view_t testdomain;
+typeattribute test_request_keys_no_view_t keydomain;
+
+allow test_request_keys_no_view_t self:key { create write search read view link setattr };
+allow test_request_keys_no_view_t test_keyring_service_t:key { search write setattr link };
+
+################### request_keys deny { setattr } ############################
+type test_request_keys_no_setattr_t;
+key_domain_type(test_request_keys_no_setattr_t)
+unconfined_runs_test(test_request_keys_no_setattr_t)
+typeattribute test_request_keys_no_setattr_t testdomain;
+typeattribute test_request_keys_no_setattr_t keydomain;
+
+allow test_request_keys_no_setattr_t self:key { create write search read view link setattr };
+allow test_request_keys_no_setattr_t test_keyring_service_t:key { search read write link view };
+
+################### request_keys deny { link } ############################
+type test_request_keys_no_link_t;
+key_domain_type(test_request_keys_no_link_t)
+unconfined_runs_test(test_request_keys_no_link_t)
+typeattribute test_request_keys_no_link_t testdomain;
+typeattribute test_request_keys_no_link_t keydomain;
+
+allow test_request_keys_no_link_t self:key { create write search read view link setattr };
+allow test_request_keys_no_link_t test_keyring_service_t:key { read write search view setattr };
+
+#
+########### Allow these domains to be entered from sysadm domain ############
+#
+miscfiles_domain_entry_test_files(keydomain)
+userdom_sysadm_entry_spec_domtrans_to(keydomain)
