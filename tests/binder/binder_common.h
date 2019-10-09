@@ -25,6 +25,15 @@
 #define BINDERFS_CONTROL "/dev/binderfs/binder-control"
 #define BINDER_MMAP_SIZE 1024
 
+/* Return codes for check_binder and check_binderfs */
+enum {
+	BINDER_ERROR = -1,
+	NO_BINDER_SUPPORT = 0,
+	BASE_BINDER_SUPPORT,
+	BINDERFS_SUPPORT,
+	BINDER_VER_ERROR
+};
+
 #define TEST_SERVICE_MANAGER_HANDLE 0
 /* These are the Binder txn->code values used by the Service Provider, Client
  * and Manager to request/retrieve a binder handle or file descriptor.

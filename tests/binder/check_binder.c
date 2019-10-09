@@ -12,8 +12,6 @@ static void usage(char *progname)
 int main(int argc, char **argv)
 {
 	int opt, result, fd;
-	void *mapped;
-	size_t mapsize = BINDER_MMAP_SIZE;
 	struct binder_version vers;
 
 	while ((opt = getopt(argc, argv, "v")) != -1) {
@@ -30,22 +28,14 @@ int main(int argc, char **argv)
 	if (fd < 0) {
 		fprintf(stderr, "Cannot open: %s error: %s\n",
 			BINDER_DEV, strerror(errno));
-		result = 1;
-		return result;
-	}
-
-	/* Need this or 'no VMA error' from kernel */
-	mapped = mmap(NULL, mapsize, PROT_READ, MAP_PRIVATE, fd, 0);
-	if (mapped == MAP_FAILED) {
-		fprintf(stderr, "mmap error: %s\n", strerror(errno));
-		close(fd);
-		exit(-1);
+		return NO_BINDER_SUPPORT;
 	}
 
 	result = ioctl(fd, BINDER_VERSION, &vers);
 	if (result < 0) {
 		fprintf(stderr, "ioctl BINDER_VERSION: %s\n",
 			strerror(errno));
+		result = BINDER_ERROR;
 		goto brexit;
 	}
 
@@ -54,15 +44,16 @@ int main(int argc, char **argv)
 			"Binder kernel version: %d differs from user space version: %d\n",
 			vers.protocol_version,
 			BINDER_CURRENT_PROTOCOL_VERSION);
-		result = 2;
+		result = BINDER_VER_ERROR;
 		goto brexit;
 	}
 
 	if (verbose)
 		printf("Binder kernel version: %d\n", vers.protocol_version);
 
+	result = BASE_BINDER_SUPPORT;
+
 brexit:
-	munmap(mapped, mapsize);
 	close(fd);
 
 	return result;

@@ -4,8 +4,8 @@ use Test::More;
 BEGIN {
     $basedir = $0;
     $basedir =~ s|(.*)/[^/]*|$1|;
-    $fdr_basedir    = "$basedir/../fdreceive/";
-    $binder_basedir = "$basedir/../binder/";
+    $fdr_basedir    = "$basedir/../fdreceive";
+    $binder_basedir = "$basedir/../binder";
 
     $test_bpf_count       = 7;
     $test_fdreceive_count = 4;
@@ -25,10 +25,28 @@ BEGIN {
 
     # Test if Binder is supported
     $test_binder = 0;
-    $result      = system("$binder_basedir/check_binder $v 2>/dev/null");
-    if ( $result >> 8 eq 0 ) {
+
+    # check if binder driver available and kernel/userspace versions.
+    $result = system("/bin/sh $binder_basedir/init_binder.sh $v 2>/dev/null");
+
+    if ( $result >> 8 eq 0 ) {    # NO_BINDER_SUPPORT
+        print "Binder not supported by kernel\n";
+    }
+    elsif ( $result >> 8 eq 1 ) {    # BASE_BINDER_SUPPORT
         $test_binder = 1;
         $test_count += 4;
+        $n = " ";                    # Use /dev/binder
+    }
+    elsif ( $result >> 8 eq 2 ) {    # BINDERFS_SUPPORT
+        $test_binder = 1;
+        $test_count += 4;
+        $n = "-n";                   # Use /dev/binder-test
+    }
+    elsif ( $result >> 8 eq 3 ) {    # BINDER_VER_ERROR
+        print "Binder kernel/userspace versions differ\n";
+    }
+    else {                           # BINDER_ERROR
+        print "Error checking Binder driver\n";
     }
 
     plan tests => $test_count;
@@ -146,42 +164,45 @@ sub service_end {
 
 if ($test_binder) {
     ### Test BPF map fd on transfer ##################
-    $sm_pid = service_start( "manager", "-t test_binder_bpf_mgr_t", "$v" );
+    $sm_pid = service_start( "manager", "-t test_binder_bpf_mgr_t", "$n $v" );
     $sp_pid =
       service_start( "service_provider", "-t test_binder_bpf_provider_t",
-        "-m $v" );
+        "-m $n $v" );
 
     # Verify that the BPF map fd can be transferred.
     $result =
       system
-      "runcon -t test_binder_bpf_client_t $binder_basedir/client $v -m -r 1";
+      "runcon -t test_binder_bpf_client_t $binder_basedir/client $n $v -m -r 1";
     ok( $result eq 0 );
 
     # Verify BPF no map perms.
     $result = system
-"runcon -t test_binder_client_no_bpf_perm_t $binder_basedir/client $v -m -r 2 2>&1";
+"runcon -t test_binder_client_no_bpf_perm_t $binder_basedir/client $n $v -m -r 2 2>&1";
     ok( $result >> 8 eq 141 );
 
     ### Test BPF prog fd on transfer ##################
     service_end( "service_provider", $sp_pid );
     $sp_pid =
       service_start( "service_provider", "-t test_binder_bpf_provider_t",
-        "-p $v" );
+        "-p $n $v" );
 
     # Verify that the BPF prog fd can be transferred.
     $result =
       system
-      "runcon -t test_binder_bpf_client_t $binder_basedir/client $v -p -r 1";
+      "runcon -t test_binder_bpf_client_t $binder_basedir/client $n $v -p -r 1";
     ok( $result eq 0 );
 
     # Verify BPF no prog perms.
     $result = system
-"runcon -t test_binder_client_no_bpf_perm_t $binder_basedir/client $v -p -r 2 2>&1";
+"runcon -t test_binder_client_no_bpf_perm_t $binder_basedir/client $n $v -p -r 2 2>&1";
     ok( $result >> 8 eq 141 );
 
     # Kill the service provider & manager.
     service_end( "service_provider", $sp_pid );
     service_end( "manager",          $sm_pid );
+
+    # Cleanup binderfs stuff.
+    system("/bin/sh $binder_basedir/cleanup_binder.sh $v 2>/dev/null");
 }
 
 exit;
