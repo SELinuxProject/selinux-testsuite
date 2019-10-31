@@ -1,0 +1,133 @@
+#!/usr/bin/perl
+
+use Test;
+BEGIN { plan tests => 18 }    # number of tests to run
+
+# help the test script locate itself
+$basedir = $0;
+$basedir =~ s|(.*)/[^/]*|$1|;
+
+# Get rid of a testfile and dir from last run if it's there (just in case)
+system("rm -f $basedir/watch_me");
+system("rm -rf $basedir/watch_dir");
+
+# Create a new test file
+system("touch $basedir/watch_me");
+system("chcon -t test_notify_file_t $basedir/watch_me");
+
+# Create test dir
+system("mkdir $basedir/watch_dir");
+system("chcon -t test_notify_file_t $basedir/watch_dir");
+
+## TESTS
+
+## TEST BASIC WATCH PERMISSION
+# Should be able to set inotify watch
+$exit_val =
+  system("runcon -t test_watch_t $basedir/test_inotify $basedir/watch_me 2>&1");
+ok( $exit_val, 0 );
+
+# Should be able to set non-permissions based fanotify watch
+$exit_val = system(
+    "runcon -t test_watch_t $basedir/test_fanotify $basedir/watch_me 2>&1");
+ok( $exit_val, 0 );
+
+# Should NOT be able to set permission based fanotify watch
+$exit_val = system(
+    "runcon -t test_watch_t $basedir/test_fanotify -p $basedir/watch_me 2>&1");
+ok($exit_val);    # this should fail
+
+# Should NOT be able to set read based fanotify watch
+$exit_val = system(
+    "runcon -t test_watch_t $basedir/test_fanotify -r $basedir/watch_me 2>&1");
+ok($exit_val);    # this should fail
+
+# Should NOT be able to set read based inotify watch
+$exit_val = system(
+    "runcon -t test_watch_t $basedir/test_inotify -r $basedir/watch_me 2>&1");
+ok($exit_val);    # this should fail
+
+## TEST PERM WATCH
+# Should be able to set permission based fanotify watch
+$exit_val = system(
+"runcon -t test_perm_watch_t $basedir/test_fanotify -p $basedir/watch_me 2>&1"
+);
+ok( $exit_val, 0 );
+
+# Should NOT be able to set watch of accesses
+$exit_val = system(
+"runcon -t test_perm_watch_t $basedir/test_fanotify -r $basedir/watch_me 2>&1"
+);
+ok($exit_val);    # this should fail
+
+## TEST READ NO PERM WATCH PERMSISSIONS
+# Should NOT be able to set read and perm watch
+$exit_val = system(
+"runcon -t test_read_watch_t $basedir/test_fanotify -p -r $basedir/watch_me 2>&1"
+);
+ok($exit_val);    # should fail
+
+# Should be able to set read inotify watch
+$exit_val = system(
+"runcon -t test_read_watch_t $basedir/test_inotify -r $basedir/watch_me 2>&1"
+);
+ok( $exit_val, 0 );
+
+## TEST READ WITH PERM WATCH PERMSISSIONS
+# Should be able to set read and perm watch
+$exit_val = system(
+"runcon -t test_perm_read_watch_t $basedir/test_fanotify -p -r $basedir/watch_me 2>&1"
+);
+ok( $exit_val, 0 );
+
+## TEST NO WATCH PERMSISSIONS
+# Should NOT be able to set inotify watch
+$exit_val = system(
+    "runcon -t test_no_watch_t $basedir/test_inotify $basedir/watch_me 2>&1");
+ok($exit_val);    # this should fail
+
+# Should NOT be able to set any fanotify watch
+$exit_val = system(
+    "runcon -t test_no_watch_t $basedir/test_fanotify $basedir/watch_me 2>&1");
+ok($exit_val);    # this should fail
+
+## TEST READ ONLY
+# Should NOT be able to get read-write descriptor
+$exit_val = system(
+    "runcon -t test_rdonly_t $basedir/test_fanotify -l $basedir/watch_me 2>&1");
+ok($exit_val);    # this should fail
+
+# Should be able to get read-write descriptor
+$exit_val = system(
+    "runcon -t test_watch_t $basedir/test_fanotify -l $basedir/watch_me 2>&1");
+ok( $exit_val, 0 );
+
+## TEST MOUNT WATCHES
+# Should NOT be able to set a watch on a mount point
+$exit_val = system(
+    "runcon -t test_watch_t $basedir/test_fanotify -m $basedir/watch_dir 2>&1");
+ok($exit_val);    # this should fail
+
+# Should be able to set a watch on mount point
+$exit_val = system(
+"runcon -t test_mount_watch_t $basedir/test_fanotify -m $basedir/watch_dir 2>&1"
+);
+ok( $exit_val, 0 );
+
+# Should NOT be able to set a perm watch on a mount
+$exit_val = system(
+"runcon -t test_mount_watch_t $basedir/test_fanotify -m -p $basedir/watch_dir 2>&1"
+);
+ok($exit_val);    # this should fail
+
+# Should be able to set a perm watch on a mount object
+$exit_val = system(
+"runcon -t test_mount_perm_t $basedir/test_fanotify -p -m $basedir/watch_dir 2>&1"
+);
+ok( $exit_val, 0 );
+
+# Clean up test file
+system("rm -f $basedir/watch_me");
+
+# Clean up test dir
+system("rm -rf $basedir/watch_dir");

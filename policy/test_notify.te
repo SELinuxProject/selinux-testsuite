@@ -1,0 +1,94 @@
+####################################################
+# Policy for testing inoftify and fanotify watches #
+####################################################
+
+attribute test_notify_domain;
+
+# Type for the file on which we want to set a watch
+type test_notify_file_t;
+files_type(test_notify_file_t)
+
+# Domain for the process which CAN set a non-permission watch
+type test_watch_t;
+domain_type(test_watch_t)
+unconfined_runs_test(test_watch_t)
+
+typeattribute test_watch_t test_notify_domain;
+typeattribute test_watch_t testdomain;
+
+allow test_notify_domain self:capability sys_admin;
+
+allow test_watch_t test_notify_file_t:file { read write open watch };
+
+# Domain for the process which CAN set a NON-access watch on a file
+type test_perm_watch_t;
+domain_type(test_perm_watch_t)
+unconfined_runs_test(test_perm_watch_t)
+
+typeattribute test_perm_watch_t test_notify_domain;
+typeattribute test_perm_watch_t testdomain;
+
+allow test_perm_watch_t test_notify_file_t:file { read write open watch watch_with_perm };
+
+# Domain which CAN set a NON-perm watch which MAY read accesses
+type test_read_watch_t;
+domain_type(test_read_watch_t)
+unconfined_runs_test(test_read_watch_t)
+
+typeattribute test_read_watch_t test_notify_domain;
+typeattribute test_read_watch_t testdomain;
+
+allow test_read_watch_t test_notify_file_t:file { read write open watch watch_reads };
+
+# Domain which CAN set any watch which CAN read accesses
+type test_perm_read_watch_t;
+domain_type(test_perm_read_watch_t)
+unconfined_runs_test(test_perm_read_watch_t)
+
+typeattribute test_perm_read_watch_t test_notify_domain;
+typeattribute test_perm_read_watch_t testdomain;
+
+allow test_perm_read_watch_t test_notify_file_t:file { read write open watch watch_with_perm watch_reads };
+
+# Domain which CANNOT set any watches
+type test_no_watch_t;
+domain_type(test_no_watch_t)
+unconfined_runs_test(test_no_watch_t)
+
+typeattribute test_no_watch_t test_notify_domain;
+typeattribute test_no_watch_t testdomain;
+
+allow test_no_watch_t test_notify_file_t:file { read write open };
+
+# Domain which allows for mount watches
+type test_mount_watch_t;
+domain_type(test_mount_watch_t)
+unconfined_runs_test(test_mount_watch_t)
+
+typeattribute test_mount_watch_t test_notify_domain;
+typeattribute test_mount_watch_t testdomain;
+
+allow test_mount_watch_t test_notify_file_t:dir { read write open watch_mount };
+
+# Domain which allows for mount perm watches
+type test_mount_perm_t;
+domain_type(test_mount_perm_t)
+unconfined_runs_test(test_mount_perm_t)
+
+typeattribute test_mount_perm_t test_notify_domain;
+typeattribute test_mount_perm_t testdomain;
+
+allow test_mount_perm_t test_notify_file_t:dir { read write open watch_mount watch_with_perm };
+
+# Domain which has no write access but can watch
+type test_rdonly_t;
+domain_type(test_rdonly_t)
+unconfined_runs_test(test_rdonly_t)
+
+typeattribute test_rdonly_t test_notify_domain;
+typeattribute test_rdonly_t testdomain;
+
+allow test_rdonly_t test_notify_file_t:dir { read open watch };
+
+miscfiles_domain_entry_test_files(test_notify_domain)
+userdom_sysadm_entry_spec_domtrans_to(test_notify_domain)
