@@ -277,6 +277,7 @@ int main(int argc, char **argv)
 		printf("Client peer address count: %d\n", peer_count);
 
 	/* Client and server now set so accept new socket on server side. */
+	sinlen = sizeof(sin);
 	new_sock = accept(srv_sock, (struct sockaddr *)&sin, &sinlen);
 	if (new_sock < 0) {
 		perror("accept");

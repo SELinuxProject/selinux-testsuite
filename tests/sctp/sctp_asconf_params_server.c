@@ -112,6 +112,7 @@ int main(int argc, char **argv)
 		fclose(f);
 	}
 
+	sinlen = sizeof(sin);
 	new_sock = accept(srv_sock, (struct sockaddr *)&sin, &sinlen);
 	if (new_sock < 0) {
 		perror("accept");
