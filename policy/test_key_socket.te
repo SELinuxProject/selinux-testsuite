@@ -1,0 +1,70 @@
+#
+############## Test key management socket 'key_socket' #####################
+#
+attribute keysockdomain;
+
+type test_key_sock_t;
+domain_type(test_key_sock_t)
+unconfined_runs_test(test_key_sock_t)
+typeattribute test_key_sock_t testdomain;
+typeattribute test_key_sock_t keysockdomain;
+
+# key_socket rules:
+allow test_key_sock_t self:capability { net_admin };
+allow test_key_sock_t self:key_socket { create write read setopt };
+# For CONFIG_NET_KEY=m
+allow test_key_sock_t kernel_t:system { module_request };
+
+################## Deny capability { net_admin } ##########################
+#
+# Note that when capability { net_admin } is removed for the test
+# there will not be an audit message in the log as the Fedora policy
+# is built with 'hide_broken_symptoms' that adds the following:
+#   dontaudit test_key_sock_no_net_admin_t self:capability { net_admin sys_module };
+#
+type test_key_sock_no_net_admin_t;
+domain_type(test_key_sock_no_net_admin_t)
+unconfined_runs_test(test_key_sock_no_net_admin_t)
+typeattribute test_key_sock_no_net_admin_t testdomain;
+typeattribute test_key_sock_no_net_admin_t keysockdomain;
+
+allow test_key_sock_no_net_admin_t self:key_socket { create write read setopt };
+allow test_key_sock_no_net_admin_t kernel_t:system { module_request };
+
+####################### Deny key_socket { create } ##########################
+type test_key_sock_no_create_t;
+domain_type(test_key_sock_no_create_t)
+unconfined_runs_test(test_key_sock_no_create_t)
+typeattribute test_key_sock_no_create_t testdomain;
+typeattribute test_key_sock_no_create_t keysockdomain;
+
+allow test_key_sock_no_create_t self:capability { net_admin };
+allow test_key_sock_no_create_t self:key_socket { write read setopt };
+
+####################### Deny key_socket { write } ##########################
+type test_key_sock_no_write_t;
+domain_type(test_key_sock_no_write_t)
+unconfined_runs_test(test_key_sock_no_write_t)
+typeattribute test_key_sock_no_write_t testdomain;
+typeattribute test_key_sock_no_write_t keysockdomain;
+
+allow test_key_sock_no_write_t self:capability { net_admin };
+allow test_key_sock_no_write_t self:key_socket { create read setopt };
+allow test_key_sock_no_write_t kernel_t:system { module_request };
+
+####################### Deny key_socket { read } ##########################
+type test_key_sock_no_read_t;
+domain_type(test_key_sock_no_read_t)
+unconfined_runs_test(test_key_sock_no_read_t)
+typeattribute test_key_sock_no_read_t testdomain;
+typeattribute test_key_sock_no_read_t keysockdomain;
+
+allow test_key_sock_no_read_t self:capability { net_admin };
+allow test_key_sock_no_read_t self:key_socket { create write setopt };
+allow test_key_sock_no_read_t kernel_t:system { module_request };
+
+#
+########### Allow these domains to be entered from sysadm domain ############
+#
+miscfiles_domain_entry_test_files(keysockdomain)
+userdom_sysadm_entry_spec_domtrans_to(keysockdomain)

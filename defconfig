@@ -74,3 +74,7 @@ CONFIG_BPF_SYSCALL=y
 CONFIG_KEYS=y
 CONFIG_KEYS_COMPAT=y
 CONFIG_KEY_DH_OPERATIONS=y
+
+# Test key management socket.
+# This is not required for SELinux operation itself.
+CONFIG_NET_KEY=m

@@ -1,0 +1,45 @@
+#!/usr/bin/perl
+use Test::More;
+
+BEGIN {
+    $basedir = $0;
+    $basedir =~ s|(.*)/[^/]*|$1|;
+
+    # allow info to be shown during tests
+    $v = $ARGV[0];
+    if ($v) {
+        if ( $v ne "-v" ) {
+            plan skip_all => "Invalid option (use -v)";
+        }
+    }
+    else {
+        $v = " ";
+    }
+
+    plan tests => 5;
+}
+
+############ Test key_socket #############
+print "Test key management key_socket\n";
+$result = system "runcon -t test_key_sock_t $basedir/key_sock $v";
+ok( $result eq 0 );
+
+# Deny capability { net_admin } - EPERM
+$result =
+  system "runcon -t test_key_sock_no_net_admin_t $basedir/key_sock $v 2>&1";
+ok( $result >> 8 eq 1 );
+
+# Deny key_socket { create } - EACCES
+$result =
+  system "runcon -t test_key_sock_no_create_t $basedir/key_sock $v 2>&1";
+ok( $result >> 8 eq 13 );
+
+# Deny key_socket { write } - EACCES
+$result = system "runcon -t test_key_sock_no_write_t $basedir/key_sock $v 2>&1";
+ok( $result >> 8 eq 13 );
+
+# Deny key_socket { read } - EACCES
+$result = system "runcon -t test_key_sock_no_read_t $basedir/key_sock $v 2>&1";
+ok( $result >> 8 eq 13 );
+
+exit;
