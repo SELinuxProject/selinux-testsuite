@@ -60,3 +60,25 @@ interface(`userdom_sysadm_entry_spec_domtrans_to',`
         allow $1 sysadm_t:process sigchld;
 ')
 ')
+
+# Workarounds for refpolicy:
+
+ifdef(`dev_rw_infiniband_dev', `', ` dnl
+interface(`dev_rw_infiniband_dev', `
+    dev_rw_generic_blk_files($1)
+    dev_rw_generic_chr_files($1)
+')
+')
+
+ifdef(`mount_rw_pid_files', `', ` dnl
+interface(`mount_rw_pid_files', `
+    mount_rw_runtime_files($1)
+')
+')
+
+# Refpolicy doesn't have admin_home_t - assume /root will be user_home_dir_t.
+ifdef(`userdom_search_admin_dir', `', ` dnl
+interface(`userdom_search_admin_dir', `
+    userdom_search_user_home_content($1)
+')
+')
