@@ -60,9 +60,3 @@ interface(`userdom_sysadm_entry_spec_domtrans_to',`
         allow $1 sysadm_t:process sigchld;
 ')
 ')
-
-ifdef(`userdom_search_generic_user_home_dirs', `', ` dnl
-interface(`userdom_search_generic_user_home_dirs', `
-    userdom_search_user_home_dirs($1)
-')
-')
