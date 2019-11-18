@@ -1,6 +1,6 @@
 language: c
 
-dist: xenial
+dist: bionic
 
 addons:
   apt:
@@ -8,16 +8,56 @@ addons:
       - astyle
       - libselinux1-dev
       - libsctp-dev
+      - libaudit-dev
+      - libcap-dev
+      - libdbus-glib-1-dev
+      - xmlto
+
+cache:
+  directories:
+    - selinux-policy
+    - container-selinux
+    - refpolicy
 
 before_install:
+  - export LIBRARY_PATH=/usr/local/lib
+  - export LD_LIBRARY_PATH=/usr/local/lib
   # FYI: known good with HEAD at 8551fc60fc515cd290ba38ee8c758c1f4df52b56
   - git clone https://github.com/perltidy/perltidy.git perltidy
   - |
     (cd perltidy &&
      perl Makefile.PL &&
-     make &&
-     sudo make install)
+     make PREFIX=/usr/local &&
+     sudo make install PREFIX=/usr/local)
+  # install libbpf from sources
+  - git clone https://github.com/libbpf/libbpf
+  - (cd libbpf/src && make PREFIX=/usr/local)
+  - (cd libbpf/src && sudo make install PREFIX=/usr/local)
+  # install keyutils from sources
+  - git clone https://git.kernel.org/pub/scm/linux/kernel/git/dhowells/keyutils.git
+  - KEYUTILS_OPTS=""
+  - KEYUTILS_OPTS+="BINDIR=/usr/local/bin SBINDIR=/usr/local/sbin "
+  - KEYUTILS_OPTS+="LIBDIR=/usr/local/lib USRLIBDIR=/usr/local/lib "
+  - KEYUTILS_OPTS+="INCLUDEDIR=/usr/local/include "
+  - KEYUTILS_OPTS+="SHAREDIR=/usr/local/share/keyutils MANDIR=/usr/local/share/man"
+  - (cd keyutils && make $KEYUTILS_OPTS)
+  - (cd keyutils && sudo make install $KEYUTILS_OPTS)
+  # install SELinux userspace from source
+  - git clone https://github.com/SELinuxProject/selinux
+  - (cd selinux && sudo make install PREFIX=/usr/local SHLIBDIR=/usr/local/lib)
+  # install Fedora policy and refpolicy
+  - bash travis-ci/setup-policy-fedora.sh
+  - bash travis-ci/setup-policy-refpolicy.sh
+  # establish a fake "selinuxfs" mount (policy/Makefile just greps for selinuxfs)
+  - sudo mkdir -p /tmp/fake-selinuxfs
+  - sudo mount -t tmpfs tmpfs /tmp/fake-selinuxfs
+  - echo 999 >/tmp/fake-selinuxfs/policyvers
 
 script:
   - tools/check-syntax -f && git diff --exit-code
-  - make
+  - |
+    bash travis-ci/enable-policy.sh targeted &&
+    make PREFIX=/usr/local POLDEV=/usr/share/selinux/targeted
+  - |
+    bash travis-ci/enable-policy.sh refpolicy &&
+    make PREFIX=/usr/local POLDEV=/usr/share/selinux/refpolicy

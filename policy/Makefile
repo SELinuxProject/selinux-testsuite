@@ -1,8 +1,11 @@
 
-POLDEV ?= /usr/share/selinux/devel
-SEMODULE = /usr/sbin/semodule
-CHECKPOLICY = /usr/bin/checkpolicy
-CHECKMODULE = /usr/bin/checkmodule
+PREFIX ?= /usr
+BINDIR ?= $(PREFIX)/bin
+SBINDIR ?= $(PREFIX)/sbin
+POLDEV ?= $(PREFIX)/share/selinux/devel
+SEMODULE = $(SBINDIR)/semodule
+CHECKPOLICY = $(BINDIR)/checkpolicy
+CHECKMODULE = $(BINDIR)/checkmodule
 
 DISTRO=$(shell ../tests/os_detect)
 
