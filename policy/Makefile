@@ -97,6 +97,10 @@ ifeq ($(shell grep -q key_socket $(POLDEV)/include/support/all_perms.spt && echo
 TARGETS += test_key_socket.te
 endif
 
+ifeq ($(shell grep -q module_load $(POLDEV)/include/support/all_perms.spt && echo true),true)
+TARGETS+=test_module_load.te
+endif
+
 ifeq (x$(DISTRO),$(filter x$(DISTRO),xRHEL4 xRHEL5 xRHEL6))
 TARGETS:=$(filter-out test_overlayfs.te test_mqueue.te test_ibpkey.te, $(TARGETS))
 endif

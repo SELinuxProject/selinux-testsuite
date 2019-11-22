@@ -1,0 +1,72 @@
+############# Test kernel modules ###################
+#
+attribute kmoduledomain;
+
+#
+############################## Define Macro ################################
+#
+# Replace domain_type() macro as it hides some relevant denials in audit.log
+#
+gen_require(`
+	type setrans_var_run_t, syslogd_t;
+')
+
+define(`module_domain_type',`
+	allow $1 proc_t:dir { search };
+	allow $1 proc_t:lnk_file { read };
+	allow $1 self:dir { search };
+	allow $1 self:file { open read write };
+	dontaudit init_t syslogd_t:fd use;
+	dontaudit $1 security_t:filesystem getattr;
+	dontaudit $1 self:file getattr;
+	dontaudit $1 setrans_var_run_t:dir search;
+	dontaudit unconfined_t $1:process { noatsecure rlimitinh siginh };
+')
+
+############# Test finit_module(2) / init_module(2) ####################
+type test_kmodule_t;
+module_domain_type(test_kmodule_t)
+unconfined_runs_test(test_kmodule_t)
+typeattribute test_kmodule_t testdomain, kmoduledomain;
+
+allow test_kmodule_t self:capability { sys_module };
+# Required for finit_module(2):
+allow test_kmodule_t test_file_t:system { module_load };
+# Required for init_module(2):
+allow test_kmodule_t self:system { module_load };
+allow test_kmodule_t kernel_t:system { module_request };
+
+############### Deny cap sys_module ######################
+type test_kmodule_deny_sys_module_t;
+module_domain_type(test_kmodule_deny_sys_module_t)
+unconfined_runs_test(test_kmodule_deny_sys_module_t)
+typeattribute test_kmodule_deny_sys_module_t testdomain, kmoduledomain;
+
+neverallow test_kmodule_deny_sys_module_t self:capability { sys_module };
+
+############### Deny sys module_load ######################
+type test_kmodule_deny_module_load_t;
+module_domain_type(test_kmodule_deny_module_load_t)
+unconfined_runs_test(test_kmodule_deny_module_load_t)
+typeattribute test_kmodule_deny_module_load_t testdomain, kmoduledomain;
+
+allow test_kmodule_deny_module_load_t self:capability { sys_module };
+neverallow test_kmodule_deny_module_load_t test_file_t:system { module_load };
+neverallow test_kmodule_deny_module_load_t self:system { module_load };
+
+############### Deny sys module_request ######################
+type test_kmodule_deny_module_request_t;
+module_domain_type(test_kmodule_deny_module_request_t)
+unconfined_runs_test(test_kmodule_deny_module_request_t)
+typeattribute test_kmodule_deny_module_request_t testdomain, kmoduledomain;
+
+allow test_kmodule_deny_module_request_t self:capability { sys_module };
+allow test_kmodule_deny_module_request_t test_file_t:system { module_load };
+allow test_kmodule_deny_module_request_t self:system { module_load };
+neverallow test_kmodule_deny_module_request_t kernel_t:system { module_request };
+
+#
+########### Allow these domains to be entered from sysadm domain ############
+#
+miscfiles_domain_entry_test_files(kmoduledomain)
+userdom_sysadm_entry_spec_domtrans_to(kmoduledomain)

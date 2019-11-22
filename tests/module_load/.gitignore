@@ -1,0 +1,11 @@
+finit_load
+init_load
+modules.order
+Module.symvers
+*.a
+*.o
+*.ko
+*.cmd
+*.mod
+*.mod.c
+.*.cmd

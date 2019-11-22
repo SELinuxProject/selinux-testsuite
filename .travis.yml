@@ -20,6 +20,8 @@ cache:
     - refpolicy
 
 before_install:
+  # install headers for module_load test
+  - sudo apt-get install linux-headers-$(uname -r)
   - export LIBRARY_PATH=/usr/local/lib
   - export LD_LIBRARY_PATH=/usr/local/lib
   # FYI: known good with HEAD at 8551fc60fc515cd290ba38ee8c758c1f4df52b56
