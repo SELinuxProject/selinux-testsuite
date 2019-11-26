@@ -12,6 +12,7 @@ typeattribute test_perf_t perfdomain;
 
 allow test_perf_t self:capability { sys_admin };
 allow test_perf_t self:perf_event { open cpu kernel tracepoint read write };
+allow_lockdown_confidentiality(test_perf_t)
 
 ################# Deny capability { sys_admin } ##########################
 type test_perf_no_admin_t;
@@ -41,6 +42,7 @@ typeattribute test_perf_no_cpu_t perfdomain;
 
 allow test_perf_no_cpu_t self:capability { sys_admin };
 allow test_perf_no_cpu_t self:perf_event { open kernel tracepoint read write };
+allow_lockdown_confidentiality(test_perf_no_cpu_t)
 
 ################# Deny perf_event { kernel } ##########################
 type test_perf_no_kernel_t;
@@ -61,6 +63,7 @@ typeattribute test_perf_no_tracepoint_t perfdomain;
 
 allow test_perf_no_tracepoint_t self:capability { sys_admin };
 allow test_perf_no_tracepoint_t self:perf_event { open cpu kernel read write };
+allow_lockdown_confidentiality(test_perf_no_tracepoint_t)
 
 ################# Deny perf_event { read } ##########################
 type test_perf_no_read_t;
@@ -71,6 +74,7 @@ typeattribute test_perf_no_read_t perfdomain;
 
 allow test_perf_no_read_t self:capability { sys_admin };
 allow test_perf_no_read_t self:perf_event { open cpu kernel tracepoint write };
+allow_lockdown_confidentiality(test_perf_no_read_t)
 
 ################# Deny perf_event { write } ##########################
 type test_perf_no_write_t;
@@ -81,6 +85,7 @@ typeattribute test_perf_no_write_t perfdomain;
 
 allow test_perf_no_write_t self:capability { sys_admin };
 allow test_perf_no_write_t self:perf_event { open cpu kernel tracepoint read };
+allow_lockdown_confidentiality(test_perf_no_write_t)
 
 #
 ########### Allow these domains to be entered from sysadm domain ############

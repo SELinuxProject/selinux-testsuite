@@ -35,6 +35,7 @@ allow test_kmodule_t test_file_t:system { module_load };
 # Required for init_module(2):
 allow test_kmodule_t self:system { module_load };
 allow test_kmodule_t kernel_t:system { module_request };
+allow_lockdown_integrity(test_kmodule_t)
 
 ############### Deny cap sys_module ######################
 type test_kmodule_deny_sys_module_t;
@@ -63,6 +64,7 @@ typeattribute test_kmodule_deny_module_request_t testdomain, kmoduledomain;
 allow test_kmodule_deny_module_request_t self:capability { sys_module };
 allow test_kmodule_deny_module_request_t test_file_t:system { module_load };
 allow test_kmodule_deny_module_request_t self:system { module_load };
+allow_lockdown_integrity(test_kmodule_deny_module_request_t)
 neverallow test_kmodule_deny_module_request_t kernel_t:system { module_request };
 
 #

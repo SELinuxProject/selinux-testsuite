@@ -1,0 +1,42 @@
+#!/usr/bin/perl
+
+use Test;
+BEGIN { plan tests => 8 }
+
+# everything is allowed
+$result =
+  system "runcon -t test_lockdown_all_t -- head /dev/mem > /dev/null 2>&1";
+ok( $result, 0 );
+
+$result =
+  system "runcon -t test_lockdown_all_t -- head /proc/kcore > /dev/null 2>&1";
+ok( $result, 0 );
+
+# only integrity operations allowed
+$result = system
+  "runcon -t test_lockdown_integrity_t -- head /dev/mem > /dev/null 2>&1";
+ok( $result, 0 );
+
+$result = system
+  "runcon -t test_lockdown_integrity_t -- head /proc/kcore > /dev/null 2>&1";
+ok($result);
+
+# only confidentiality operations allowed
+$result = system
+  "runcon -t test_lockdown_confidentiality_t -- head /dev/mem > /dev/null 2>&1";
+ok($result);
+
+$result = system
+"runcon -t test_lockdown_confidentiality_t -- head /proc/kcore > /dev/null 2>&1";
+ok( $result, 0 );
+
+# nothing is allowed
+$result =
+  system "runcon -t test_lockdown_none_t -- head /dev/mem > /dev/null 2>&1";
+ok($result);
+
+$result =
+  system "runcon -t test_lockdown_none_t -- head /proc/kcore > /dev/null 2>&1";
+ok($result);
+
+exit;

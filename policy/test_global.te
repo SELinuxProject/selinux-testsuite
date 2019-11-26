@@ -99,3 +99,11 @@ ifdef(`distro_redhat', `
 define(`allow_map',
 ifdef(`map_permission_defined', `allow $1 $2:$3 map;')
 )
+
+define(`allow_lockdown_integrity',
+ifdef(`lockdown_defined', `allow $1 self:lockdown integrity;')
+)
+
+define(`allow_lockdown_confidentiality',
+ifdef(`lockdown_defined', `allow $1 self:lockdown confidentiality;')
+)

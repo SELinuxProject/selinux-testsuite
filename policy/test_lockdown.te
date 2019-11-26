@@ -1,0 +1,54 @@
+#################################
+#
+# Policy for testing lockdown
+#
+
+attribute lockdowndomain;
+
+# Domain for lockdown (all operations allowed)
+type test_lockdown_all_t;
+domain_type(test_lockdown_all_t)
+unconfined_runs_test(test_lockdown_all_t)
+typeattribute test_lockdown_all_t lockdowndomain;
+typeattribute test_lockdown_all_t testdomain;
+
+dev_read_raw_memory(test_lockdown_all_t)
+kernel_read_core_if(test_lockdown_all_t)
+corecmd_bin_entry_type(test_lockdown_all_t)
+allow test_lockdown_all_t self:lockdown integrity;
+allow test_lockdown_all_t self:lockdown confidentiality;
+
+# Domain for integrity
+type test_lockdown_integrity_t;
+domain_type(test_lockdown_integrity_t)
+unconfined_runs_test(test_lockdown_integrity_t)
+typeattribute test_lockdown_integrity_t lockdowndomain;
+typeattribute test_lockdown_integrity_t testdomain;
+
+dev_read_raw_memory(test_lockdown_integrity_t)
+kernel_read_core_if(test_lockdown_integrity_t)
+corecmd_bin_entry_type(test_lockdown_integrity_t)
+allow test_lockdown_integrity_t self:lockdown integrity;
+
+# Domain for confidentiality
+type test_lockdown_confidentiality_t;
+domain_type(test_lockdown_confidentiality_t)
+unconfined_runs_test(test_lockdown_confidentiality_t)
+typeattribute test_lockdown_confidentiality_t lockdowndomain;
+typeattribute test_lockdown_confidentiality_t testdomain;
+
+dev_read_raw_memory(test_lockdown_confidentiality_t)
+kernel_read_core_if(test_lockdown_confidentiality_t)
+corecmd_bin_entry_type(test_lockdown_confidentiality_t)
+allow test_lockdown_confidentiality_t self:lockdown confidentiality;
+
+# Domain for lockdown (all operations denied)
+type test_lockdown_none_t;
+domain_type(test_lockdown_none_t)
+unconfined_runs_test(test_lockdown_none_t)
+typeattribute test_lockdown_none_t lockdowndomain;
+typeattribute test_lockdown_none_t testdomain;
+
+dev_read_raw_memory(test_lockdown_none_t)
+kernel_read_core_if(test_lockdown_none_t)
+corecmd_bin_entry_type(test_lockdown_none_t)
