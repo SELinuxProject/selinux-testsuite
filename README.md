@@ -53,6 +53,7 @@ similar dependencies):
 * attr _(tools used by the overlayfs tests)_
 * libbpf-devel _(tools used by the bpf tests)_
 * keyutils-libs-devel _(tools used by the keys tests)_
+* kernel-devel _(used by the kernel module tests)_
 
 On a modern Fedora system you can install these dependencies with the
 following command:
@@ -69,7 +70,8 @@ following command:
 		lksctp-tools-devel \
 		attr \
 		libbpf-devel \
-		keyutils-libs-devel
+		keyutils-libs-devel \
+		kernel-devel
 
 The testsuite requires a pre-existing base policy configuration of SELinux,
 using either the old example policy or the reference policy as the baseline.
