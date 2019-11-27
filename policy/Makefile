@@ -3,6 +3,7 @@ PREFIX ?= /usr
 BINDIR ?= $(PREFIX)/bin
 SBINDIR ?= $(PREFIX)/sbin
 POLDEV ?= $(PREFIX)/share/selinux/devel
+SELINUXFS ?= /sys/fs/selinux
 SEMODULE = $(SBINDIR)/semodule
 CHECKPOLICY = $(BINDIR)/checkpolicy
 CHECKMODULE = $(BINDIR)/checkmodule
@@ -11,7 +12,6 @@ DISTRO=$(shell ../tests/os_detect)
 
 POL_VERS := $(shell $(CHECKPOLICY) -V |cut -f 1 -d ' ')
 MOD_POL_VERS := $(shell $(CHECKMODULE) -V |cut -f 2 -d '-')
-SELINUXFS := $(shell cat /proc/mounts | grep selinuxfs | cut -f 2 -d ' ')
 MAX_KERNEL_POLICY := $(shell cat $(SELINUXFS)/policyvers)
 
 TARGETS = \

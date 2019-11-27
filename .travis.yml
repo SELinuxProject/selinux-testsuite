@@ -51,15 +51,15 @@ before_install:
   - bash travis-ci/setup-policy-fedora.sh
   - bash travis-ci/setup-policy-refpolicy.sh
   # establish a fake "selinuxfs" mount (policy/Makefile just greps for selinuxfs)
-  - sudo mkdir -p /tmp/fake-selinuxfs
-  - sudo mount -t tmpfs tmpfs /tmp/fake-selinuxfs
+  - mkdir -p /tmp/fake-selinuxfs/policy_capabilities
+  - echo 1 > /tmp/fake-selinuxfs/policy_capabilities/extended_socket_class
   - echo 999 >/tmp/fake-selinuxfs/policyvers
 
 script:
   - tools/check-syntax -f && git diff --exit-code
   - |
     bash travis-ci/enable-policy.sh targeted &&
-    make PREFIX=/usr/local POLDEV=/usr/share/selinux/targeted
+    make SELINUXFS=/tmp/fake-selinuxfs PREFIX=/usr/local POLDEV=/usr/share/selinux/targeted
   - |
     bash travis-ci/enable-policy.sh refpolicy &&
-    make PREFIX=/usr/local POLDEV=/usr/share/selinux/refpolicy
+    make SELINUXFS=/tmp/fake-selinuxfs PREFIX=/usr/local POLDEV=/usr/share/selinux/refpolicy

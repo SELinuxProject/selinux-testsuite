@@ -1,5 +1,6 @@
 INCLUDEDIR ?= /usr/include
 POLDEV ?= /usr/share/selinux/devel
+SELINUXFS ?= /sys/fs/selinux
 
 export CFLAGS+=-g -O0 -Wall -D_GNU_SOURCE
 
@@ -19,11 +20,11 @@ SUBDIRS += cap_userns
 endif
 endif
 
-ifeq ($(shell grep -q icmp_socket $(POLDEV)/include/support/all_perms.spt && grep -q 1 /sys/fs/selinux/policy_capabilities/extended_socket_class && echo true),true)
+ifeq ($(shell grep -q icmp_socket $(POLDEV)/include/support/all_perms.spt && grep -q 1 $(SELINUXFS)/policy_capabilities/extended_socket_class && echo true),true)
 SUBDIRS += extended_socket_class
 endif
 
-ifeq ($(shell grep -q corenet_sctp_bind_all_nodes $(POLDEV)/include/kernel/corenetwork.if && grep -q 1 /sys/fs/selinux/policy_capabilities/extended_socket_class && echo true),true)
+ifeq ($(shell grep -q corenet_sctp_bind_all_nodes $(POLDEV)/include/kernel/corenetwork.if && grep -q 1 $(SELINUXFS)/policy_capabilities/extended_socket_class && echo true),true)
 ifneq ($(shell ./kvercmp $$(uname -r) 4.20.17),-1)
 SUBDIRS += sctp
 endif
