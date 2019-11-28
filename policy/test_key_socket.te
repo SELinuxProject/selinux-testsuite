@@ -12,8 +12,6 @@ typeattribute test_key_sock_t keysockdomain;
 # key_socket rules:
 allow test_key_sock_t self:capability { net_admin };
 allow test_key_sock_t self:key_socket { create write read setopt };
-# For CONFIG_NET_KEY=m
-allow test_key_sock_t kernel_t:system { module_request };
 
 ################## Deny capability { net_admin } ##########################
 #
@@ -29,7 +27,6 @@ typeattribute test_key_sock_no_net_admin_t testdomain;
 typeattribute test_key_sock_no_net_admin_t keysockdomain;
 
 allow test_key_sock_no_net_admin_t self:key_socket { create write read setopt };
-allow test_key_sock_no_net_admin_t kernel_t:system { module_request };
 
 ####################### Deny key_socket { create } ##########################
 type test_key_sock_no_create_t;
@@ -50,7 +47,6 @@ typeattribute test_key_sock_no_write_t keysockdomain;
 
 allow test_key_sock_no_write_t self:capability { net_admin };
 allow test_key_sock_no_write_t self:key_socket { create read setopt };
-allow test_key_sock_no_write_t kernel_t:system { module_request };
 
 ####################### Deny key_socket { read } ##########################
 type test_key_sock_no_read_t;
@@ -61,10 +57,12 @@ typeattribute test_key_sock_no_read_t keysockdomain;
 
 allow test_key_sock_no_read_t self:capability { net_admin };
 allow test_key_sock_no_read_t self:key_socket { create write setopt };
-allow test_key_sock_no_read_t kernel_t:system { module_request };
 
 #
 ########### Allow these domains to be entered from sysadm domain ############
 #
 miscfiles_domain_entry_test_files(keysockdomain)
 userdom_sysadm_entry_spec_domtrans_to(keysockdomain)
+
+# For CONFIG_NET_KEY=m
+kernel_request_load_module(keysockdomain)
