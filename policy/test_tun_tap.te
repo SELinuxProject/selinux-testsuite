@@ -1,0 +1,113 @@
+#
+########### Test TUN/TAP device driver support - 'tun_socket' ##############
+#
+attribute tuntapdomain;
+
+# For CONFIG_TUN=m
+kernel_request_load_module(tuntapdomain)
+
+type test_tun_tap_t;
+domain_type(test_tun_tap_t)
+unconfined_runs_test(test_tun_tap_t)
+typeattribute test_tun_tap_t testdomain;
+typeattribute test_tun_tap_t tuntapdomain;
+
+# tun_socket rules:
+allow test_tun_tap_t self:capability { net_admin };
+corenet_rw_tun_tap_dev(test_tun_tap_t)
+allow test_tun_tap_t self:tun_socket { create attach_queue };
+
+################## Deny capability { net_admin } ##########################
+#
+# Note that when capability { net_admin } is removed for the test
+# there will not be an audit message in the log as the Fedora policy
+# is built with 'hide_broken_symptoms' that adds the following:
+#   dontaudit test_tun_tap_no_net_admin_t self:capability { net_admin sys_module };
+#
+type test_tun_tap_no_net_admin_t;
+domain_type(test_tun_tap_no_net_admin_t)
+unconfined_runs_test(test_tun_tap_no_net_admin_t)
+typeattribute test_tun_tap_no_net_admin_t testdomain;
+typeattribute test_tun_tap_no_net_admin_t tuntapdomain;
+
+neverallow test_tun_tap_t self:capability { net_admin };
+corenet_rw_tun_tap_dev(test_tun_tap_no_net_admin_t)
+allow test_tun_tap_no_net_admin_t self:tun_socket { create write read setopt };
+
+####################### Deny tun_socket { create } ##########################
+type test_tun_tap_no_create_t;
+domain_type(test_tun_tap_no_create_t)
+unconfined_runs_test(test_tun_tap_no_create_t)
+typeattribute test_tun_tap_no_create_t testdomain;
+typeattribute test_tun_tap_no_create_t tuntapdomain;
+
+allow test_tun_tap_no_create_t self:capability { net_admin };
+corenet_rw_tun_tap_dev(test_tun_tap_no_create_t)
+neverallow test_tun_tap_no_create_t self:tun_socket { create };
+
+################## Deny tun_socket { attach_queue } ########################
+type test_tun_tap_no_queue_t;
+domain_type(test_tun_tap_no_queue_t)
+unconfined_runs_test(test_tun_tap_no_queue_t)
+typeattribute test_tun_tap_no_queue_t testdomain;
+typeattribute test_tun_tap_no_queue_t tuntapdomain;
+
+allow test_tun_tap_no_queue_t self:capability { net_admin };
+corenet_rw_tun_tap_dev(test_tun_tap_no_queue_t)
+allow test_tun_tap_no_queue_t self:tun_socket { create };
+neverallow test_tun_tap_no_queue_t self:tun_socket { attach_queue };
+
+#
+############ Test relabelto/relabelfrom via new context #####################
+type test_newcon_tun_tap_t;
+domain_type(test_newcon_tun_tap_t)
+unconfined_runs_test(test_newcon_tun_tap_t)
+typeattribute test_newcon_tun_tap_t testdomain;
+typeattribute test_newcon_tun_tap_t keydomain;
+
+allow test_tun_tap_t test_newcon_tun_tap_t:process { dyntransition };
+corenet_rw_tun_tap_dev(test_newcon_tun_tap_t)
+allow test_newcon_tun_tap_t test_tun_tap_t:tun_socket { relabelfrom };
+allow test_newcon_tun_tap_t self:tun_socket { relabelto };
+
+# For error handling when switching back to original context:
+allow test_newcon_tun_tap_t test_tun_tap_t:fd use;
+allow test_newcon_tun_tap_t test_tun_tap_t:process dyntransition;
+
+############ Deny relabelto via new context #####################
+type test_newcon_no_to_tun_tap_t;
+domain_type(test_newcon_no_to_tun_tap_t)
+unconfined_runs_test(test_newcon_no_to_tun_tap_t)
+typeattribute test_newcon_no_to_tun_tap_t testdomain;
+typeattribute test_newcon_no_to_tun_tap_t keydomain;
+
+allow test_tun_tap_t test_newcon_no_to_tun_tap_t:process { dyntransition };
+allow test_tun_tap_t test_newcon_no_to_tun_tap_t:fd { use };
+corenet_rw_tun_tap_dev(test_newcon_no_to_tun_tap_t)
+allow test_newcon_no_to_tun_tap_t test_tun_tap_t:tun_socket { relabelfrom };
+neverallow test_newcon_no_to_tun_tap_t self:tun_socket { relabelto };
+
+# For switch back on error:
+allow test_newcon_no_to_tun_tap_t test_tun_tap_t:process { dyntransition };
+
+############ Deny relabelfrom via new context #####################
+type test_newcon_no_from_tun_tap_t;
+domain_type(test_newcon_no_from_tun_tap_t)
+unconfined_runs_test(test_newcon_no_from_tun_tap_t)
+typeattribute test_newcon_no_from_tun_tap_t testdomain;
+typeattribute test_newcon_no_from_tun_tap_t keydomain;
+
+allow test_tun_tap_t test_newcon_no_from_tun_tap_t:process { dyntransition };
+corenet_rw_tun_tap_dev(test_newcon_no_from_tun_tap_t)
+neverallow test_newcon_no_from_tun_tap_t test_tun_tap_t:tun_socket { relabelfrom };
+allow test_newcon_no_from_tun_tap_t self:tun_socket { relabelto };
+
+# For switch back on error:
+allow test_tun_tap_t test_newcon_no_from_tun_tap_t:fd { use };
+allow test_newcon_no_from_tun_tap_t test_tun_tap_t:process { dyntransition };
+
+#
+########### Allow these domains to be entered from sysadm domain ############
+#
+miscfiles_domain_entry_test_files(tuntapdomain)
+userdom_sysadm_entry_spec_domtrans_to(tuntapdomain)

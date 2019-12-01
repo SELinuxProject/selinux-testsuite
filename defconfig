@@ -78,3 +78,7 @@ CONFIG_KEY_DH_OPERATIONS=y
 # Test key management socket.
 # This is not required for SELinux operation itself.
 CONFIG_NET_KEY=m
+
+# Test TUN/TAP driver support.
+# This is not required for SELinux operation itself.
+CONFIG_TUN=m
