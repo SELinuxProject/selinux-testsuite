@@ -1,10 +1,27 @@
 #!/usr/bin/perl
 
 use Test;
-BEGIN { plan tests => 8 }
 
-$basedir = $0;
-$basedir =~ s|(.*)/[^/]*|$1|;
+BEGIN {
+    $basedir = $0;
+    $basedir =~ s|(.*)/[^/]*|$1|;
+
+    $test_count = 8;
+    $socketpair = 0;
+
+    $kvercur = `uname -r`;
+    chomp($kvercur);
+
+    # Test SO_PEERSEC for sockets created by socketpair(2).
+    $kverminstream = "4.18";
+    $result        = `$basedir/../kvercmp $kvercur $kverminstream`;
+    if ( $result >= 0 ) {
+        $test_count += 2;
+        $socketpair = 1;
+    }
+
+    plan tests => $test_count;
+}
 
 #
 # Tests for sockets in the abstract namespace.
@@ -105,5 +122,14 @@ server_end($pid);
 
 # Clean up.
 system "rm -f $basedir/test_client_sock $basedir/test_server_sock";
+
+if ($socketpair) {
+    #### Test SO_PEERSEC for sockets created by socketpair(2) #####
+    $result = system "runcon -t test_socketpair_t $basedir/socketpair stream";
+    ok( $result, 0 );
+
+    $result = system "runcon -t test_socketpair_t $basedir/socketpair dgram";
+    ok( $result, 0 );
+}
 
 exit;

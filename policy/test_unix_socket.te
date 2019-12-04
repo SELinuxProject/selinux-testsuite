@@ -60,6 +60,13 @@ allow test_unix_dgram_client_t test_unix_server_t:unix_dgram_socket sendto;
 allow test_unix_server_t test_unix_client_sockfile_t:sock_file write;
 allow test_unix_server_t test_unix_dgram_client_t:unix_dgram_socket sendto;
 
+# Domain for socketpair(2) process.
+type test_socketpair_t;
+domain_type(test_socketpair_t)
+unconfined_runs_test(test_socketpair_t)
+typeattribute test_socketpair_t testdomain;
+typeattribute test_socketpair_t unixsocketdomain;
+
 # Allow all of these domains to be entered from the sysadm domain.
 miscfiles_domain_entry_test_files(unixsocketdomain)
 userdom_sysadm_entry_spec_domtrans_to(unixsocketdomain)

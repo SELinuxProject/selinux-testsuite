@@ -1,4 +1,4 @@
-TARGETS=client server
+TARGETS=client server socketpair
 
 LDLIBS+= -lselinux
 
