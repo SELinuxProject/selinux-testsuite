@@ -82,3 +82,9 @@ CONFIG_NET_KEY=m
 # Test TUN/TAP driver support.
 # This is not required for SELinux operation itself.
 CONFIG_TUN=m
+
+# Test perf events.
+# This is not required for SELinux operation itself.
+CONFIG_HAVE_PERF_EVENTS=y
+CONFIG_PERF_EVENTS=y
+CONFIG_TRACEPOINTS=y

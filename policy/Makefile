@@ -105,6 +105,10 @@ ifeq ($(shell grep -q tun_socket $(POLDEV)/include/support/all_perms.spt && echo
 TARGETS += test_tun_tap.te
 endif
 
+ifeq ($(shell grep -q perf_event $(POLDEV)/include/support/all_perms.spt && echo true),true)
+TARGETS += test_perf_event.te
+endif
+
 ifeq (x$(DISTRO),$(filter x$(DISTRO),xRHEL4 xRHEL5 xRHEL6))
 TARGETS:=$(filter-out test_overlayfs.te test_mqueue.te test_ibpkey.te, $(TARGETS))
 endif

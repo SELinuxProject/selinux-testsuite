@@ -1,0 +1,93 @@
+#!/usr/bin/perl
+use Test::More;
+
+BEGIN {
+    $basedir = $0;
+    $basedir =~ s|(.*)/[^/]*|$1|;
+
+    $test_count = 8;
+    $sys_admin  = 0;
+
+    # allow info to be shown during tests
+    $v = $ARGV[0];
+    if ($v) {
+        if ( $v ne "-v" ) {
+            plan skip_all => "Invalid option (use -v)";
+        }
+    }
+    else {
+        $v = " ";
+    }
+
+    $level = `cat /proc/sys/kernel/perf_event_paranoid`;
+    chomp($level);
+    if ( $level >= 2 ) {    # These tests require CAP_SYS_ADMIN
+        $test_count += 1;
+        $sys_admin = 1;
+    }
+
+    if ( $v eq "-v" ) {
+        print "Paranoid level: $level\n";
+        if ( $level < 0 ) {
+            print "\tNot paranoid\n";
+        }
+        elsif ( $level eq 0 ) {
+            print "\tDisallow raw tracepoint/ftrace without CAP_SYS_ADMIN\n";
+        }
+        elsif ( $level eq 1 ) {
+            print "\tDisallow CPU event access without CAP_SYS_ADMIN\n";
+        }
+        elsif ( $level eq 2 ) {
+            print "\tDisallow kernel profiling without CAP_SYS_ADMIN\n";
+        }
+        else {
+            print "\tUndefined level\n";
+        }
+    }
+
+    plan tests => $test_count;
+}
+
+# perf_event { open cpu kernel tracepoint read write };
+print "Test perf_event\n";
+$result = system "runcon -t test_perf_t $basedir/perf_event $v";
+ok( $result eq 0 );
+
+if ($sys_admin) {
+
+    # Deny capability { sys_admin } - EACCES perf_event_open(2)
+    $result =
+      system "runcon -t test_perf_no_admin_t $basedir/perf_event $v 2>&1";
+    ok( $result >> 8 eq 1 );
+}
+
+# Deny perf_event { open } - EACCES perf_event_open(2)
+$result = system "runcon -t test_perf_no_open_t $basedir/perf_event $v 2>&1";
+ok( $result >> 8 eq 1 );
+
+# Deny perf_event { cpu } - EACCES perf_event_open(2)
+$result = system "runcon -t test_perf_no_cpu_t $basedir/perf_event $v 2>&1";
+ok( $result >> 8 eq 1 );
+
+# Deny perf_event { kernel } - EACCES perf_event_open(2)
+$result = system "runcon -t test_perf_no_kernel_t $basedir/perf_event $v 2>&1";
+ok( $result >> 8 eq 1 );
+
+# Deny perf_event { tracepoint } - EACCES perf_event_open(2)
+$result =
+  system "runcon -t test_perf_no_tracepoint_t $basedir/perf_event $v 2>&1";
+ok( $result >> 8 eq 1 );
+
+# Deny perf_event { read } - EACCES mmap(2)
+$result = system "runcon -t test_perf_no_read_t $basedir/perf_event -m $v 2>&1";
+ok( $result >> 8 eq 6 );
+
+# Deny perf_event { read } - EACCES read(2)
+$result = system "runcon -t test_perf_no_read_t $basedir/perf_event -f $v 2>&1";
+ok( $result >> 8 eq 7 );
+
+# Deny perf_event { write } - EACCES ioctl(2) write
+$result = system "runcon -t test_perf_no_write_t $basedir/perf_event $v 2>&1";
+ok( $result >> 8 eq 2 );
+
+exit;

@@ -1,0 +1,89 @@
+#
+######### perf_event policy module ##########
+#
+attribute perfdomain;
+
+################# Allow perf_event { * } ##########################
+type test_perf_t;
+domain_type(test_perf_t)
+unconfined_runs_test(test_perf_t)
+typeattribute test_perf_t testdomain;
+typeattribute test_perf_t perfdomain;
+
+allow test_perf_t self:capability { sys_admin };
+allow test_perf_t self:perf_event { open cpu kernel tracepoint read write };
+
+################# Deny capability { sys_admin } ##########################
+type test_perf_no_admin_t;
+domain_type(test_perf_no_admin_t)
+unconfined_runs_test(test_perf_no_admin_t)
+typeattribute test_perf_no_admin_t testdomain;
+typeattribute test_perf_no_admin_t perfdomain;
+
+allow test_perf_no_admin_t self:perf_event { open cpu kernel tracepoint read write };
+
+################# Deny perf_event { open } ##########################
+type test_perf_no_open_t;
+domain_type(test_perf_no_open_t)
+unconfined_runs_test(test_perf_no_open_t)
+typeattribute test_perf_no_open_t testdomain;
+typeattribute test_perf_no_open_t perfdomain;
+
+allow test_perf_no_open_t self:capability { sys_admin };
+allow test_perf_no_open_t self:perf_event { cpu kernel tracepoint read write };
+
+################# Deny perf_event { cpu } ##########################
+type test_perf_no_cpu_t;
+domain_type(test_perf_no_cpu_t)
+unconfined_runs_test(test_perf_no_cpu_t)
+typeattribute test_perf_no_cpu_t testdomain;
+typeattribute test_perf_no_cpu_t perfdomain;
+
+allow test_perf_no_cpu_t self:capability { sys_admin };
+allow test_perf_no_cpu_t self:perf_event { open kernel tracepoint read write };
+
+################# Deny perf_event { kernel } ##########################
+type test_perf_no_kernel_t;
+domain_type(test_perf_no_kernel_t)
+unconfined_runs_test(test_perf_no_kernel_t)
+typeattribute test_perf_no_kernel_t testdomain;
+typeattribute test_perf_no_kernel_t perfdomain;
+
+allow test_perf_no_kernel_t self:capability { sys_admin };
+allow test_perf_no_kernel_t self:perf_event { open cpu tracepoint read write };
+
+################# Deny perf_event { tracepoint } ##########################
+type test_perf_no_tracepoint_t;
+domain_type(test_perf_no_tracepoint_t)
+unconfined_runs_test(test_perf_no_tracepoint_t)
+typeattribute test_perf_no_tracepoint_t testdomain;
+typeattribute test_perf_no_tracepoint_t perfdomain;
+
+allow test_perf_no_tracepoint_t self:capability { sys_admin };
+allow test_perf_no_tracepoint_t self:perf_event { open cpu kernel read write };
+
+################# Deny perf_event { read } ##########################
+type test_perf_no_read_t;
+domain_type(test_perf_no_read_t)
+unconfined_runs_test(test_perf_no_read_t)
+typeattribute test_perf_no_read_t testdomain;
+typeattribute test_perf_no_read_t perfdomain;
+
+allow test_perf_no_read_t self:capability { sys_admin };
+allow test_perf_no_read_t self:perf_event { open cpu kernel tracepoint write };
+
+################# Deny perf_event { write } ##########################
+type test_perf_no_write_t;
+domain_type(test_perf_no_write_t)
+unconfined_runs_test(test_perf_no_write_t)
+typeattribute test_perf_no_write_t testdomain;
+typeattribute test_perf_no_write_t perfdomain;
+
+allow test_perf_no_write_t self:capability { sys_admin };
+allow test_perf_no_write_t self:perf_event { open cpu kernel tracepoint read };
+
+#
+########### Allow these domains to be entered from sysadm domain ############
+#
+miscfiles_domain_entry_test_files(perfdomain)
+userdom_sysadm_entry_spec_domtrans_to(perfdomain)
