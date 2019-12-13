@@ -79,7 +79,7 @@ SUBDIRS+=module_load
 endif
 endif
 
-ifeq ($(shell grep -q tun_socket $(POLDEV)/include/support/all_perms.spt && echo true),true)
+ifeq ($(shell grep -q attach_queue $(POLDEV)/include/support/all_perms.spt && echo true),true)
 SUBDIRS += tun_tap
 endif
 
