@@ -10,6 +10,7 @@ domain_type(test_mac_admin_t)
 unconfined_runs_test(test_mac_admin_t)
 typeattribute test_mac_admin_t mac_admintestdomain;
 typeattribute test_mac_admin_t testdomain;
+allow test_mac_admin_t self:process { setfscreate };
 
 # Relabeling a file to an undefined label remaps it to the unlabeled context,
 # which may have a different SELinux user identity (e.g. system_u).
@@ -26,6 +27,7 @@ domain_type(test_no_mac_admin_t)
 unconfined_runs_test(test_no_mac_admin_t)
 typeattribute test_no_mac_admin_t mac_admintestdomain;
 typeattribute test_no_mac_admin_t testdomain;
+allow test_no_mac_admin_t self:process { setfscreate };
 
 # See above.
 domain_obj_id_change_exemption(test_no_mac_admin_t)

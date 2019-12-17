@@ -45,6 +45,7 @@ unconfined_runs_test(test_create_t)
 typeattribute test_create_t test_mkdir_domain;
 typeattribute test_create_t testdomain;
 domain_obj_id_change_exemption(test_create_t)
+allow test_create_t self:process { setfscreate };
 allow test_create_t test_mkdir_dir_t:dir { search getattr write add_name };
 allow test_create_t test_create_dir_t:dir { search getattr write create };
 
@@ -56,6 +57,7 @@ unconfined_runs_test(test_nocreate_t)
 typeattribute test_nocreate_t test_mkdir_domain;
 typeattribute test_nocreate_t testdomain;
 domain_obj_id_change_exemption(test_nocreate_t)
+allow test_nocreate_t self:process { setfscreate };
 allow test_nocreate_t test_mkdir_dir_t:dir { search getattr write add_name };
 allow test_nocreate_t test_create_dir_t:dir { search getattr };
 

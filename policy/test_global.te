@@ -38,7 +38,6 @@ allow testdomain self:process setcurrent;
 #domain_dyntrans_type(testdomain)
 #selinux_get_fs_mount(testdomain)
 allow testdomain self:process setexec;
-allow testdomain self:process setfscreate;
 
 # General permissions commonly required for test operation.
 # general_domain_access
