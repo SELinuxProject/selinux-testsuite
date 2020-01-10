@@ -147,6 +147,12 @@ int main(int argc, char **argv)
 				newrlim.rlim_max = 1024;
 			else
 				newrlim.rlim_max = oldrlim.rlim_max / 2;
+			if (newrlim.rlim_cur > newrlim.rlim_max)
+				/*
+				 * This will change also soft limit, but
+				 * what else can you do in such case...
+				 */
+				newrlim.rlim_cur = newrlim.rlim_max;
 		}
 	}
 
