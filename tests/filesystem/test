@@ -1,0 +1,968 @@
+#!/usr/bin/perl
+use Test::More;
+
+BEGIN {
+    $basedir = $0;
+    $basedir =~ s|(.*)/[^/]*|$1|;
+
+    $test_count = 68;
+
+    # Options: -v = Verbose, -d disable udisks(8) daemon
+    $v              = " ";
+    $disable_udisks = 0;
+    $udisks2_status = 0;
+    foreach $arg (@ARGV) {
+        if ( $arg eq "-v" ) {
+            $v = $arg;
+        }
+        elsif ( $arg eq "-d" ) {
+            $disable_udisks = 1;
+        }
+    }
+
+    # From kernel 5.5 support for fanotify(7) with filesystem { watch }
+    $kvercur = `uname -r`;
+    chomp($kvercur);
+    $kverminstream = "5.5";
+
+    $result = `$basedir/../kvercmp $kvercur $kverminstream`;
+    if ( $result > 0 && -e "$basedir/fanotify_fs" ) {
+        $test_watch = 1;
+        $test_count += 4;
+    }
+
+    $test_name_trans   = 0;
+    $pol_vers          = `checkpolicy -V | cut -f 1 -d ' '`;
+    $mod_pol_vers      = `checkmodule -V | cut -f 2 -d '-'`;
+    $max_kernel_policy = `cat /sys/fs/selinux/policyvers`;
+
+    if ( $mod_pol_vers >= 11 and $pol_vers >= 25 and $max_kernel_policy >= 25 )
+    {
+        $test_name_trans = 1;
+        $test_count += 2;
+    }
+
+    plan tests => $test_count;
+}
+
+# mount(2) MS_BIND | MS_PRIVATE requires an absolute path to a private mount
+# point before MS_MOVE
+$cwd = `pwd 2>/dev/null`;
+chomp($cwd);
+$private_path = "$cwd";
+if ( $basedir eq "." ) {
+    $private_path = "$cwd/mntpoint";
+}
+else {
+    $private_path = "$cwd/$basedir/mntpoint";
+}
+
+# Set initial filesystem type
+$fs_type = "ext4";
+
+# For list of devices used
+$device_count = 0;
+
+# Optionally stop the udisks(8) daemon, then restart on exit.
+sub udisks2_stop {
+    $status = 0;
+
+    if ( -e "/usr/bin/systemctl" ) {
+        $u_status_cmd = "/usr/bin/systemctl status udisks2 >& /dev/null";
+        $u_stop_cmd   = "/usr/bin/systemctl stop udisks2 >& /dev/null";
+    }
+    elsif ( -e "/usr/sbin/service" ) {
+        $u_status_cmd = "/usr/sbin/service udisks2 status >& /dev/null";
+        $u_stop_cmd   = "/usr/sbin/service udisks2 stop >& /dev/null";
+    }
+
+    if ($u_status_cmd) {
+        $result = system("$u_status_cmd");
+        $status = $result >> 8;
+        if ( $status eq 0 ) {
+            print "Stopping udisks2 service for these tests.\n";
+            system("$u_stop_cmd");
+            $status = 3;
+        }
+        else {
+            $status = 4;
+        }
+    }
+    return $status;
+}
+
+sub udisks2_restart {
+    my ($status) = @_;
+
+    if ( $status eq 3 ) {
+        print "Restarting udisks2 service.\n";
+        if ( -e "/usr/bin/systemctl" ) {
+            system("/usr/bin/systemctl start udisks2 >& /dev/null");
+        }
+        elsif ( -e "/usr/sbin/service" ) {
+            system("/usr/sbin/service udisks2 start >& /dev/null");
+        }
+    }
+}
+
+sub get_loop_dev {
+    system("udevadm settle");
+    print "Finding free /dev/loop entry\n";
+    $get_dev = `losetup -f 2>/dev/null`;
+    chomp($get_dev);
+    if ( $get_dev eq "" ) {
+        print "losetup failed to obtain /dev/loop entry\n";
+    }
+
+    # Keep list of devices for cleanup later
+    if ( $device_count eq 0 ) {
+        $device_list[$device_count] = $get_dev;
+        $device_count += 1;
+    }
+    elsif ( $get_dev ne $device_list[ $device_count - 1 ] ) {
+        $device_list[$device_count] = $get_dev;
+        $device_count += 1;
+    }
+    return $get_dev;
+}
+
+sub attach_dev {
+    my ( $att_dev, $base ) = @_;
+    system("udevadm settle");
+    print "Attaching $base/fstest to $att_dev\n";
+    $result = system("losetup $att_dev $base/fstest 2>/dev/null");
+    if ( $result != 0 ) {
+        print "Failed to attach $base/fstest to $att_dev\n";
+    }
+    system("udevadm settle");
+}
+
+sub make_fs {
+    my ( $mk_type, $mk_dev, $mk_dir ) = @_;
+    print "Create $mk_dir/fstest with dd\n";
+    $result = system(
+        "dd if=/dev/zero of=$mk_dir/fstest bs=1024 count=10240 2>/dev/null");
+    if ( $result != 0 ) {
+        print "dd failed to create $mk_dir/fstest\n";
+    }
+
+    attach_dev( $mk_dev, $mk_dir );
+
+    print "Make $mk_type filesystem on $mk_dev\n";
+    $result = system("mkfs.$mk_type -I 256 $mk_dev >& /dev/null");
+    if ( $result != 0 ) {
+        system("losetup -d $mk_dev 2>/dev/null");
+        print "mkfs.$mk_type failed to create filesystem on $mk_dev\n";
+    }
+}
+
+sub mk_mntpoint_1 {
+    my ($path) = @_;
+    system("rm -rf $path/mp1 2>/dev/null");
+    system("mkdir -p $path/mp1 2>/dev/null");
+}
+
+sub mk_mntpoint_2 {
+    my ($path) = @_;
+    system("rm -rf $path/mp2 2>/dev/null");
+    system("mkdir -p $path/mp2 2>/dev/null");
+}
+
+sub cleanup {
+    my ($base) = @_;
+    system("rm -rf $base/fstest 2>/dev/null");
+    system("rm -rf $base/mntpoint 2>/dev/null");
+}
+
+sub cleanup1 {
+    my ( $base, $d ) = @_;
+    system("udevadm settle");
+    system("losetup -d $d 2>/dev/null");
+    system("udevadm settle");
+    system("rm -rf $base/fstest 2>/dev/null");
+    system("rm -rf $base/mntpoint 2>/dev/null");
+}
+
+# Cleanup any attached /dev/loop entries
+sub reaper {
+    my ( $base, $v ) = @_;
+
+    foreach my $n (@device_list) {
+        system("$base/grim_reaper -t $n $v 2>/dev/null");
+    }
+}
+
+# End subroutines
+
+if ($disable_udisks) {
+    $udisks2_status = udisks2_stop();
+}
+
+cleanup($basedir);
+
+############### Test setfscreatecon(3) ##########################
+system("mkdir -p $basedir/mntpoint 2>/dev/null");
+
+print "Test setfscreatecon(3)\n";
+$result = system
+"runcon -t test_setfscreatecon_t $basedir/fs_relabel $v -b $basedir/mntpoint -t test_setfscreatecon_newcon_t";
+ok( $result eq 0 );
+
+$result = system
+"runcon -t test_no_setfscreatecon_t $basedir/fs_relabel $v -b $basedir/mntpoint -t test_setfscreatecon_newcon_t 2>&1";
+ok( $result >> 8 eq 13 );
+
+system("rm -rf $basedir/mntpoint 2>/dev/null");
+
+############### Test Basic Mount/Unmount ##########################
+mk_mntpoint_1($private_path);
+$dev = get_loop_dev();
+make_fs( $fs_type, $dev, $basedir );
+$mount_opts1 =
+"quota,usrquota,grpquota,defcontext=system_u:object_r:test_filesystem_file_t:s0";
+
+print "Mount $fs_type filesystem on $basedir/mntpoint/mp1\n";
+print "Using mount options:\n\t$mount_opts1\n";
+$result = system(
+"runcon -t test_filesystem_t $basedir/mount -s $dev -t $private_path/mp1 -f $fs_type -o $mount_opts1 $v"
+);
+ok( $result eq 0 );
+
+print "Then remount\n";
+$result = system(
+"runcon -t test_filesystem_t $basedir/mount -r -s $dev -t $private_path/mp1 -f $fs_type -o $mount_opts1 $v"
+);
+ok( $result eq 0 );
+
+print "Running quotacheck(8) to init user/group quota files\n";
+
+# On RHEL-6, there is a type transition to quota_t when running quotacheck
+# as unconfined_t. Using "runcon `id -Z` quotacheck ..." resolves this.
+$result = system("runcon `id -Z` quotacheck -ugF vfsv0 $private_path/mp1");
+ok( $result eq 0 );
+
+print "Toggle User & Group quotas on/off\n";
+$result = system(
+"runcon -t test_filesystem_t $basedir/quotas_test -s $dev -t $private_path/mp1/aquota.user $v"
+);
+ok( $result eq 0 );
+$result = system(
+"runcon -t test_filesystem_t $basedir/quotas_test -s $dev -t $private_path/mp1/aquota.group $v"
+);
+ok( $result eq 0 );
+
+print "Get statfs(2)\n";
+$result =
+  system(
+    "runcon -t test_filesystem_t $basedir/statfs_test -t $basedir/mntpoint $v");
+ok( $result eq 0 );
+
+print
+"Creating 'trans_test_file' and checking context changed via type_transition rule\n";
+$result =
+  system(
+"runcon -t test_filesystem_t $basedir/create_file -f $private_path/mp1/trans_test_file -e test_filesystem_filetranscon_t $v"
+  );
+ok( $result eq 0 );
+
+print "Creating 'test_file' and changing its context via setfilecon(3)\n";
+$result =
+  system(
+"runcon -t test_filesystem_t $basedir/create_file_change_context -t test_filesystem_filecon_t -f $private_path/mp1/test_file $v"
+  );
+ok( $result eq 0 );
+
+if ($test_name_trans) {
+    print
+"Creating 'name_trans_test_file1' and checking context changed via name-based type_transition rule\n";
+    $result = system(
+"runcon -t test_filesystem_t $basedir/create_file -f $private_path/mp1/name_trans_test_file1 -e test_filesystem_filenametranscon1_t $v"
+    );
+    ok( $result eq 0 );
+
+    print
+"Creating 'name_trans_test_file2' and checking context changed via name-based type_transition rule\n";
+    $result = system(
+"runcon -t test_filesystem_t $basedir/create_file -f $basedir/mntpoint/mp1/name_trans_test_file2 -e test_filesystem_filenametranscon2_t $v"
+    );
+    ok( $result eq 0 );
+}
+
+if ($test_watch) {
+    print "fanotify(7) test\n";
+    $result = system(
+"runcon -t test_filesystem_t $basedir/fanotify_fs $v -t $basedir/mntpoint/mp1"
+    );
+    ok( $result eq 0 );
+}
+
+print "Unmount filesystem from $basedir/mntpoint/mp1\n";
+$result =
+  system("runcon -t test_filesystem_t $basedir/umount -t $private_path/mp1 $v");
+ok( $result eq 0 );
+
+print "Removing: $dev $basedir/mntpoint $basedir/fstest\n";
+cleanup1( $basedir, $dev );
+
+############### Test Move Mount ##########################
+mk_mntpoint_1($private_path);
+$dev = get_loop_dev();
+make_fs( $fs_type, $dev, $basedir );
+$mount_opts2 =
+"quota,usrquota,grpquota,rootcontext=system_u:object_r:test_filesystem_file_t:s0";
+
+print "Set mount MS_BIND on filesystem\n";
+$result = system(
+"runcon -t test_filesystem_t $basedir/mount -s $private_path -t $private_path -b $v"
+);
+ok( $result eq 0 );
+
+print "Set mount MS_PRIVATE on filesystem\n";
+$result =
+  system("runcon -t test_filesystem_t $basedir/mount -t $private_path -p $v");
+ok( $result eq 0 );
+
+mk_mntpoint_2($private_path);
+
+print "Mount $fs_type filesystem on $basedir/mntpoint/mp1\n";
+print "Using mount options:\n\t$mount_opts2\n";
+$result = system(
+"runcon -t test_filesystem_t $basedir/mount -s $dev -t $private_path/mp1 -f $fs_type -o $mount_opts2 $v"
+);
+ok( $result eq 0 );
+
+print "Set mount MS_MOVE on filesystem\n";
+$result = system(
+"runcon -t test_filesystem_t $basedir/mount -s $private_path/mp1 -t $private_path/mp2 -m  $v"
+);
+ok( $result eq 0 );
+
+print "Unmount filesystem from $basedir/mntpoint/mp2\n";
+$result =
+  system("runcon -t test_filesystem_t $basedir/umount -t $private_path/mp2 $v");
+ok( $result eq 0 );
+
+print "Unmount filesystem from $basedir/mntpoint\n";
+$result =
+  system("runcon -t test_filesystem_t $basedir/umount -t $private_path $v");
+ok( $result eq 0 );
+
+print "Removing: $dev $basedir/mntpoint $basedir/fstest\n";
+cleanup1( $basedir, $dev );
+
+############### Deny filesystem { relabelfrom } ##########################
+# hooks.c may_context_mount_sb_relabel() FILESYSTEM__RELABELFROM
+mk_mntpoint_1($private_path);
+$dev = get_loop_dev();
+make_fs( $fs_type, $dev, $basedir );
+$opts_no_relabelfrom =
+  "defcontext=system_u:object_r:test_filesystem_sb_relabel_no_relabelfrom_t:s0";
+
+print "Mount $fs_type filesystem on $basedir/mntpoint/mp1\n";
+print "Using mount options:\n\t$opts_no_relabelfrom\n";
+$result = system(
+"runcon -t test_filesystem_sb_relabel_no_relabelfrom_t $basedir/mount -s $dev -t $basedir/mntpoint/mp1 -f $fs_type -o $opts_no_relabelfrom $v 2>&1"
+);
+ok( $result >> 8 eq 13 );
+
+print "Removing: $dev $basedir/mntpoint $basedir/fstest\n";
+cleanup1( $basedir, $dev );
+
+############### Deny filesystem { relabelto } ##########################
+# hooks.c may_context_mount_sb_relabel() FILESYSTEM__RELABELTO
+mk_mntpoint_1($private_path);
+$dev = get_loop_dev();
+make_fs( $fs_type, $dev, $basedir );
+$opts_no_relabelto =
+  "fscontext=system_u:object_r:test_filesystem_sb_relabel_no_relabelto_t:s0";
+
+print "Mount $fs_type filesystem on $basedir/mntpoint/mp1\n";
+print "Using mount options:\n\t$opts_no_relabelto\n";
+$result = system(
+"runcon -t test_filesystem_sb_relabel_no_relabelto_t $basedir/mount -s $dev -t $basedir/mntpoint/mp1 -f $fs_type -o $opts_no_relabelto $v 2>&1"
+);
+ok( $result >> 8 eq 13 );
+
+print "Removing: $dev $basedir/mntpoint $basedir/fstest\n";
+cleanup1( $basedir, $dev );
+
+############### Deny filesystem { relabelfrom } ##########################
+# hooks.c may_context_mount_inode_relabel() FILESYSTEM__RELABELFROM
+mk_mntpoint_1($private_path);
+$dev = get_loop_dev();
+make_fs( $fs_type, $dev, $basedir );
+$opts_no_relabelfrom =
+  "rootcontext=system_u:object_r:test_filesystem_no_inode_no_relabelfrom_t:s0";
+
+print "Mount $fs_type filesystem on $basedir/mntpoint/mp1\n";
+print "Using mount options:\n\t$opts_no_relabelfrom\n";
+$result = system(
+"runcon -t test_filesystem_no_inode_no_relabelfrom_t $basedir/mount -s $dev -t $basedir/mntpoint/mp1 -f $fs_type -o $opts_no_relabelfrom $v 2>&1"
+);
+ok( $result >> 8 eq 13 );
+
+print "Removing: $dev $basedir/mntpoint $basedir/fstest\n";
+cleanup1( $basedir, $dev );
+
+############### Deny filesystem { associate } ##########################
+# hooks.c may_context_mount_inode_relabel() FILESYSTEM__ASSOCIATE
+mk_mntpoint_1($private_path);
+$dev = get_loop_dev();
+make_fs( $fs_type, $dev, $basedir );
+
+# This defcontext will trigger denial.
+$opts_no_associate =
+"defcontext=system_u:object_r:test_filesystem_inode_relabel_no_associate_t:s0";
+
+print "Mount $fs_type filesystem on $basedir/mntpoint/mp1\n";
+print "Using mount options:\n\t$opts_no_associate\n";
+$result = system(
+"runcon -t test_filesystem_inode_relabel_no_associate_t $basedir/mount -s $dev -t $basedir/mntpoint/mp1 -f $fs_type -o $opts_no_associate $v 2>&1"
+);
+ok( $result >> 8 eq 13 );
+
+print "Removing: $dev $basedir/mntpoint $basedir/fstest\n";
+cleanup1( $basedir, $dev );
+
+############### Deny filesystem { associate } ##########################
+# hooks.c may_create() FILESYSTEM__ASSOCIATE
+mk_mntpoint_1($private_path);
+$dev = get_loop_dev();
+make_fs( $fs_type, $dev, $basedir );
+
+# Use this fscontext= to get sensible audit log entry of:
+#  "allow unlabeled_t test_filesystem_may_create_no_associate_t:filesystem associate;"
+$opts_no_associate_file =
+  "fscontext=system_u:object_r:test_filesystem_may_create_no_associate_t:s0";
+
+print "Mount $fs_type filesystem on $basedir/mntpoint/mp1\n";
+print "Using mount options:\n\t$opts_no_associate_file\n";
+$result = system(
+"runcon -t test_filesystem_may_create_no_associate_t $basedir/mount -s $dev -t $basedir/mntpoint/mp1 -f $fs_type -o $opts_no_associate_file $v"
+);
+ok( $result eq 0 );
+
+print "Creating test file $basedir/mntpoint/mp1/test_file\n";
+$result =
+  system(
+"runcon -t test_filesystem_may_create_no_associate_t $basedir/create_file_change_context -t unconfined_t -f $basedir/mntpoint/mp1/test_file $v 2>&1"
+  );
+ok( $result >> 8 eq 13 );
+
+print "Unmount filesystem from $basedir/mntpoint/mp1\n";
+$result =
+  system(
+"runcon -t test_filesystem_may_create_no_associate_t $basedir/umount -t $basedir/mntpoint/mp1 $v"
+  );
+ok( $result eq 0 );
+
+print "Removing: $dev $basedir/mntpoint $basedir/fstest\n";
+cleanup1( $basedir, $dev );
+
+############### Deny filesystem { quotamod } ##########################
+# hooks.c selinux_quotactl() FILESYSTEM__QUOTAMOD
+mk_mntpoint_1($private_path);
+$dev = get_loop_dev();
+make_fs( $fs_type, $dev, $basedir );
+$opts_no_quotamod =
+"quota,usrquota,grpquota,fscontext=system_u:object_r:test_filesystem_no_quotamod_t:s0";
+
+print "Mount $fs_type filesystem on $basedir/mntpoint/mp1\n";
+print "Using mount options:\n\t$opts_no_quotamod\n";
+$result = system(
+"runcon -t test_filesystem_no_quotamod_t $basedir/mount -s $dev -t $basedir/mntpoint/mp1 -f $fs_type -o $opts_no_quotamod $v 2>&1"
+);
+ok( $result eq 0 );
+
+# No need to run quotacheck(8) as never gets far enough to read quota file
+print "Toggle User & Group quotas on/off\n";    # Must have full path
+$result = system(
+"runcon -t test_filesystem_no_quotamod_t $basedir/quotas_test -s $dev -t $private_path/mp1/aquota.user $v 2>&1"
+);
+ok( $result >> 8 eq 13 );
+
+print "Unmount filesystem from $basedir/mntpoint/mp1\n";
+$result = system(
+"runcon -t test_filesystem_no_quotamod_t $basedir/umount -t $basedir/mntpoint/mp1 $v"
+);
+ok( $result eq 0 );
+
+print "Removing: $dev $basedir/mntpoint $basedir/fstest\n";
+cleanup1( $basedir, $dev );
+
+############### Deny filesystem { quotaget } ##########################
+# hooks.c selinux_quotactl() FILESYSTEM__QUOTAGET
+mk_mntpoint_1($private_path);
+$dev = get_loop_dev();
+make_fs( $fs_type, $dev, $basedir );
+$opts_no_quotaget =
+"quota,usrquota,grpquota,context=system_u:object_r:test_filesystem_no_quotaget_t:s0";
+
+print "Mount $fs_type filesystem on $basedir/mntpoint/mp1\n";
+print "Using mount options:\n\t$opts_no_quotaget\n";
+$result = system(
+"runcon -t test_filesystem_no_quotaget_t $basedir/mount -s $dev -t $basedir/mntpoint/mp1 -f $fs_type -o $opts_no_quotaget $v"
+);
+ok( $result eq 0 );
+
+print "Running quotacheck(8) to init user/group quota files\n";
+$result = system("runcon `id -Z` quotacheck -ugF vfsv0 $private_path/mp1");
+ok( $result eq 0 );
+
+print "Toggle User & Group quotas on/off\n";    # Must have full path
+$result = system(
+"runcon -t test_filesystem_no_quotaget_t $basedir/quotas_test -s $dev -t $private_path/mp1/aquota.user $v 2>&1"
+);
+ok( $result >> 8 eq 13 );
+
+print "Unmount filesystem from $basedir/mntpoint/mp1\n";
+$result = system(
+"runcon -t test_filesystem_no_quotaget_t $basedir/umount -t $basedir/mntpoint/mp1 $v"
+);
+ok( $result eq 0 );
+
+print "Removing: $dev $basedir/mntpoint $basedir/fstest\n";
+cleanup1( $basedir, $dev );
+
+############### Deny file { quotaon } ##########################
+# hooks.c selinux_quota_on() FILE__QUOTAON
+mk_mntpoint_1($private_path);
+$dev = get_loop_dev();
+make_fs( $fs_type, $dev, $basedir );
+$opts_no_quotaon =
+  "quota,usrquota,grpquota,context=system_u:object_r:test_file_no_quotaon_t:s0";
+
+print "Mount $fs_type filesystem on $basedir/mntpoint/mp1\n";
+print "Using mount options:\n\t$opts_no_quotaon\n";
+$result = system(
+"runcon -t test_file_no_quotaon_t $basedir/mount -s $dev -t $basedir/mntpoint/mp1 -f $fs_type -o $opts_no_quotaon $v"
+);
+ok( $result eq 0 );
+
+print "Running quotacheck(8) to init user/group quota files\n";
+$result = system("runcon `id -Z` quotacheck -ugF vfsv0 $private_path/mp1");
+ok( $result eq 0 );
+
+print "Toggle User quotas on/off\n";    # Must have full path
+$result = system(
+"runcon -t test_file_no_quotaon_t $basedir/quotas_test -s $dev -t $private_path/mp1/aquota.user $v 2>&1"
+);
+ok( $result >> 8 eq 13 );
+
+print "Unmount filesystem from $basedir/mntpoint/mp1\n";
+$result = system(
+"runcon -t test_file_no_quotaon_t $basedir/umount -t $basedir/mntpoint/mp1 $v"
+);
+ok( $result eq 0 );
+
+print "Removing: $dev $basedir/mntpoint $basedir/fstest\n";
+cleanup1( $basedir, $dev );
+
+############### Deny filesystem { mount } ##########################
+# hooks.c selinux_sb_kern_mount() FILESYSTEM__MOUNT
+mk_mntpoint_1($private_path);
+$dev = get_loop_dev();
+make_fs( $fs_type, $dev, $basedir );
+$opts_no_mount = "rootcontext=system_u:object_r:test_filesystem_no_mount_t:s0";
+
+print "Mount $fs_type filesystem on $basedir/mntpoint/mp1\n";
+print "Using mount options:\n\t$opts_no_mount\n";
+$result = system(
+"runcon -t test_filesystem_no_mount_t $basedir/mount -s $dev -t $basedir/mntpoint/mp1 -f $fs_type -o $opts_no_mount $v 2>&1"
+);
+ok( $result >> 8 eq 13 );
+
+print "Removing: $dev $basedir/mntpoint $basedir/fstest\n";
+cleanup1( $basedir, $dev );
+
+############### Deny filesystem { getattr } ##########################
+# hooks.c selinux_sb_statfs() FILESYSTEM__GETATTR
+mk_mntpoint_1($private_path);
+$dev = get_loop_dev();
+make_fs( $fs_type, $dev, $basedir );
+$opts_no_getattr =
+  "rootcontext=system_u:object_r:test_filesystem_no_getattr_t:s0";
+
+print "Mount $fs_type filesystem on $basedir/mntpoint/mp1\n";
+print "Using mount options:\n\t$opts_no_getattr\n";
+$result = system(
+"runcon -t test_filesystem_no_getattr_t $basedir/mount -s $dev -t $basedir/mntpoint/mp1 -f $fs_type -o $opts_no_getattr $v"
+);
+ok( $result eq 0 );
+
+$result = system(
+"runcon -t test_filesystem_no_getattr_t $basedir/statfs_test -t $basedir/mntpoint $v 2>&1"
+);
+ok( $result >> 8 eq 13 );
+
+print "Unmount filesystem from $basedir/mntpoint/mp1\n";
+$result = system(
+"runcon -t test_filesystem_no_getattr_t $basedir/umount -t $basedir/mntpoint/mp1 $v"
+);
+ok( $result eq 0 );
+
+print "Removing: $dev $basedir/mntpoint $basedir/fstest\n";
+cleanup1( $basedir, $dev );
+
+############### Deny filesystem { remount } ##########################
+# hooks.c selinux_mount() FILESYSTEM__REMOUNT
+mk_mntpoint_1($private_path);
+$dev = get_loop_dev();
+make_fs( $fs_type, $dev, $basedir );
+$opts_no_remount =
+  "rootcontext=system_u:object_r:test_filesystem_no_remount_t:s0";
+
+print "Mount $fs_type filesystem on $basedir/mntpoint/mp1\n";
+print "Using mount options:\n\t$opts_no_remount\n";
+$result = system(
+"runcon -t test_filesystem_no_remount_t $basedir/mount -s $dev -t $basedir/mntpoint/mp1 -f $fs_type -o $opts_no_remount $v"
+);
+ok( $result eq 0 );
+
+print "Then remount\n";
+$result = system(
+"runcon -t test_filesystem_no_remount_t $basedir/mount -r -s $dev -t $basedir/mntpoint/mp1 -f $fs_type -o $opts_no_remount $v 2>&1"
+);
+ok( $result >> 8 eq 13 );
+
+print "Unmount filesystem from $basedir/mntpoint/mp1\n";
+$result = system(
+"runcon -t test_filesystem_no_remount_t $basedir/umount -t $basedir/mntpoint/mp1 $v"
+);
+ok( $result eq 0 );
+
+print "Removing: $dev $basedir/mntpoint $basedir/fstest\n";
+cleanup1( $basedir, $dev );
+
+############### Deny filesystem { unmount } ##########################
+# hooks.c selinux_umount() FILESYSTEM__UNMOUNT
+mk_mntpoint_1($private_path);
+$dev = get_loop_dev();
+make_fs( $fs_type, $dev, $basedir );
+$opts_no_unmount =
+  "rootcontext=system_u:object_r:test_filesystem_no_unmount_t:s0";
+
+print "Mount $fs_type filesystem on $basedir/mntpoint/mp1\n";
+print "Using mount options:\n\t$opts_no_unmount\n";
+$result = system(
+"runcon -t test_filesystem_no_unmount_t $basedir/mount -s $dev -t $basedir/mntpoint/mp1 -f $fs_type -o $opts_no_unmount $v"
+);
+ok( $result eq 0 );
+
+print "Unmount filesystem from $basedir/mntpoint/mp1\n";
+$result = system(
+"runcon -t test_filesystem_no_unmount_t $basedir/umount -t $basedir/mntpoint/mp1 $v 2>&1"
+);
+ok( $result >> 8 eq 13 );
+
+# Make sure it does get unmounted
+print "Unmount filesystem from $basedir/mntpoint/mp1\n";
+$result =
+  system(
+    "runcon -t test_filesystem_t $basedir/umount -t $basedir/mntpoint/mp1 $v");
+ok( $result eq 0 );
+
+print "Removing: $dev $basedir/mntpoint $basedir/fstest\n";
+cleanup1( $basedir, $dev );
+
+############### Deny filesystem { associate }  ##########################
+# hooks.c selinux_inode_setxattr() FILESYSTEM__ASSOCIATE
+mk_mntpoint_1($private_path);
+$dev = get_loop_dev();
+make_fs( $fs_type, $dev, $basedir );
+$opts_no_associate_xattr =
+"defcontext=system_u:object_r:test_filesystem_inode_setxattr_no_associate_t:s0,fscontext=system_u:object_r:test_filesystem_inode_setxattr_no_associate_t:s0";
+
+print "Mount $fs_type filesystem on $basedir/mntpoint/mp1\n";
+print "Using mount options:\n\t$opts_no_associate_xattr\n";
+$result = system(
+"runcon -t test_filesystem_inode_setxattr_no_associate_t $basedir/mount -s $dev -t $basedir/mntpoint/mp1 -f $fs_type -o $opts_no_associate_xattr $v"
+);
+ok( $result eq 0 );
+
+print "Creating test file $basedir/mntpoint/mp1/test_file\n";
+$result =
+  system(
+"runcon -t test_filesystem_inode_setxattr_no_associate_t $basedir/create_file_change_context -t unconfined_t -f $basedir/mntpoint/mp1/test_file $v 2>&1"
+  );
+ok( $result >> 8 eq 13 );
+
+print "Unmount filesystem from $basedir/mntpoint/mp1\n";
+$result =
+  system(
+"runcon -t test_filesystem_inode_setxattr_no_associate_t $basedir/umount -t $basedir/mntpoint/mp1 $v"
+  );
+ok( $result eq 0 );
+
+print "Removing: $dev $basedir/mntpoint $basedir/fstest\n";
+cleanup1( $basedir, $dev );
+
+############### Deny filesystem { watch }  ##########################
+# hooks.c selinux_path_notify() FILESYSTEM__WATCH
+if ($test_watch) {
+    mk_mntpoint_1($private_path);
+    $dev = get_loop_dev();
+    make_fs( $fs_type, $dev, $basedir );
+    $opts_no_watch = "context=system_u:object_r:test_filesystem_no_watch_t:s0";
+
+    print "Mount $fs_type filesystem on $basedir/mntpoint/mp1\n";
+    print "Using mount options:\n\t$opts_no_watch\n";
+    $result = system(
+"runcon -t test_filesystem_no_watch_t $basedir/mount -s $dev -t $basedir/mntpoint/mp1 -f $fs_type -o $opts_no_watch $v"
+    );
+    ok( $result eq 0 );
+
+    print "test_fanotify\n";
+    $result = system(
+"runcon -t test_filesystem_no_watch_t $basedir/fanotify_fs $v -t $basedir/mntpoint/mp1 2>&1"
+    );
+    ok( $result >> 8 eq 13 );
+
+    print "Unmount filesystem from $basedir/mntpoint/mp1\n";
+    $result = system(
+"runcon -t test_filesystem_no_watch_t $basedir/umount -t $basedir/mntpoint/mp1 $v"
+    );
+    ok( $result eq 0 );
+
+    print "Removing: $dev $basedir/mntpoint $basedir/fstest\n";
+    cleanup1( $basedir, $dev );
+}
+
+##########################################################################
+# context     - Useful when mounting filesystems that do not support extended
+#               attributes.
+#   Tested by - Creating a filesystem that has xattrs set to a different value,
+#               then mount with context= and confirm that the files have that
+#               context as well as any newly created files (even if fscreate
+#               was set to something else), and that setfilecon/setxattr() on
+#               files within the mount fails with errno EOPNOTSUPP.
+##########################################################################
+mk_mntpoint_1($private_path);
+$dev = get_loop_dev();
+make_fs( $fs_type, $dev, $basedir );
+
+# Mount with xttrs to create a file with specific context.
+$context1_opts =
+  "defcontext=system_u:object_r:test_filesystem_context_file_t:s0";
+
+print "Testing 'context=' mount option\n";
+print "Mount $fs_type filesystem on $basedir/mntpoint/mp1\n";
+print "Using mount options:\n\t$context1_opts\n";
+$result = system(
+"runcon -t test_filesystem_context_t $basedir/mount -s $dev -t $basedir/mntpoint/mp1 -f $fs_type -o $context1_opts $v"
+);
+ok( $result eq 0 );
+
+# Create file with 'test_filesystem_filecon_t' context
+print "Creating test file $basedir/mntpoint/mp1/test_file\n";
+$result =
+  system(
+"runcon -t test_filesystem_context_t $basedir/create_file_change_context -t test_filesystem_filecon_t -f $private_path/mp1/test_file $v"
+  );
+ok( $result eq 0 );
+
+print "Unmount filesystem from $basedir/mntpoint/mp1\n";
+$result = system(
+"runcon -t test_filesystem_context_t $basedir/umount -t $basedir/mntpoint/mp1 $v"
+);
+ok( $result eq 0 );
+
+# Need to free the loop device, then get new one and attach
+system("losetup -d $dev 2>/dev/null");
+$dev = get_loop_dev();
+attach_dev( $dev, $basedir );
+
+# Mount again with no xttr support
+$context2_opts = "context=system_u:object_r:test_filesystem_context_file_t:s0";
+print "Mount $fs_type filesystem on $basedir/mntpoint/mp1\n";
+print "Using mount options:\n\t$context2_opts\n";
+$result = system(
+"runcon -t test_filesystem_context_t $basedir/mount -s $dev -t $basedir/mntpoint/mp1 -f $fs_type -o $context2_opts $v"
+);
+ok( $result eq 0 );
+
+# Now check the context on file is system_u:object_r:test_filesystem_context_file_t:s0
+print "Check test file context $basedir/mntpoint/mp1/test_file\n";
+$result =
+  system(
+"runcon -t test_filesystem_context_t $basedir/check_file_context -f $private_path/mp1/test_file -e system_u:object_r:test_filesystem_context_file_t:s0 $v"
+  );
+ok( $result eq 0 );
+
+# Then create a file with 'test_filesystem_filecon_t' context, this should fail with EOPNOTSUPP
+print "Creating test file $basedir/mntpoint/mp1/test_file\n";
+$result =
+  system(
+"runcon -t test_filesystem_context_t $basedir/create_file_change_context -t test_filesystem_filecon_t -f $private_path/mp1/test_file $v 2>/dev/null"
+  );
+ok( $result >> 8 eq 95 );
+
+print "Unmount filesystem from $basedir/mntpoint/mp1\n";
+$result =
+  system(
+"runcon -t test_filesystem_context_t $basedir/umount -t $basedir/mntpoint/mp1 $v"
+  );
+ok( $result eq 0 );
+
+print "Removing: $dev $basedir/mntpoint $basedir/fstest\n";
+cleanup1( $basedir, $dev );
+
+##########################################################################
+# rootcontext - Explicitly label the root inode of the filesystem being
+#               mounted before that filesystem or inode becomes visible
+#               to userspace.
+#   Tested by - Set mountpoint to unlabeled_t and then check that the
+#               context of the root directory matches rootcontext= after
+#               the mount operation.
+##########################################################################
+mk_mntpoint_1($private_path);
+$dev = get_loop_dev();
+make_fs( $fs_type, $dev, $basedir );
+$root_opts = "rootcontext=system_u:object_r:test_filesystem_context_file_t:s0";
+
+print "Testing 'rootcontext=' mount option\n";
+
+# Reset mountpoint to 'unlabeled_t' so it is different to any other possible test values.
+print "Resetting MP to unlabeled_t $basedir/mntpoint/mp1\n";
+$result =
+  system(
+"runcon -t test_filesystem_context_t $basedir/check_mount_context -r -m $basedir/mntpoint/mp1 $v"
+  );
+ok( $result eq 0 );
+
+print "Mount $fs_type filesystem on $basedir/mntpoint/mp1\n";
+print "Using mount options:\n\t$root_opts\n";
+$result = system(
+"runcon -t test_filesystem_context_t $basedir/mount -s $dev -t $basedir/mntpoint/mp1 -f $fs_type -o $root_opts $v"
+);
+ok( $result eq 0 );
+
+# Now check the mountpoint is the 'rootcontext=' value
+print "Check MP context $basedir/mntpoint/mp1\n";
+$result =
+  system(
+"runcon -t test_filesystem_context_t $basedir/check_mount_context -m $basedir/mntpoint/mp1 -e system_u:object_r:test_filesystem_context_file_t:s0 $v"
+  );
+ok( $result eq 0 );
+
+print "Unmount filesystem from $basedir/mntpoint/mp1\n";
+$result = system(
+"runcon -t test_filesystem_context_t $basedir/umount -t $basedir/mntpoint/mp1 $v"
+);
+ok( $result eq 0 );
+
+print "Removing: $dev $basedir/mntpoint $basedir/fstest\n";
+cleanup1( $basedir, $dev );
+
+##########################################################################
+# defcontext  - Set default security context for unlabeled files.
+#               This overrides the value set for unlabeled files in policy
+#               and requires a filesystem that supports xattr labeling.
+#   Tested by - Create filesystem that has files w/o xattrs and then confirm
+#               that they are mapped to the specified defcontext upon mount,
+#               where defcontext differs from the policy default.
+##########################################################################
+mk_mntpoint_1($private_path);
+$dev = get_loop_dev();
+make_fs( $fs_type, $dev, $basedir );
+$test_opts = "context=system_u:object_r:test_filesystem_context_file_t:s0";
+
+print "Testing 'defcontext=' mount option\n";
+print "Mount $fs_type filesystem on $basedir/mntpoint/mp1\n";
+print "Using mount options:\n\t$test_opts\n";
+$result = system(
+"runcon -t test_filesystem_context_t $basedir/mount -s $dev -t $basedir/mntpoint/mp1 -f $fs_type -o $test_opts $v"
+);
+ok( $result eq 0 );
+
+# Create file, its context will be system_u:object_r:test_filesystem_context_file_t:s0 from $test_opts
+print "Creating test file $basedir/mntpoint/mp1/test_file\n";
+$result =
+  system(
+"runcon -u system_u -t test_filesystem_fscontext_t $basedir/create_file -f $basedir/mntpoint/mp1/test_file -e test_filesystem_context_file_t $v"
+  );
+ok( $result eq 0 );
+
+print "Unmount filesystem from $basedir/mntpoint/mp1\n";
+$result = system(
+"runcon -t test_filesystem_context_t $basedir/umount -t $basedir/mntpoint/mp1 $v"
+);
+ok( $result eq 0 );
+
+# Need to free the loop device, then get new dev one and attach
+system("losetup -d $dev 2>/dev/null");
+$dev = get_loop_dev();
+attach_dev( $dev, $basedir );
+
+# Mount again with defcontext=
+$defcontext_opts = "defcontext=system_u:object_r:test_filesystem_filecon_t:s0";
+print "Mount $fs_type filesystem on $basedir/mntpoint/mp1\n";
+print "Using mount options:\n\t$defcontext_opts\n";
+$result = system(
+"runcon -t test_filesystem_context_t $basedir/mount -s $dev -t $basedir/mntpoint/mp1 -f $fs_type -o $defcontext_opts $v"
+);
+ok( $result eq 0 );
+
+# Now check the file context is now system_u:object_r:test_filesystem_filecon_t:s0
+print "Check test file context $basedir/mntpoint/mp1/test_file\n";
+$result =
+  system(
+"runcon -t test_filesystem_context_t $basedir/check_file_context -f $basedir/mntpoint/mp1/test_file -e system_u:object_r:test_filesystem_filecon_t:s0 $v"
+  );
+ok( $result eq 0 );
+
+print "Unmount filesystem from $basedir/mntpoint/mp1\n";
+$result =
+  system(
+"runcon -t test_filesystem_context_t $basedir/umount -t $basedir/mntpoint/mp1 $v"
+  );
+ok( $result eq 0 );
+
+print "Removing: $dev $basedir/mntpoint $basedir/fstest\n";
+cleanup1( $basedir, $dev );
+
+##########################################################################
+# fscontext   - Sets the overarching filesystem label to a specific security
+#               context. This filesystem label is separate from the individual
+#               labels on the files.
+#   Tested by - Mount a tmpfs (fs_use_trans) filesystem with fscontext= and
+#               then create a file within it, checking its context.
+##########################################################################
+$fs_type = "tmpfs";
+mk_mntpoint_1($private_path);
+$dev = get_loop_dev();
+$fscontext_opts =
+"fscontext=system_u:object_r:test_filesystem_fscontext_fs_t:s0,size=10M,mode=0770";
+
+print "Testing 'fscontext=' mount option\n";
+print "Mount tmpfs filesystem on $basedir/mntpoint/mp1\n";
+print "Using mount options:\n\t$fscontext_opts\n";
+$result = system(
+"runcon -t test_filesystem_fscontext_t $basedir/mount -s $dev -t $basedir/mntpoint/mp1 -f $fs_type -o $fscontext_opts $v"
+);
+ok( $result eq 0 );
+
+print "Creating test file $basedir/mntpoint/mp1/test_file\n";
+$result =
+  system(
+"runcon -t test_filesystem_fscontext_t $basedir/create_file_change_context -t test_filesystem_filecon_t -f $private_path/mp1/test_file $v"
+  );
+ok( $result eq 0 );
+
+print "Unmount filesystem from $basedir/mntpoint/mp1\n";
+$result =
+  system(
+"runcon -t test_filesystem_fscontext_t $basedir/umount -t $basedir/mntpoint/mp1 $v"
+  );
+ok( $result eq 0 );
+
+print "Removing: $dev $basedir/mntpoint $basedir/fstest\n";
+cleanup1( $basedir, $dev );
+
+reaper( $basedir, $v );
+
+if ($disable_udisks) {
+    udisks2_restart($udisks2_status);
+}
+
+exit;

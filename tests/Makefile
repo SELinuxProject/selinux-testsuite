@@ -91,6 +91,13 @@ ifeq ($(shell grep -q lockdown $(POLDEV)/include/support/all_perms.spt && echo t
 SUBDIRS += lockdown
 endif
 
+ifeq ($(shell grep -q filesystem $(POLDEV)/include/support/all_perms.spt && echo true),true)
+SUBDIRS += filesystem
+ifeq ($(shell grep -q all_filesystem_perms.*watch $(POLDEV)/include/support/all_perms.spt && echo true),true)
+export CFLAGS += -DHAVE_FS_WATCH_PERM
+endif
+endif
+
 ifeq ($(DISTRO),RHEL4)
     SUBDIRS:=$(filter-out bounds dyntrace dyntrans inet_socket mmap nnp_nosuid overlay unix_socket, $(SUBDIRS))
 endif

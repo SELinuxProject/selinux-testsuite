@@ -1,0 +1,20 @@
+#
+######### Test filesystem name-base transition policy module ##########
+#
+
+# Name-based type transition context:
+type test_filesystem_filenametranscon1_t;
+files_type(test_filesystem_filenametranscon1_t)
+type test_filesystem_filenametranscon2_t;
+files_type(test_filesystem_filenametranscon2_t)
+
+# Create file and change context via name-based type_transition rule:
+fs_associate(test_filesystem_filenametranscon1_t)
+type_transition test_filesystem_t test_filesystem_file_t:file test_filesystem_filenametranscon1_t "name_trans_test_file1";
+allow test_filesystem_t test_filesystem_filenametranscon1_t:file { create getattr open write };
+dontaudit unconfined_t test_filesystem_filenametranscon1_t:file { getattr read };
+#
+fs_associate(test_filesystem_filenametranscon2_t)
+type_transition test_filesystem_t test_filesystem_file_t:file test_filesystem_filenametranscon2_t "name_trans_test_file2";
+allow test_filesystem_t test_filesystem_filenametranscon2_t:file { create getattr open write };
+dontaudit unconfined_t test_filesystem_filenametranscon2_t:file { getattr read };
