@@ -1,3 +1,6 @@
+#ifndef _BINDER_COMMON_H
+#define _BINDER_COMMON_H
+
 #include <errno.h>
 #include <fcntl.h>
 #include <inttypes.h>
@@ -42,16 +45,20 @@ enum {
 #define TEST_SERVICE_GET	290317 /* Sent by Client */
 #define TEST_SERVICE_SEND_FD	311019 /* Sent by Client */
 
-bool verbose;
+extern bool verbose;
 
 const char *cmd_name(uint32_t cmd);
 void print_trans_data(const struct binder_transaction_data *txn_in);
 int binder_write(int fd, void *data, size_t len);
 
-enum {
+enum binder_test_fd_t {
 	BINDER_FD,
 	BPF_MAP_FD,
 	BPF_PROG_FD,
 	BPF_TEST
-} fd_type;
-char *fd_type_str;
+};
+extern enum binder_test_fd_t fd_type;
+
+extern char *fd_type_str;
+
+#endif

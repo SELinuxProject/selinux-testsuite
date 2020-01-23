@@ -16,6 +16,10 @@
 
 #include "binder_common.h"
 
+bool verbose;
+enum binder_test_fd_t fd_type;
+char *fd_type_str;
+
 const char *cmd_name(uint32_t cmd)
 {
 	switch (cmd) {
