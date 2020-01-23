@@ -12,6 +12,15 @@ type netlabel_sctp_peer_t;
 corenet_in_generic_node(netlabel_sctp_peer_t)
 corenet_in_generic_if(netlabel_sctp_peer_t)
 
+# Permit nfsd and its kernel threads to receive these packets.
+# This is required when running the testsuite on a labeled NFS mount.
+gen_require(`
+	type kernel_t;
+	type nfsd_t;
+')
+allow kernel_t netlabel_sctp_peer_t:peer recv;
+allow nfsd_t netlabel_sctp_peer_t:peer recv;
+
 # Default label for CIPSO/CALIPSO:
 gen_require(`
 	type netlabel_peer_t;
@@ -88,6 +97,15 @@ allow test_sctp_server_t deny_assoc_sctp_peer_t:peer { recv };
 allow test_sctp_client_t deny_assoc_sctp_peer_t:peer {recv };
 corenet_inout_generic_node(deny_assoc_sctp_peer_t)
 corenet_inout_generic_if(deny_assoc_sctp_peer_t)
+
+# Permit nfsd and its kernel threads to receive these packets.
+# This is required when running the testsuite on a labeled NFS mount.
+gen_require(`
+	type kernel_t;
+	type nfsd_t;
+')
+allow kernel_t deny_assoc_sctp_peer_t:peer recv;
+allow nfsd_t deny_assoc_sctp_peer_t:peer recv;
 
 #
 ############################# Connectx #################################

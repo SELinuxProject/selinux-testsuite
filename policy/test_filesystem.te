@@ -41,6 +41,9 @@ files_search_all(test_filesystem_t)
 fs_associate(test_filesystem_file_t)
 fs_getattr_xattr_fs(test_filesystem_t)
 
+# Required when running the tests on a labeled NFS mount.
+fs_getattr_nfs(test_filesystem_t)
+
 # Update quotas
 fs_set_all_quotas(test_filesystem_t)
 allow test_filesystem_t test_filesystem_file_t:file { quotaon };
@@ -317,9 +320,14 @@ allow test_setfscreatecon_t test_file_t:dir { add_name write remove_name };
 
 # Set new context on fs:
 type test_setfscreatecon_newcon_t;
+files_type(test_setfscreatecon_newcon_t)
 unconfined_runs_test(test_setfscreatecon_newcon_t)
 fs_associate(test_setfscreatecon_newcon_t)
 allow test_setfscreatecon_t test_setfscreatecon_newcon_t:dir { create getattr rmdir };
+
+# Permit creation of the new file in a NFS filesystem.
+# This is required when running the testsuite on a labeled NFS mount.
+allow test_setfscreatecon_newcon_t nfs_t:filesystem associate;
 
 ################# deny process { setfscreate } #############
 type test_no_setfscreatecon_t;
