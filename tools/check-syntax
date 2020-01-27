@@ -13,7 +13,7 @@
 CHK_C_LIST="$(find tests/ -name "*.c") $(find tests/ -name "*.h")"
 CHK_C_EXCLUDE=""
 
-CHK_PERL_LIST="$(find tests/ -name "*.pl") $(find tests/ -name "test")"
+CHK_PERL_LIST="$(find tests/ -name "*.pl") $(find tests/ -name "test") $(find tests/ -name "*.pm")"
 CHK_PERL_EXCLUDE=""
 
 ####
