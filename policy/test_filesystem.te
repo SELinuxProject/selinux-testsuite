@@ -233,6 +233,22 @@ fs_relabelfrom_all_fs(test_filesystem_no_remount_t)
 fs_associate(test_filesystem_no_remount_t)
 allow test_filesystem_no_remount_t test_file_t:dir { mounton write remove_name rmdir };
 
+#################### Deny file { mounton } ######################
+# hooks.c selinux_move_mount() FILE__MOUNTON
+type test_move_mount_no_mounton_t;
+domain_type(test_move_mount_no_mounton_t)
+unconfined_runs_test(test_move_mount_no_mounton_t)
+typeattribute test_move_mount_no_mounton_t testdomain;
+typeattribute test_move_mount_no_mounton_t filesystemdomain;
+
+allow test_move_mount_no_mounton_t self:capability { sys_admin };
+fs_mount_all_fs(test_move_mount_no_mounton_t)
+fs_unmount_all_fs(test_move_mount_no_mounton_t)
+fs_relabelfrom_all_fs(test_move_mount_no_mounton_t)
+fs_associate(test_move_mount_no_mounton_t)
+allow test_move_mount_no_mounton_t test_file_t:dir { mounton write remove_name rmdir };
+# neverallow test_move_mount_no_mounton_t self:dir { mounton };
+
 #################### Deny filesystem { unmount } ######################
 # hooks.c selinux_umount() FILESYSTEM__UNMOUNT
 type test_filesystem_no_unmount_t;
@@ -272,8 +288,6 @@ allow test_filesystem_inode_setxattr_no_associate_t self:file { create relabelfr
 dontaudit unconfined_t test_filesystem_filecon_t:file { getattr read };
 allow test_filesystem_inode_setxattr_no_associate_t unconfined_t:dir { add_name write };
 allow test_filesystem_inode_setxattr_no_associate_t unconfined_t:file { create relabelfrom relabelto };
-
-#allow test_filesystem_inode_setxattr_no_associate_t unconfined_t:file { open read getattr write };
 
 #################### Deny filesystem { watch } ######################
 # hooks.c selinux_path_notify() FILESYSTEM__WATCH

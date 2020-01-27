@@ -98,6 +98,12 @@ export CFLAGS += -DHAVE_FS_WATCH_PERM
 endif
 endif
 
+ifeq ($(shell grep -q filesystem $(POLDEV)/include/support/all_perms.spt && echo true),true)
+ifneq ($(shell ./kvercmp $$(uname -r) 5.2),-1)
+SUBDIRS += fs_filesystem
+endif
+endif
+
 ifeq ($(DISTRO),RHEL4)
     SUBDIRS:=$(filter-out bounds dyntrace dyntrans inet_socket mmap nnp_nosuid overlay unix_socket, $(SUBDIRS))
 endif
