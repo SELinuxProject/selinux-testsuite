@@ -2,9 +2,17 @@
 use Test::More;
 
 BEGIN {
+    $basedir = $0;
+    $basedir =~ s|(.*)/[^/]*|$1|;
+
+    $isnfs = `stat -f --print %T $basedir`;
+
     # check if kernel supports overlayfs and SELinux labeling
     if ( system("grep -q security_inode_copy_up /proc/kallsyms") ) {
         plan skip_all => "overlayfs not supported with SELinux in this kernel";
+    }
+    elsif ( $isnfs eq "nfs" ) {
+        plan skip_all => "overlayfs upperdir not supported on NFS";
     }
     else {
         plan tests => 119;
@@ -694,9 +702,6 @@ sub test_93_1 {
     ok($result);
     return;
 }
-
-$basedir = $0;
-$basedir =~ s|(.*)/[^/]*|$1|;
 
 cleanup();
 

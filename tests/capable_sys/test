@@ -1,13 +1,23 @@
 #!/usr/bin/perl
 #
-# This test performs checks for network-related capabilties.
+# This test performs checks for system-related capabilties.
 #
 
 use Test;
-BEGIN { plan tests => 8 }
 
-$basedir = $0;
-$basedir =~ s|(.*)/[^/]*|$1|;
+BEGIN {
+    $basedir = $0;
+    $basedir =~ s|(.*)/[^/]*|$1|;
+
+    $isnfs = `stat -f --print %T $basedir`;
+
+    $test_count = 7;
+    if ( $isnfs ne "nfs" ) {
+        $test_count += 1;
+    }
+
+    plan tests => $test_count;
+}
 
 # Clean up from a previous run
 system "rm -f $basedir/temp_file 2>&1";
@@ -16,11 +26,15 @@ system "rm -f $basedir/temp_file 2>&1";
 # Tests for the good domain.
 #
 
-# CAP_SYS_RAWIO
-system "touch $basedir/temp_file 2>&1";
-$result =
-  system "runcon -t test_scap_t -- $basedir/test_rawio $basedir/temp_file 2>&1";
-ok( $result, 0 );
+if ( $isnfs ne "nfs" ) {
+
+    # CAP_SYS_RAWIO
+    system "touch $basedir/temp_file 2>&1";
+    $result =
+      system
+      "runcon -t test_scap_t -- $basedir/test_rawio $basedir/temp_file 2>&1";
+    ok( $result, 0 );
+}
 
 # CAP_SYS_CHROOT
 $result = system "runcon -t test_scap_t -- $basedir/test_chroot $basedir/ 2>&1";
