@@ -8,16 +8,16 @@ sub check_config {
 
     $tst_count = 0;
 
-    # From kernel 5.5 support for fanotify(7) with filesystem { watch }
+    # From kernel 5.4 support for fanotify(7) LSM hooks
     $kvercur = `uname -r`;
     chomp($kvercur);
-    $kverminstream = "5.5";
+    $kverminstream = "5.4";
     $watch         = 0;
 
     $result = `$base/../kvercmp $kvercur $kverminstream`;
     if ( $result > 0 && -e $fanotify_fs ) {
         $watch = 1;
-        $tst_count += 4;
+        $tst_count += 11;
     }
 
     $name_trans        = 0;

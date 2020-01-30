@@ -11,28 +11,37 @@
 #ifndef FAN_MARK_FILESYSTEM
 #define FAN_MARK_FILESYSTEM	0x00000100
 #endif
+#ifndef FAN_MARK_MOUNT
+#define FAN_MARK_MOUNT		0x00000010
+#endif
 
 static void print_usage(char *progname)
 {
 	fprintf(stderr,
-		"usage:  %s -t path [-v]\n"
+		"usage:  %s -t path [-m] [-v]\n"
 		"Where:\n\t"
 		"-t  Target mount point to mark\n\t"
+		"-m  Set flag to FAN_MARK_MOUNT, default is FAN_MARK_FILESYSTEM\n\t"
 		"-v  Print information.\n", progname);
 	exit(-1);
 }
 
 int main(int argc, char *argv[])
 {
-	int mask = FAN_OPEN, flags = FAN_MARK_ADD | FAN_MARK_FILESYSTEM;
+	int mask = FAN_OPEN, flags;
 	int fd, result, opt, save_err;
 	char *context, *tgt = NULL;
 	bool verbose = false;
 
-	while ((opt = getopt(argc, argv, "t:v")) != -1) {
+	flags = 0;
+
+	while ((opt = getopt(argc, argv, "t:mv")) != -1) {
 		switch (opt) {
 		case 't':
 			tgt = optarg;
+			break;
+		case 'm':
+			flags = FAN_MARK_ADD | FAN_MARK_MOUNT;
 			break;
 		case 'v':
 			verbose = true;
@@ -41,6 +50,9 @@ int main(int argc, char *argv[])
 			print_usage(argv[0]);
 		}
 	}
+
+	if (!flags)
+		flags = FAN_MARK_ADD | FAN_MARK_FILESYSTEM;
 
 	if (!tgt)
 		print_usage(argv[0]);

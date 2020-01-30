@@ -148,9 +148,15 @@ if ($test_name_trans) {
 }
 
 if ($test_watch) {
-    print "fanotify(7) test\n";
+    print "fanotify(7) test - FAN_MARK_FILESYSTEM\n";
     $result = system(
 "runcon -t test_filesystem_t $basedir/fanotify_fs $v -t $basedir/mntpoint/mp1"
+    );
+    ok( $result eq 0 );
+
+    print "fanotify(7) test - FAN_MARK_MOUNT\n";
+    $result = system(
+"runcon -t test_filesystem_t $basedir/fanotify_fs $v -m -t $basedir/mntpoint/mp1"
     );
     ok( $result eq 0 );
 }
@@ -556,9 +562,9 @@ ok( $result eq 0 );
 print "Removing: $dev $basedir/mntpoint $basedir/fstest\n";
 cleanup1( $basedir, $dev );
 
-############### Deny filesystem { watch }  ##########################
-# hooks.c selinux_path_notify() FILESYSTEM__WATCH
 if ($test_watch) {
+    ############### Deny filesystem { watch }  ##########################
+    # hooks.c selinux_path_notify() FILESYSTEM__WATCH
     mk_mntpoint_1($private_path);
     ( $dev, $device_count ) = get_loop_dev( \@device_list, $device_count );
     make_fs( $fs_type, $dev, $basedir );
@@ -571,7 +577,7 @@ if ($test_watch) {
     );
     ok( $result eq 0 );
 
-    print "test_fanotify\n";
+    print "fanotify(7) test - FAN_MARK_FILESYSTEM\n";
     $result = system(
 "runcon -t test_filesystem_no_watch_t $basedir/fanotify_fs $v -t $basedir/mntpoint/mp1 2>&1"
     );
@@ -580,6 +586,66 @@ if ($test_watch) {
     print "Unmount filesystem from $basedir/mntpoint/mp1\n";
     $result = system(
 "runcon -t test_filesystem_no_watch_t $basedir/umount -t $basedir/mntpoint/mp1 $v"
+    );
+    ok( $result eq 0 );
+
+    print "Removing: $dev $basedir/mntpoint $basedir/fstest\n";
+    cleanup1( $basedir, $dev );
+
+    ############### Deny file { watch_sb }  ##########################
+    # hooks.c selinux_path_notify() FILE__WATCH_SB
+    mk_mntpoint_1($private_path);
+    ( $dev, $device_count ) = get_loop_dev( \@device_list, $device_count );
+    make_fs( $fs_type, $dev, $basedir );
+    $opts_no_watch_sb =
+      "context=system_u:object_r:test_filesystem_no_watch_sb_t:s0";
+
+    print "Mount $fs_type filesystem on $basedir/mntpoint/mp1\n";
+    print "Using mount options:\n\t$opts_no_watch_sb\n";
+    $result = system(
+"runcon -t test_filesystem_no_watch_sb_t $basedir/mount -s $dev -t $basedir/mntpoint/mp1 -f $fs_type -o $opts_no_watch_sb $v"
+    );
+    ok( $result eq 0 );
+
+    print "fanotify(7) test - FAN_MARK_FILESYSTEM\n";
+    $result = system(
+"runcon -t test_filesystem_no_watch_sb_t $basedir/fanotify_fs $v -t $basedir/mntpoint/mp1 2>&1"
+    );
+    ok( $result >> 8 eq 13 );
+
+    print "Unmount filesystem from $basedir/mntpoint/mp1\n";
+    $result = system(
+"runcon -t test_filesystem_no_watch_sb_t $basedir/umount -t $basedir/mntpoint/mp1 $v"
+    );
+    ok( $result eq 0 );
+
+    print "Removing: $dev $basedir/mntpoint $basedir/fstest\n";
+    cleanup1( $basedir, $dev );
+
+    ############### Deny file { watch_mount }  ##########################
+    # hooks.c selinux_path_notify() FILE__WATCH_MOUNT
+    mk_mntpoint_1($private_path);
+    ( $dev, $device_count ) = get_loop_dev( \@device_list, $device_count );
+    make_fs( $fs_type, $dev, $basedir );
+    $opts_no_watch_mount =
+      "context=system_u:object_r:test_filesystem_no_watch_mount_t:s0";
+
+    print "Mount $fs_type filesystem on $basedir/mntpoint/mp1\n";
+    print "Using mount options:\n\t$opts_no_watch_mount\n";
+    $result = system(
+"runcon -t test_filesystem_no_watch_mount_t $basedir/mount -s $dev -t $basedir/mntpoint/mp1 -f $fs_type -o $opts_no_watch_mount $v"
+    );
+    ok( $result eq 0 );
+
+    print "fanotify(7) test - FAN_MARK_MOUNT\n";
+    $result = system(
+"runcon -t test_filesystem_no_watch_mount_t $basedir/fanotify_fs $v -m -t $basedir/mntpoint/mp1 2>&1"
+    );
+    ok( $result >> 8 eq 13 );
+
+    print "Unmount filesystem from $basedir/mntpoint/mp1\n";
+    $result = system(
+"runcon -t test_filesystem_no_watch_mount_t $basedir/umount -t $basedir/mntpoint/mp1 $v"
     );
     ok( $result eq 0 );
 
