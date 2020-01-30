@@ -118,6 +118,47 @@ the tests:
 	tests/infiniband_pkey/ibpkey_test.conf
 	tests/infiniband_endport/ibendport_test.conf
 
+#### NFS
+
+It is possible to run most of the tests within a labeled NFS mount in
+order to exercise the NFS security labeling functionality.  Certain
+tests have been excluded from such testing due to differences between
+NFS and local filesystems; these tests will be automatically skipped.
+
+You will need to install an additional package, the package below
+is for Fedora/RHEL but other Linux distributions should have a similar
+package:
+
+* nfs-utils _(for `nfsd', `exportfs', and other NFS-related programs)_
+
+On a modern Fedora system you can install this dependency with the
+following command:
+
+	# dnf install nfs-utils
+
+If your distribution does not use systemd as its init system, you will
+need to customize the nfs.sh script found in the tools directory to
+correctly start and stop the nfs server.  You may also choose to not
+start/stop the nfs-server as part of the script by removing those lines
+if you are already using NFS for other reasons.
+
+Before running the tests in a labeled NFS mount, first ensure that you
+can run them successfully on a local filesystem following the standard
+instructions further below.  Any failures that occur on a local
+filesystem should also typically be expected when running over NFS.
+
+To run the tests within a labeled NFS mount, you can run the
+nfs.sh script while in the selinux-testsuite directory:
+
+       # cd selinux-testsuite
+       # ./tools/nfs.sh
+
+The script will start the nfs-server, export the mount containing the
+testsuite directory with the security_label option to localhost, mount
+it via NFSv4.2 on /mnt/selinux-testsuite, switch to that directory,
+and run the testsuite there.  After completion, it will unmount and
+unexport the mount and then stop the nfs-server.
+
 ## Running the Tests
 
 Create a shell with the `unconfined_r` or `sysadm_r` role and the Linux
