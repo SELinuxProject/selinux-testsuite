@@ -156,7 +156,10 @@ nfs.sh script while in the selinux-testsuite directory:
 The script will start the nfs-server, export the mount containing the
 testsuite directory with the security_label option to localhost, mount
 it via NFSv4.2 on /mnt/selinux-testsuite, switch to that directory,
-and run the testsuite there.  After completion, it will unmount and
+and run the testsuite there.  After running the testsuite, the script
+will also perform tests of context mounts with and without the
+security_label export option and will test default NFS file labeling
+in the absence of any options.  When finished, it will unmount and
 unexport the mount and then stop the nfs-server.
 
 ## Running the Tests
