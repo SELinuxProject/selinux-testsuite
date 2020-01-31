@@ -43,7 +43,7 @@ enum {
  */
 #define TEST_SERVICE_ADD	240616 /* Sent by Service Provider */
 #define TEST_SERVICE_GET	290317 /* Sent by Client */
-#define TEST_SERVICE_SEND_FD	311019 /* Sent by Client */
+#define TEST_SERVICE_SEND_FD	310120 /* Sent by Client */
 
 extern bool verbose;
 
