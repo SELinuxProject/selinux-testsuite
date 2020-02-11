@@ -54,6 +54,7 @@ similar dependencies):
 * libbpf-devel _(tools used by the bpf tests)_
 * keyutils-libs-devel _(tools used by the keys tests)_
 * kernel-devel _(used by the kernel module tests)_
+* quota _(used by the filesystem tests)_
 
 On a modern Fedora system you can install these dependencies with the
 following command:
@@ -71,7 +72,8 @@ following command:
 		attr \
 		libbpf-devel \
 		keyutils-libs-devel \
-		kernel-devel
+		kernel-devel \
+		quota
 
 The testsuite requires a pre-existing base policy configuration of SELinux,
 using either the old example policy or the reference policy as the baseline.
