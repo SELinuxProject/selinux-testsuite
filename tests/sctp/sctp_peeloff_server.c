@@ -16,24 +16,6 @@ static void usage(char *progname)
 	exit(1);
 }
 
-static void set_subscr_events(int fd, int value)
-{
-	int result;
-	struct sctp_event_subscribe subscr_events;
-
-	memset(&subscr_events, 0, sizeof(subscr_events));
-	subscr_events.sctp_association_event = value;
-	/* subscr_events.sctp_data_io_event = value; */
-
-	result = setsockopt(fd, IPPROTO_SCTP, SCTP_EVENTS,
-			    &subscr_events, sizeof(subscr_events));
-	if (result < 0) {
-		perror("Server setsockopt: SCTP_EVENTS");
-		close(fd);
-		exit(1);
-	}
-}
-
 static sctp_assoc_t handle_event(void *buf)
 {
 	union sctp_notification *snp = buf;
@@ -166,7 +148,13 @@ int main(int argc, char **argv)
 	}
 
 	do {
-		set_subscr_events(sock, 1); /* Get assoc_id for sctp_peeloff() */
+		/* Get assoc_id for sctp_peeloff() */
+		result = set_subscr_events(sock, 0, 1);
+		if (result < 0) {
+			perror("Server setsockopt: SCTP_EVENTS");
+			close(sock);
+			exit(1);
+		}
 		sinlen = sizeof(sin);
 		flags = 0;
 
@@ -192,7 +180,12 @@ int main(int argc, char **argv)
 				exit(1);
 			}
 			/* No more notifications */
-			set_subscr_events(sock, 0);
+			result = set_subscr_events(sock, 0, 0);
+			if (result < 0) {
+				perror("Server setsockopt: SCTP_EVENTS");
+				close(sock);
+				exit(1);
+			}
 
 			peeloff_sk = sctp_peeloff(sock, assoc_id);
 			if (peeloff_sk < 0) {

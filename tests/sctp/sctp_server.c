@@ -134,7 +134,7 @@ int main(int argc, char **argv)
 	}
 
 	/* Enables sctp_data_io_events for sctp_recvmsg(3) for assoc_id. */
-	result = setsockopt(sock, SOL_SCTP, SCTP_EVENTS, &on, sizeof(on));
+	result = set_subscr_events(sock, on, 0);
 	if (result < 0) {
 		perror("Server setsockopt: SCTP_EVENTS");
 		close(sock);

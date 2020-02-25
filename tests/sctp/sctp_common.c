@@ -1,5 +1,8 @@
 #include "sctp_common.h"
 
+#define member_size(type, member) sizeof(((type *)0)->member)
+#define sizeof_up_to(type, member) (offsetof(type, member) + member_size(type, member))
+
 void print_context(int fd, char *text)
 {
 	char *context;
@@ -98,4 +101,21 @@ void print_ip_option(int fd, bool ipv4, char *text)
 	} else {
 		printf("%s No IP Options set\n", text);
 	}
+}
+
+int set_subscr_events(int fd, int data_io, int association)
+{
+	struct sctp_event_subscribe subscr_events;
+
+	memset(&subscr_events, 0, sizeof(subscr_events));
+	subscr_events.sctp_data_io_event = data_io;
+	subscr_events.sctp_association_event = association;
+
+	/*
+	 * Truncate optlen to just the fields we touch to avoid errors when
+	 * the uapi headers are newer than the running kernel.
+	 */
+	return setsockopt(fd, IPPROTO_SCTP, SCTP_EVENTS, &subscr_events,
+			  sizeof_up_to(struct sctp_event_subscribe,
+				       sctp_association_event));
 }
