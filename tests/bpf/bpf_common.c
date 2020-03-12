@@ -41,24 +41,16 @@ int create_bpf_prog(void)
 
 /*
  * The default RLIMIT_MEMLOCK is normally 64K, however BPF map/prog requires
- * more than this so double it unless RLIM_INFINITY is set.
+ * more than this (the actual threshold varying across arches) so set it to
+ * RLIM_INFINITY.
  */
 void bpf_setrlimit(void)
 {
 	int result;
 	struct rlimit r;
 
-	result = getrlimit(RLIMIT_MEMLOCK, &r);
-	if (result < 0) {
-		fprintf(stderr, "Failed to get resource limit: %s\n",
-			strerror(errno));
-		exit(-1);
-	}
-
-	if (r.rlim_cur != RLIM_INFINITY && r.rlim_cur <= (64 * 1024)) {
-		r.rlim_cur *= 2;
-		r.rlim_max *= 2;
-	}
+	r.rlim_cur = RLIM_INFINITY;
+	r.rlim_max = RLIM_INFINITY;
 
 	result = setrlimit(RLIMIT_MEMLOCK, &r);
 	if (result < 0) {
