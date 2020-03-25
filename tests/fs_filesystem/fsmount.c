@@ -15,7 +15,7 @@ static void print_usage(char *progname)
 
 int main(int argc, char *argv[])
 {
-	int opt, result, fsfd, mfd;
+	int opt, result, fsfd, mfd, save_errno;
 	char *context, *src = NULL, *tgt = NULL, *fs_type = NULL, *opts = NULL;
 	bool verbose = false;
 
@@ -79,9 +79,10 @@ int main(int argc, char *argv[])
 	close(fsfd);
 
 	result = move_mount(mfd, "", AT_FDCWD, tgt, MOVE_MOUNT_F_EMPTY_PATH);
+	save_errno = errno;
 	if (result < 0) {
 		fprintf(stderr, "Failed move_mount(2): %s\n", strerror(errno));
-		return -1;
+		return save_errno;
 	}
 	close(mfd);
 

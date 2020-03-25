@@ -1,0 +1,362 @@
+#!/usr/bin/perl
+use Test::More;
+
+# These are specific NFS tests that must run on an initial mount with various
+# context mount options.
+#
+# This script is entered with the following set by tools/nfs.sh:
+#    export NFS_TESTDIR=$TESTDIR
+#    export NFS_MOUNT=$MOUNT
+#    exportfs -o rw,no_root_squash,security_label localhost:$MOUNT
+
+BEGIN {
+    $basedir = $0;
+    $basedir =~ s|(.*)/[^/]*|$1|;
+
+    $filesystem_dir    = "$basedir/../filesystem";
+    $fs_filesystem_dir = "$basedir/../fs_filesystem";
+
+    $testdir = $ENV{'NFS_TESTDIR'};
+    $mount   = $ENV{'NFS_MOUNT'};
+    if ( defined $testdir and defined $mount ) {
+        $fs_type = "nfs";
+        $dev     = "localhost:$testdir";
+        $target  = "/mnt/selinux-testsuite";
+    }
+    else {
+        plan skip_all => "These tests must be run via tools/nfs.sh";
+    }
+
+    # Allow info to be shown.
+    $v = $ARGV[0];
+    if ($v) {
+        if ( $v ne "-v" ) {
+            plan skip_all => "Invalid option (use -v)";
+        }
+    }
+    else {
+        $v = " ";
+    }
+
+    plan tests => 56;
+}
+
+# Set for testing mount(2) on first run
+$mount_cmd = "$filesystem_dir/mount";
+$test_msg  = "Using mount(2)";
+$net_opts  = "nfsvers=4.2,proto=tcp,clientaddr=127.0.0.1,addr=127.0.0.1";
+
+$i = 0;
+while ( $i < 2 ) {
+
+    #
+    # Perform mount of a security_label exported filesystem, check the
+    # label of the mounted directory to confirm it isn't unlabeled.
+    # Fixed by kernel commit 28d4d0e16f09c1865e2ec8a7d89ca7057a5cf7ae
+    # "When using NFSv4.2, the security label for the root inode should be set"
+    #
+    system("mkdir -p $basedir/mntpoint/mp1 2>/dev/null");
+
+    # Setting MP to unlabeled_t
+    $result =
+      system(
+"runcon -t test_filesystem_t $filesystem_dir/check_mount_context -r -m $basedir/mntpoint/mp1 $v"
+      );
+    ok( $result eq 0 );
+
+    $mount_opts =
+      "$net_opts,context=system_u:object_r:test_filesystem_file_t:s0";
+
+    $result = system(
+"runcon -t test_filesystem_t $mount_cmd $v -s $dev -t $target -f $fs_type -o $mount_opts"
+    );
+    ok( $result eq 0, $test_msg );
+
+    # Check MP context
+    $result = system(
+"runcon -t test_filesystem_t $filesystem_dir/check_mount_context -m $target/tests/nfs_filesystem/mntpoint/mp1 -e system_u:object_r:test_filesystem_file_t:s0 $v"
+    );
+    ok( $result eq 0 );
+
+    $result =
+      system(
+        "runcon -t test_filesystem_t $filesystem_dir/umount $v -t $target");
+    ok( $result eq 0, $test_msg );
+
+    system("rm -rf $basedir/mntpoint 2>/dev/null");
+
+    #
+    # Mount a security_label exported NFS filesystem twice, confirm that
+    # NFS security labeling support isn't silently disabled by trying to
+    # set a label on a file and confirm it is set.
+    # Fixed by kernel commit 3815a245b50124f0865415dcb606a034e97494d4
+    # "security/selinux: fix SECURITY_LSM_NATIVE_LABELS on reused superblock"
+    #
+    system("mkdir -p $basedir/mntpoint/mp1 2>/dev/null");
+
+    $mount_opts = $net_opts;
+    $result     = system(
+"runcon -t test_filesystem_t $mount_cmd $v -s $dev -t $target -f $fs_type -o $mount_opts"
+    );
+    ok( $result eq 0, $test_msg );
+
+    # First mount(2) ok, second currently fails with EBUSY
+    $result = system(
+"runcon -t test_filesystem_t $mount_cmd $v -s $dev -t $target -f $fs_type -o $mount_opts 2>&1"
+    );
+    if ( $i eq 0 and $result >> 8 eq 16 ) {
+        ok( 1, "$test_msg - returned EBUSY, possible bug/feature" );
+    }
+    else {
+        ok( $result eq 0 );
+    }
+
+    # Create file and change context via type_transition rule, check ok:
+    $result = system(
+"runcon -t test_filesystem_t $filesystem_dir/create_file -f $target/tests/nfs_filesystem/mntpoint/mp1/test_file -e test_filesystem_filetranscon_t $v"
+    );
+    ok( $result eq 0 );
+
+    $result =
+      system(
+        "runcon -t test_filesystem_t $filesystem_dir/umount $v -t $target");
+    ok( $result eq 0, $test_msg );
+
+    system(
+        "runcon -t test_filesystem_t $filesystem_dir/umount $v -t $target 2>&1"
+    );
+
+    system("rm -rf $basedir/mntpoint 2>/dev/null");
+
+    #
+    # Perform a context= mount of a security_label exported NFS
+    # filesystem, check that pre-existing files within the mount show up
+    # with the context= value not the underlying xattr value.
+    # Fixed by kernel commit 0b4d3452b8b4a5309b4445b900e3cec022cca95a
+    # "security/selinux: allow security_sb_clone_mnt_opts to enable/disable
+    # native labeling behavior"
+    #
+    system("mkdir -p $basedir/mntpoint/mp1 2>/dev/null");
+
+    $result = system(
+"runcon -t test_filesystem_t $filesystem_dir/create_file -f $basedir/mntpoint/mp1/test_file -e test_filesystem_filetranscon_t $v"
+    );
+    ok( $result eq 0 );
+
+    $mount_opts =
+      "$net_opts,context=system_u:object_r:test_filesystem_file_t:s0";
+
+    $result = system(
+"runcon -t test_filesystem_t $mount_cmd $v -s $dev -t $target -f $fs_type -o $mount_opts"
+    );
+    ok( $result eq 0, $test_msg );
+
+    $result = system(
+"runcon -t test_filesystem_t $filesystem_dir/check_file_context -f $target/tests/nfs_filesystem/mntpoint/mp1/test_file -e system_u:object_r:test_filesystem_file_t:s0 $v"
+    );
+    ok( $result eq 0 );
+
+    $result =
+      system(
+        "runcon -t test_filesystem_t $filesystem_dir/umount $v -t $target");
+    ok( $result eq 0, $test_msg );
+
+    system("rm -rf $basedir/mntpoint 2>/dev/null");
+
+    #
+    # Deny filesystem { relabelfrom } for hooks.c may_context_mount_sb_relabel()
+    #
+    system("rm -rf $basedir/mntpoint 2>/dev/null");
+    system("mkdir -p $basedir/mntpoint/mp1 2>/dev/null");
+    $mount_opts =
+"$net_opts,fscontext=system_u:object_r:test_filesystem_sb_relabel_no_relabelfrom_t:s0";
+
+    $result = system(
+"runcon -t test_filesystem_sb_relabel_no_relabelfrom_t $mount_cmd $v -s $dev -t $target -f $fs_type -o $mount_opts 2>&1"
+    );
+    ok( $result >> 8 eq 13, $test_msg );
+
+    system("rm -rf $basedir/mntpoint 2>/dev/null");
+
+    #
+    # Deny filesystem { relabelto } for hooks.c may_context_mount_sb_relabel()
+    #
+    system("rm -rf $basedir/mntpoint 2>/dev/null");
+    system("mkdir -p $basedir/mntpoint/mp1 2>/dev/null");
+    $mount_opts =
+"$net_opts,fscontext=system_u:object_r:test_filesystem_sb_relabel_no_relabelto_t:s0";
+
+    $result = system(
+"runcon -t test_filesystem_sb_relabel_no_relabelto_t $mount_cmd $v -s $dev -t $target -f $fs_type -o $mount_opts 2>&1"
+    );
+    ok( $result >> 8 eq 13, $test_msg );
+
+    system("rm -rf $basedir/mntpoint 2>/dev/null");
+
+    #
+    # Deny filesystem { associate } for hooks.c
+    # may_context_mount_inode_relabel()
+    #
+    system("rm -rf $basedir/mntpoint 2>/dev/null");
+    system("mkdir -p $basedir/mntpoint/mp1 2>/dev/null");
+    $mount_opts =
+"$net_opts,context=system_u:object_r:test_filesystem_inode_relabel_no_associate_t:s0";
+
+    $result = system(
+"runcon -t test_filesystem_inode_relabel_no_associate_t $mount_cmd $v -s $dev -t $target -f $fs_type -o $mount_opts 2>&1"
+    );
+    ok( $result >> 8 eq 13, $test_msg );
+
+    system("rm -rf $basedir/mntpoint 2>/dev/null");
+
+    #
+    # Deny filesystem { relabelfrom } for hooks.c
+    # may_context_mount_inode_relabel()
+    #
+    system("mkdir -p $basedir/mntpoint/mp1 2>/dev/null");
+    $mount_opts =
+      "$net_opts,fscontext=system_u:object_r:test_filesystem_file_t:s0";
+
+    $result = system(
+"runcon -t test_filesystem_no_inode_no_relabelfrom_t $mount_cmd $v -s $dev -t $target -f $fs_type -o $mount_opts 2>&1"
+    );
+    ok( $result >> 8 eq 13, $test_msg );
+
+    system("rm -rf $basedir/mntpoint 2>/dev/null");
+
+    #
+    # Deny filesystem { associate } for hooks.c may_create()
+    #
+    system("mkdir -p $basedir/mntpoint/mp1 2>/dev/null");
+
+    system("rm -f $target/tests/nfs_filesystem/mntpoint/mp1/test_file");
+
+    $mount_opts =
+"$net_opts,fscontext=system_u:object_r:test_filesystem_may_create_no_associate_t:s0";
+
+    $result = system(
+"runcon -t test_filesystem_may_create_no_associate_t $mount_cmd $v -s $dev -t $target -f $fs_type -o $mount_opts"
+    );
+    ok( $result eq 0, $test_msg );
+
+    $result = system(
+"runcon -t test_filesystem_may_create_no_associate_t $filesystem_dir/create_file_change_context $v -t unconfined_t -f $target/tests/nfs_filesystem/mntpoint/mp1/test_file 2>&1"
+    );
+    ok( $result >> 8 eq 13, $test_msg );    # EACCES
+
+    $result = system(
+"runcon -t test_filesystem_may_create_no_associate_t $filesystem_dir/umount $v -t $target"
+    );
+    ok( $result eq 0, $test_msg );
+
+    system("rm -rf $basedir/mntpoint 2>/dev/null");
+
+    #
+    # Deny filesystem { associate } for hooks.c selinux_inode_setxattr()
+    #
+    system("mkdir -p $basedir/mntpoint/mp1 2>/dev/null");
+    $mount_opts =
+"$net_opts,fscontext=system_u:object_r:test_filesystem_inode_setxattr_no_associate_t:s0";
+
+    $result = system(
+"runcon -t test_filesystem_inode_setxattr_no_associate_t $mount_cmd $v -s $dev -t $target -f $fs_type -o $mount_opts"
+    );
+    ok( $result eq 0, $test_msg );
+
+    $result = system(
+"runcon -t test_filesystem_inode_setxattr_no_associate_t $filesystem_dir/create_file_change_context $v -t unconfined_t -f $target/tests/nfs_filesystem/mntpoint/mp1/test_file 2>&1"
+    );
+    ok( $result >> 8 eq 13, $test_msg );    # EACCES
+
+    $result = system(
+"runcon -t test_filesystem_inode_setxattr_no_associate_t $filesystem_dir/umount $v -t $target"
+    );
+    ok( $result eq 0, $test_msg );
+
+    system("rm -rf $basedir/mntpoint 2>/dev/null");
+
+    #
+    # Test context mounts when exported with security_label.
+    #
+    system("mkdir -p $basedir/mntpoint/mp1 2>/dev/null");
+    $mount_opts = "$net_opts,context=system_u:object_r:etc_t:s0";
+
+    $result = system(
+"runcon -t test_filesystem_t $mount_cmd $v -s $dev -t $target -f $fs_type -o $mount_opts"
+    );
+    $fctx = `secon -t -f $target`;
+    chomp($fctx);
+    if ( $fctx ne "etc_t" ) {
+        ok( 0, "$test_msg - got $fctx instead of etc_t" );
+    }
+    else {
+        ok( $result eq 0, $test_msg );
+    }
+
+    $result =
+      system(
+        "runcon -t test_filesystem_t $filesystem_dir/umount $v -t $target");
+    ok( $result eq 0, $test_msg );
+
+    system("rm -rf $basedir/mntpoint 2>/dev/null");
+
+    #
+    # Test context mounts when not exported with security_label.
+    #
+    system("mkdir -p $basedir/mntpoint/mp1 2>/dev/null");
+    `exportfs -u localhost:$mount`;
+    `exportfs -o rw,no_root_squash localhost:$mount`;
+    $mount_opts = "$net_opts,context=system_u:object_r:etc_t:s0";
+
+    $result = system(
+"runcon -t test_filesystem_t $mount_cmd $v -s $dev -t $target -f $fs_type -o $mount_opts"
+    );
+    $fctx = `secon -t -f $target`;
+    chomp($fctx);
+    if ( $fctx ne "etc_t" ) {
+        ok( 0, "$test_msg - got $fctx instead of etc_t" );
+    }
+    else {
+        ok( $result eq 0, $test_msg );
+    }
+
+    $result =
+      system(
+        "runcon -t test_filesystem_t $filesystem_dir/umount $v -t $target");
+    ok( $result eq 0, $test_msg );
+
+    system("rm -rf $basedir/mntpoint 2>/dev/null");
+
+    #
+    # Test non-context mount when not exported with security_label.
+    #
+    system("mkdir -p $basedir/mntpoint/mp1 2>/dev/null");
+    $mount_opts = $net_opts;
+
+    $result = system(
+"runcon -t test_filesystem_t $mount_cmd $v -s $dev -t $target -f $fs_type -o $mount_opts"
+    );
+    $fctx = `secon -t -f $target`;
+    chomp($fctx);
+    if ( $fctx ne "nfs_t" ) {
+        ok( 0, "$test_msg - got $fctx instead of nfs_t" );
+    }
+    else {
+        ok( $result eq 0, $test_msg );
+    }
+
+    $result =
+      system(
+        "runcon -t test_filesystem_t $filesystem_dir/umount $v -t $target");
+    ok( $result eq 0, $test_msg );
+
+    system("rm -rf $basedir/mntpoint 2>/dev/null");
+
+    # Reset for testing fsopen(2), fsconfig(2), fsmount(2) and move_mount(2)
+    $mount_cmd = "$fs_filesystem_dir/fsmount";
+    $test_msg  = "Using fsmount(2)";
+    `exportfs -o rw,no_root_squash,security_label localhost:$mount`;
+    $i++;
+}
+
+exit;
