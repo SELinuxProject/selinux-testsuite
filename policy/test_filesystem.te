@@ -6,6 +6,9 @@
 attribute filesystemdomain;
 kernel_setsched(filesystemdomain)
 
+# For module filesystems
+kernel_request_load_module(filesystemdomain)
+
 #################### Create test file contexts ######################
 type test_filesystem_filecon_t;
 files_type(test_filesystem_filecon_t)
@@ -26,10 +29,10 @@ typeattribute test_filesystem_t filesystemdomain;
 
 allow test_filesystem_t self:capability { sys_admin };
 allow test_filesystem_t self:filesystem { mount remount quotamod relabelfrom relabelto unmount quotaget };
-allow test_filesystem_t test_file_t:dir { add_name mounton write remove_name rmdir };
+allow test_filesystem_t test_file_t:dir { add_name mounton read write remove_name rmdir relabelfrom };
 # Create test file
-allow test_filesystem_t test_filesystem_file_t:dir { read add_name write search };
-allow test_filesystem_t test_filesystem_file_t:file { open getattr create write relabelfrom relabelto };
+allow test_filesystem_t test_filesystem_file_t:dir { read add_name write search mounton };
+allow test_filesystem_t test_filesystem_file_t:file { open getattr create read write relabelfrom relabelto };
 
 fs_mount_all_fs(test_filesystem_t)
 fs_remount_all_fs(test_filesystem_t)
@@ -57,6 +60,10 @@ fs_associate(test_filesystem_filetranscon_t)
 type_transition test_filesystem_t test_filesystem_file_t:file test_filesystem_filetranscon_t;
 allow test_filesystem_t test_filesystem_filetranscon_t:file { create getattr open write relabelfrom };
 dontaudit unconfined_t test_filesystem_filetranscon_t:file { getattr read };
+
+# For NFS
+type_transition test_filesystem_t test_file_t:file test_filesystem_filetranscon_t;
+allow test_filesystem_filetranscon_t test_filesystem_file_t:filesystem { associate };
 
 #################### Deny filesystem { relabelfrom } ######################
 # hooks.c may_context_mount_sb_relabel() FILESYSTEM__RELABELFROM
@@ -182,9 +189,12 @@ typeattribute test_file_no_quotaon_t testdomain;
 typeattribute test_file_no_quotaon_t filesystemdomain;
 
 allow test_file_no_quotaon_t self:capability { sys_admin };
-allow test_file_no_quotaon_t self:filesystem { quotamod relabelto mount unmount relabelfrom };
+allow test_file_no_quotaon_t self:filesystem { quotamod quotaget relabelto mount unmount relabelfrom };
 allow test_file_no_quotaon_t test_file_t:dir { mounton write remove_name rmdir };
 # neverallow test_file_no_quotaon_t self:file { quotaon };
+
+# For XFS:
+# neverallow allow test_file_no_quotaon_t self:dir { quotaon };
 fs_mount_all_fs(test_file_no_quotaon_t)
 fs_relabelfrom_all_fs(test_file_no_quotaon_t)
 fs_associate(test_file_no_quotaon_t)
@@ -249,8 +259,8 @@ fs_mount_all_fs(test_move_mount_no_mounton_t)
 fs_unmount_all_fs(test_move_mount_no_mounton_t)
 fs_relabelfrom_all_fs(test_move_mount_no_mounton_t)
 fs_associate(test_move_mount_no_mounton_t)
-allow test_move_mount_no_mounton_t test_file_t:dir { mounton write remove_name rmdir };
-# neverallow test_move_mount_no_mounton_t self:dir { mounton };
+allow test_move_mount_no_mounton_t test_file_t:dir { write remove_name rmdir };
+# neverallow test_move_mount_no_mounton_t test_file_t:dir { mounton };
 
 #################### Deny filesystem { unmount } ######################
 # hooks.c selinux_umount() FILESYSTEM__UNMOUNT
@@ -312,7 +322,7 @@ allow test_setfscreatecon_t test_setfscreatecon_newcon_t:dir { create getattr rm
 
 # Permit creation of the new file in a NFS filesystem.
 # This is required when running the testsuite on a labeled NFS mount.
-allow test_setfscreatecon_newcon_t nfs_t:filesystem associate;
+allow test_setfscreatecon_newcon_t nfs_t:filesystem { associate };
 
 ################# deny process { setfscreate } #############
 type test_no_setfscreatecon_t;
@@ -342,7 +352,7 @@ allow test_filesystem_fscontext_t test_filesystem_fscontext_fs_t:file { create g
 allow test_filesystem_fscontext_t test_filesystem_fscontext_fs_t:filesystem { mount relabelto unmount };
 fs_relabelfrom_all_fs(test_filesystem_fscontext_t)
 files_search_all(test_filesystem_fscontext_t)
-allow test_filesystem_filecon_t test_filesystem_fscontext_fs_t:filesystem associate;
+allow test_filesystem_filecon_t test_filesystem_fscontext_fs_t:filesystem { associate };
 
 ########### Test context= #################
 type test_filesystem_context_t;
@@ -372,6 +382,70 @@ allow test_filesystem_fscontext_t test_filesystem_context_file_t:file { create g
 # For testing rootcontext= Set mountpoint to unlabeled first
 allow test_filesystem_context_t test_file_t:dir { relabelfrom };
 allow test_filesystem_context_t unlabeled_t:dir { mounton relabelto };
+
+#
+####################### Rules for nfs_filesystem/test ###################
+#
+files_mounton_mnt(filesystemdomain)
+files_mounton_all_poly_members(test_filesystem_t)
+fs_search_nfs(filesystemdomain)
+
+allow test_filesystem_t unlabeled_t:dir { relabelto };
+allow test_filesystem_t etc_t:filesystem { relabelto relabelfrom mount unmount };
+
+allow test_filesystem_sb_relabel_no_relabelfrom_t self:filesystem { mount relabelto };
+allow test_filesystem_sb_relabel_no_relabelfrom_t self:filesystem { mount };
+
+allow test_filesystem_may_create_no_associate_t nfs_t:filesystem { associate };
+allow test_filesystem_may_create_no_associate_t unconfined_t:file { getattr relabelto };
+allow test_filesystem_may_create_no_associate_t test_file_t:dir { add_name };
+allow test_filesystem_may_create_no_associate_t test_file_t:file { create write relabelfrom };
+allow test_filesystem_may_create_no_associate_t test_filesystem_file_t:filesystem { mount unmount relabelto };
+allow test_file_t test_filesystem_may_create_no_associate_t:filesystem { associate };
+allow unconfined_t test_filesystem_may_create_no_associate_t:filesystem { getattr mount relabelto unmount };
+# neverallow unconfined_t test_filesystem_may_create_no_associate_t:filesystem { associate };
+
+allow test_filesystem_inode_setxattr_no_associate_t unconfined_t:file { getattr open read write };
+allow test_filesystem_inode_setxattr_no_associate_t nfs_t:filesystem { associate };
+allow test_filesystem_inode_setxattr_no_associate_t test_file_t:dir { add_name };
+allow test_filesystem_inode_setxattr_no_associate_t test_file_t:file { create relabelfrom write };
+allow test_file_t test_filesystem_inode_setxattr_no_associate_t:filesystem { associate };
+allow unconfined_t test_filesystem_inode_setxattr_no_associate_t:filesystem { getattr mount relabelfrom relabelto unmount };
+# neverallow unconfined_t test_filesystem_inode_setxattr_no_associate_t:filesystem { associate };
+
+#
+############### Rules for NFS mount ##################
+#
+userdom_search_user_home_content(filesystemdomain)
+allow test_filesystem_t test_filesystem_file_t:filesystem { getattr mount remount unmount relabelto relabelfrom };
+allow test_filesystem_t test_file_t:file { create write relabelfrom };
+allow test_file_t test_filesystem_file_t:filesystem { associate };
+allow test_setfscreatecon_newcon_t test_filesystem_file_t:filesystem { associate };
+allow test_filesystem_filecon_t test_filesystem_file_t:filesystem { associate };
+allow test_filesystem_no_getattr_t test_filesystem_file_t:filesystem { mount unmount relabelfrom relabelto };
+allow test_filesystem_no_getattr_t test_filesystem_file_t:dir { search mounton };
+allow test_filesystem_no_mount_t test_filesystem_file_t:filesystem { relabelfrom relabelto };
+allow test_filesystem_no_mount_t test_filesystem_file_t:dir { search mounton };
+allow test_filesystem_no_remount_t test_filesystem_file_t:filesystem { mount unmount relabelfrom relabelto };
+allow test_filesystem_no_remount_t test_filesystem_file_t:dir { search mounton };
+allow test_filesystem_no_unmount_t test_filesystem_file_t:filesystem { mount relabelfrom relabelto };
+allow test_filesystem_no_unmount_t test_filesystem_file_t:dir { search mounton };
+allow test_move_mount_no_mounton_t test_filesystem_file_t:filesystem { relabelto mount };
+allow test_move_mount_no_mounton_t test_filesystem_file_t:dir { search };
+
+#
+############ Rules for VFAT ##############################
+#
+gen_require(`
+	type dosfs_t;
+')
+allow test_filesystem_t dosfs_t:file { open getattr write };
+allow test_filesystem_context_t dosfs_t:file { open getattr write };
+allow test_filesystem_no_getattr_t dosfs_t:filesystem { associate };
+allow test_filesystem_no_mount_t dosfs_t:filesystem { associate };
+allow test_filesystem_no_remount_t dosfs_t:filesystem { associate };
+allow test_filesystem_no_unmount_t dosfs_t:filesystem { associate };
+allow test_move_mount_no_mounton_t dosfs_t:filesystem { associate };
 
 #
 ########### Allow these domains to be entered from sysadm domain ############

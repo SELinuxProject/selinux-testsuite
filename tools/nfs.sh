@@ -1,12 +1,17 @@
 #!/bin/sh -e
 MOUNT=`stat --print %m .`
 TESTDIR=`pwd`
-MAKE_TEST=0
+POPD=0
+FS_CTX="fscontext=system_u:object_r:test_filesystem_file_t:s0"
+# To run individual tests on NFS with -v option:
+RUN_TEST=$1
+V=$2
 
 function err_exit() {
-    if [ $MAKE_TEST -eq 1 ]; then
-        echo "Closing down NFS"
-        popd
+    set +e # Turn off exit on error
+    if [ $POPD -eq 1 ]; then
+        echo "Test failed on line: $1 - Closing down NFS"
+        popd >/dev/null 2>&1
     else
         echo "Error on line: $1 - Closing down NFS"
     fi
@@ -14,57 +19,93 @@ function err_exit() {
     exportfs -u localhost:$MOUNT
     rmdir /mnt/selinux-testsuite
     systemctl stop nfs-server
+    echo "NFS Closed down"
     exit 1
 }
 
 trap 'err_exit $LINENO' ERR
 
+function run_test() {
+    trap 'err_exit $LINENO' ERR
+
+    # Make all required for tests
+    make -C tests/fs_filesystem
+    if [ $2 ]; then
+        cd tests/$1
+        ./test $2
+        cd ../../
+    else
+        cd tests
+        ./nfsruntests.pl $1/test
+        cd ../
+    fi
+    if [ $POPD -eq 1 ]; then
+        popd >/dev/null 2>&1
+        umount /mnt/selinux-testsuite
+    fi
+    exportfs -u localhost:$MOUNT
+    rmdir /mnt/selinux-testsuite
+    systemctl stop nfs-server
+    echo "NFS test $1 complete"
+    exit 0
+}
+
+# Required by nfs_filesystem/test
+export NFS_TESTDIR=$TESTDIR
+export NFS_MOUNT=$MOUNT
+#
 systemctl start nfs-server
-# Run the full testsuite on a labeled NFS mount.
-exportfs -orw,no_root_squash,security_label localhost:$MOUNT
+# Run the testsuite on a labeled NFS mount.
+exportfs -o rw,no_root_squash,security_label localhost:$MOUNT
 mkdir -p /mnt/selinux-testsuite
+#
+if [ $RUN_TEST ] && [ $RUN_TEST = 'nfs_filesystem' ]; then
+    run_test $RUN_TEST $V
+fi
+#
+echo "Run selinux-testsuite with no NFS mount context option"
 mount -t nfs -o vers=4.2 localhost:$TESTDIR /mnt/selinux-testsuite
-pushd /mnt/selinux-testsuite
-MAKE_TEST=1
-make test
-MAKE_TEST=0
-popd
-umount /mnt/selinux-testsuite
-
-# Test context mounts when exported with security_label.
-mount -t nfs -o vers=4.2,context=system_u:object_r:etc_t:s0 localhost:$TESTDIR /mnt/selinux-testsuite
-echo "Testing context mount of a security_label export."
-fctx=`secon -t -f /mnt/selinux-testsuite`
-if [ "$fctx" != "etc_t" ]; then
-    echo "Context mount failed: got $fctx instead of etc_t."
-    err_exit $LINENO
+pushd /mnt/selinux-testsuite >/dev/null 2>&1
+POPD=1
+if [ $RUN_TEST ]; then
+    run_test $RUN_TEST $V
+else
+    make -C policy load
+    make -C tests test
 fi
+POPD=0
+popd >/dev/null 2>&1
 umount /mnt/selinux-testsuite
-exportfs -u localhost:$MOUNT
-
-# Test context mounts when not exported with security_label.
-exportfs -orw,no_root_squash localhost:$MOUNT
-mount -t nfs -o vers=4.2,context=system_u:object_r:etc_t:s0 localhost:$TESTDIR /mnt/selinux-testsuite
-echo "Testing context mount of a non-security_label export."
-fctx=`secon -t -f /mnt/selinux-testsuite`
-if [ "$fctx" != "etc_t" ]; then
-    echo "Context mount failed: got $fctx instead of etc_t."
-    err_exit $LINENO
-fi
+#
+echo -e "Run 'filesystem' tests with mount context option:\n\t$FS_CTX"
+mount -t nfs -o vers=4.2,$FS_CTX localhost:$TESTDIR /mnt/selinux-testsuite
+pushd /mnt/selinux-testsuite >/dev/null 2>&1
+POPD=1
+cd tests
+./nfsruntests.pl filesystem/test
+cd ../
+POPD=0
+popd >/dev/null 2>&1
 umount /mnt/selinux-testsuite
-
-# Test non-context mount when not exported with security_label.
-mount -t nfs -o vers=4.2 localhost:$TESTDIR /mnt/selinux-testsuite
-echo "Testing non-context mount of a non-security_label export."
-fctx=`secon -t -f /mnt/selinux-testsuite`
-if [ "$fctx" != "nfs_t" ]; then
-    echo "Context mount failed: got $fctx instead of nfs_t."
-    err_exit $LINENO
-fi
+#
+echo -e "Run 'fs_filesystem' tests with mount context option:\n\t$FS_CTX"
+mount -t nfs -o vers=4.2,$FS_CTX localhost:$TESTDIR /mnt/selinux-testsuite
+pushd /mnt/selinux-testsuite >/dev/null 2>&1
+POPD=1
+cd tests
+./nfsruntests.pl fs_filesystem/test
+cd ../
+POPD=0
+popd >/dev/null 2>&1
 umount /mnt/selinux-testsuite
-
-# All done.
-echo "Done"
+#
+echo "Run NFS context specific tests"
+cd tests
+./nfsruntests.pl nfs_filesystem/test
+cd ../
+#
+make -C policy unload
 exportfs -u localhost:$MOUNT
 rmdir /mnt/selinux-testsuite
 systemctl stop nfs-server
+echo "NFS tests successfully completed"

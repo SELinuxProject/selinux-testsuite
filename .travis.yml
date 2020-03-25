@@ -12,6 +12,8 @@ addons:
       - libcap-dev
       - libdbus-glib-1-dev
       - xmlto
+      - xfslibs-dev
+      - uuid-dev
 
 cache:
   directories:

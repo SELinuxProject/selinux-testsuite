@@ -104,3 +104,9 @@ CONFIG_NFS_V4_SECURITY_LABEL=y
 CONFIG_NFSD=m
 CONFIG_NFSD_V4=y
 CONFIG_NFSD_V4_SECURITY_LABEL=y
+
+# Test XFS and VFAT filesystems.
+# This is not required for SELinux operation itself.
+CONFIG_XFS_FS=m
+CONFIG_XFS_QUOTA=y
+CONFIG_VFAT_FS=m

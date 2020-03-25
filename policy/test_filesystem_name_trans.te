@@ -18,3 +18,9 @@ fs_associate(test_filesystem_filenametranscon2_t)
 type_transition test_filesystem_t test_filesystem_file_t:file test_filesystem_filenametranscon2_t "name_trans_test_file2";
 allow test_filesystem_t test_filesystem_filenametranscon2_t:file { create getattr open write };
 dontaudit unconfined_t test_filesystem_filenametranscon2_t:file { getattr read };
+
+### NFS Rules ##########
+type_transition test_filesystem_t test_file_t:file test_filesystem_filenametranscon1_t "name_trans_test_file1";
+type_transition test_filesystem_t test_file_t:file test_filesystem_filenametranscon2_t "name_trans_test_file2";
+allow test_filesystem_filenametranscon1_t test_filesystem_file_t:filesystem { associate };
+allow test_filesystem_filenametranscon2_t test_filesystem_file_t:filesystem { associate };
