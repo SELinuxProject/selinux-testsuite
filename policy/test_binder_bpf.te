@@ -33,7 +33,7 @@ allow_map(test_binder_bpf_provider_t, device_t, chr_file)
 allow test_binder_bpf_provider_t test_file_t:fifo_file { rw_file_perms };
 # For testing BPF map fd transfer:
 allow test_binder_bpf_provider_t self:bpf { map_create map_read map_write prog_load prog_run };
-allow test_binder_bpf_provider_t self:capability { sys_resource };
+allow test_binder_bpf_provider_t self:capability { sys_resource sys_admin };
 allow test_binder_bpf_provider_t self:process { setrlimit };
 
 #
