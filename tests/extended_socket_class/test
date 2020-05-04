@@ -1,7 +1,17 @@
 #!/usr/bin/perl
 
 use Test;
-BEGIN { plan tests => 16 }
+
+BEGIN {
+    if ( system("test -f /proc/net/if_inet6") eq 0 ) {
+        $test_ipv6 = 1;
+        plan tests => 16;
+    }
+    else {
+        $test_ipv6 = 0;
+        plan tests => 10;
+    }
+}
 
 $basedir = $0;
 $basedir =~ s|(.*)/[^/]*|$1|;
@@ -20,17 +30,20 @@ $result = system(
 );
 ok($result);
 
-# Verify that test_icmp_socket_t can create an ICMPv6 socket.
-$result = system(
-"runcon -t test_icmp_socket_t -- $basedir/sockcreate inet6 dgram icmpv6 2>&1"
-);
-ok( $result, 0 );
+if ($test_ipv6) {
 
-# Verify that test_no_icmp_socket_t cannot create an ICMPv6 socket.
-$result = system(
+    # Verify that test_icmp_socket_t can create an ICMPv6 socket.
+    $result = system(
+"runcon -t test_icmp_socket_t -- $basedir/sockcreate inet6 dgram icmpv6 2>&1"
+    );
+    ok( $result, 0 );
+
+    # Verify that test_no_icmp_socket_t cannot create an ICMPv6 socket.
+    $result = system(
 "runcon -t test_no_icmp_socket_t -- $basedir/sockcreate inet6 dgram icmpv6 2>&1"
-);
-ok($result);
+    );
+    ok($result);
+}
 
 # Restore to the kernel defaults - no one allowed to create ICMP sockets.
 system("echo 1 0 > /proc/sys/net/ipv4/ping_group_range");
@@ -59,29 +72,32 @@ $result = system(
 );
 ok($result);
 
-# Verify that test_sctp_socket_t can create an IPv6 stream SCTP socket.
-$result = system(
-    "runcon -t test_sctp_socket_t -- $basedir/sockcreate inet6 stream sctp 2>&1"
-);
-ok( $result, 0 );
+if ($test_ipv6) {
 
-# Verify that test_no_sctp_socket_t cannot create an IPv6 stream SCTP socket.
-$result = system(
+    # Verify that test_sctp_socket_t can create an IPv6 stream SCTP socket.
+    $result = system(
+"runcon -t test_sctp_socket_t -- $basedir/sockcreate inet6 stream sctp 2>&1"
+    );
+    ok( $result, 0 );
+
+   # Verify that test_no_sctp_socket_t cannot create an IPv6 stream SCTP socket.
+    $result = system(
 "runcon -t test_no_sctp_socket_t -- $basedir/sockcreate inet6 stream sctp 2>&1"
-);
-ok($result);
+    );
+    ok($result);
 
-# Verify that test_sctp_socket_t can create an IPv6 seqpacket SCTP socket.
-$result = system(
+    # Verify that test_sctp_socket_t can create an IPv6 seqpacket SCTP socket.
+    $result = system(
 "runcon -t test_sctp_socket_t -- $basedir/sockcreate inet6 seqpacket sctp 2>&1"
-);
-ok( $result, 0 );
+    );
+    ok( $result, 0 );
 
 # Verify that test_no_sctp_socket_t cannot create an IPv6 seqpacket SCTP socket.
-$result = system(
+    $result = system(
 "runcon -t test_no_sctp_socket_t -- $basedir/sockcreate inet6 seqpacket sctp 2>&1"
-);
-ok($result);
+    );
+    ok($result);
+}
 
 # Verify that test_bluetooth_socket_t can create a Bluetooth socket.
 $result = system(
