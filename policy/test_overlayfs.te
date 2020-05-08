@@ -52,6 +52,7 @@ corecmd_exec_bin(test_overlay_mounter_t)
 
 userdom_search_admin_dir(test_overlay_mounter_t)
 userdom_search_user_home_content(test_overlay_mounter_t)
+userdom_read_user_tmp_files(test_overlay_mounter_t)
 
 mount_exec(test_overlay_mounter_t)
 mount_rw_pid_files(test_overlay_mounter_t)
