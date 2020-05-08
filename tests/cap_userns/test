@@ -6,6 +6,10 @@ BEGIN {
     $basedir = $0;
     $basedir =~ s|(.*)/[^/]*|$1|;
 
+    if ( -e '/proc/sys/kernel/unprivileged_userns_clone' ) {
+        system(
+            "echo 1 > /proc/sys/kernel/unprivileged_userns_clone 2> /dev/null");
+    }
     if ( system("$basedir/userns_child_exec -t -U > /dev/null 2>&1") == 0 ) {
         plan tests => 2;
     }
@@ -27,3 +31,7 @@ $result = system(
 "runcon -t test_no_cap_userns_t -- $basedir/userns_child_exec -p -m -U -M '0 0 1' -G '0 0 1' -- true 2>&1"
 );
 ok($result);
+
+if ( -e '/proc/sys/kernel/unprivileged_userns_clone' ) {
+    system("echo 0 > /proc/sys/kernel/unprivileged_userns_clone 2> /dev/null");
+}
