@@ -1,0 +1,7 @@
+(defaultrange file target low)
+(defaultrange dir target low)
+(defaultrange lnk_file target low)
+(defaultrange chr_file target low)
+(defaultrange blk_file target low)
+(defaultrange sock_file target low)
+(defaultrange fifo_file target low)
