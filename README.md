@@ -36,6 +36,8 @@ one primary security module may be active at a time.
 
 ### Userland and Base Policy
 
+#### Fedora or RHEL
+
 On a Fedora/RHEL based system the testsuite has the following userspace
 dependencies beyond a minimal install (other Linux distributions should have
 similar dependencies):
@@ -77,8 +79,70 @@ following command:
 		xfsprogs-devel \
 		libuuid-devel
 
+#### Debian
+
+On Debian, you must first take steps to install and activate SELinux since
+it is not enabled in the default install.  Make sure to backup your system
+first if you care about any local data.
+
+	# apt-get install selinux-basics selinux-policy-default auditd
+	# selinux-activate
+	# reboot
+
+After activating, make sure that your login shell is running in the
+correct context:
+
+	# id -Z
+
+If this shows something other than
+"unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023", you will need
+to first fix labeling or policy problems in your base system before
+proceeding.  Make sure that your shell context is correct and you can
+switch to enforcing mode without breaking your system before
+proceeding.
+
+On Debian, you can install the userspace dependencies with the following
+command:
+
+	# apt-get install perl \
+		gcc \
+		selinux-policy-dev \
+		libselinux1-dev \
+		net-tools \
+		iptables \
+		libsctp-dev \
+		attr \
+		libbpf-dev \
+		libkeyutils-dev \
+		linux-headers-$(uname -r) \
+		quota \
+		xfsprogs \
+		xfslibs-dev \
+		uuid-dev
+
+On Debian, you need to build and install netlabel_tools manually since
+it is not yet packaged for Debian
+(https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=959806):
+
+    # git clone https://github.com/netlabel/netlabel_tools
+    # cd netlabel_tools
+    # sudo apt-get install autotools-dev autoconf automake libtool pkg-config libnl-3-dev libnl-genl-3-dev
+    # ./autogen.sh
+    # ./configure --prefix=/usr
+    # make
+    # sudo make install
+
+Debian further requires reconfiguring the default /bin/sh to be bash
+to support bashisms employed in the testsuite Makefiles and scripts:
+
+    # dpkg-reconfigure dash
+
+Select "No" when asked if you want to use dash as the default system shell.
+
+#### Other Distributions
+
 The testsuite requires a pre-existing base policy configuration of SELinux,
-using either the old example policy or the reference policy as the baseline.
+using the reference policy as the baseline.
 It also requires the core SELinux userland packages (`libsepol`, `checkpolicy`,
 `libselinux`, `policycoreutils`, and if using modular policy, `libsemanage`)
 to be installed.  The test scripts also rely upon the SELinux extensions being
