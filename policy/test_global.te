@@ -83,6 +83,7 @@ domain_use_interactive_fds(testdomain)
 seutil_read_config(testdomain)
 
 # can getsecurity
+selinux_getattr_fs(testdomain)
 selinux_validate_context(testdomain)
 selinux_compute_access_vector(testdomain)
 selinux_compute_create_context(testdomain)
