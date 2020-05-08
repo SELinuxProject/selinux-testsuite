@@ -350,6 +350,7 @@ allow test_filesystem_fscontext_t test_filesystem_filecon_t:file { getattr open 
 allow test_filesystem_fscontext_t test_filesystem_fscontext_fs_t:dir { add_name search write };
 allow test_filesystem_fscontext_t test_filesystem_fscontext_fs_t:file { create getattr open relabelfrom write };
 allow test_filesystem_fscontext_t test_filesystem_fscontext_fs_t:filesystem { mount relabelto unmount };
+domain_obj_id_change_exemption(test_filesystem_fscontext_t)
 fs_relabelfrom_all_fs(test_filesystem_fscontext_t)
 files_search_all(test_filesystem_fscontext_t)
 allow test_filesystem_filecon_t test_filesystem_fscontext_fs_t:filesystem { associate };

@@ -1145,7 +1145,7 @@ if ( not $nfs_enabled ) {
         #   system_u:object_r:test_filesystem_context_file_t:s0 from $test_opts
         print "Creating test file $basedir/mntpoint/mp1/test_file\n";
         $result = system(
-"runcon -u system_u -t test_filesystem_fscontext_t $filesystem_dir/create_file -f $basedir/mntpoint/mp1/test_file -e test_filesystem_context_file_t $v"
+"runcon -t test_filesystem_fscontext_t $filesystem_dir/create_file -f $basedir/mntpoint/mp1/test_file -e test_filesystem_context_file_t $v"
         );
         ok( $result eq 0 );
 
