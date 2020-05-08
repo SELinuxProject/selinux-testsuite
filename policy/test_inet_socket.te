@@ -26,8 +26,8 @@ typeattribute test_inet_server_t testdomain;
 typeattribute test_inet_server_t inetsocketdomain;
 allow test_inet_server_t self:tcp_socket create_stream_socket_perms;
 allow test_inet_server_t self:udp_socket create_socket_perms;
-corenet_tcp_bind_generic_port(test_inet_server_t)
-corenet_udp_bind_generic_port(test_inet_server_t)
+corenet_tcp_bind_all_unreserved_ports(test_inet_server_t)
+corenet_udp_bind_all_unreserved_ports(test_inet_server_t)
 corenet_tcp_bind_all_nodes(test_inet_server_t)
 corenet_udp_bind_all_nodes(test_inet_server_t)
 corenet_inout_generic_if(test_inet_server_t)
@@ -54,7 +54,7 @@ typeattribute test_inet_client_t testdomain;
 typeattribute test_inet_client_t inetsocketdomain;
 allow test_inet_client_t self:tcp_socket create_stream_socket_perms;
 allow test_inet_client_t self:udp_socket create_socket_perms;
-corenet_tcp_connect_generic_port(test_inet_client_t)
+corenet_tcp_connect_all_unreserved_ports(test_inet_client_t)
 corenet_inout_generic_if(test_inet_client_t)
 corenet_inout_generic_node(test_inet_client_t)
 
@@ -71,7 +71,7 @@ typeattribute test_inet_bad_client_t testdomain;
 typeattribute test_inet_bad_client_t inetsocketdomain;
 allow test_inet_bad_client_t self:tcp_socket create_stream_socket_perms;
 allow test_inet_bad_client_t self:udp_socket create_socket_perms;
-corenet_tcp_connect_generic_port(test_inet_bad_client_t)
+corenet_tcp_connect_all_unreserved_ports(test_inet_bad_client_t)
 corenet_inout_generic_if(test_inet_bad_client_t)
 corenet_inout_generic_node(test_inet_bad_client_t)
 
@@ -87,8 +87,8 @@ typeattribute test_inet_bind_t testdomain;
 typeattribute test_inet_bind_t inetsocketdomain;
 allow test_inet_bind_t self:tcp_socket create_stream_socket_perms;
 allow test_inet_bind_t self:udp_socket create_socket_perms;
-corenet_tcp_bind_generic_port(test_inet_bind_t)
-corenet_udp_bind_generic_port(test_inet_bind_t)
+corenet_tcp_bind_all_unreserved_ports(test_inet_bind_t)
+corenet_udp_bind_all_unreserved_ports(test_inet_bind_t)
 corenet_tcp_bind_all_nodes(test_inet_bind_t)
 corenet_udp_bind_all_nodes(test_inet_bind_t)
 
@@ -111,8 +111,8 @@ typeattribute test_inet_no_node_bind_t testdomain;
 typeattribute test_inet_no_node_bind_t inetsocketdomain;
 allow test_inet_no_node_bind_t self:tcp_socket create_stream_socket_perms;
 allow test_inet_no_node_bind_t self:udp_socket create_socket_perms;
-corenet_tcp_bind_generic_port(test_inet_no_node_bind_t)
-corenet_udp_bind_generic_port(test_inet_no_node_bind_t)
+corenet_tcp_bind_all_unreserved_ports(test_inet_no_node_bind_t)
+corenet_udp_bind_all_unreserved_ports(test_inet_no_node_bind_t)
 
 # Domain for a process allowed to connect(2).
 type test_inet_connect_t;
@@ -122,8 +122,8 @@ typeattribute test_inet_connect_t testdomain;
 typeattribute test_inet_connect_t inetsocketdomain;
 allow test_inet_connect_t self:tcp_socket create_stream_socket_perms;
 allow test_inet_connect_t self:udp_socket create_socket_perms;
-corenet_tcp_connect_generic_port(test_inet_connect_t)
-corenet_tcp_bind_generic_port(test_inet_connect_t)
+corenet_tcp_connect_all_unreserved_ports(test_inet_connect_t)
+corenet_tcp_bind_all_unreserved_ports(test_inet_connect_t)
 corenet_tcp_bind_all_nodes(test_inet_connect_t)
 corenet_inout_generic_if(test_inet_connect_t)
 corenet_inout_generic_node(test_inet_connect_t)
@@ -136,7 +136,7 @@ typeattribute test_inet_no_name_connect_t testdomain;
 typeattribute test_inet_no_name_connect_t inetsocketdomain;
 allow test_inet_no_name_connect_t self:tcp_socket create_stream_socket_perms;
 allow test_inet_no_name_connect_t self:udp_socket create_socket_perms;
-corenet_tcp_bind_generic_port(test_inet_no_name_connect_t)
+corenet_tcp_bind_all_unreserved_ports(test_inet_no_name_connect_t)
 corenet_tcp_bind_all_nodes(test_inet_no_name_connect_t)
 corenet_inout_generic_if(test_inet_no_name_connect_t)
 corenet_inout_generic_node(test_inet_no_name_connect_t)
