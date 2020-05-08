@@ -1,0 +1,2 @@
+(mlsconstrain (peer (recv)) (or (dom l1 l2) (and (neq t1 mcs_constrained_type) (neq t2 mcs_constrained_type))))
+(mlsconstrain (packet (recv)) (or (dom l1 l2) (and (neq t1 mcs_constrained_type) (neq t2 mcs_constrained_type))))
