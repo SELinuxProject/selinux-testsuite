@@ -24,4 +24,5 @@ userdom_sysadm_entry_spec_domtrans_to(test_execute_notrans_t)
 
 #Allow test_execute_notrans permissions to the allowed type
 can_exec(test_execute_notrans_t,test_execute_notrans_allowed_t)
-allow test_execute_notrans_t test_execute_notrans_denied_t:file mmap_file_perms;
+allow_map(test_execute_notrans_t, test_execute_notrans_denied_t, file)
+allow test_execute_notrans_t test_execute_notrans_denied_t:file { getattr open read };
