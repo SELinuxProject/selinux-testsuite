@@ -25,6 +25,7 @@ allow nfsd_t netlabel_sctp_peer_t:peer recv;
 gen_require(`
 	type netlabel_peer_t;
 ')
+mcs_constrained(netlabel_peer_t)
 
 #
 ############### Declare an attribute that will hold all peers ###############
