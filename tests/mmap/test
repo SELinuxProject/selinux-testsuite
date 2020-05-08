@@ -3,10 +3,11 @@
 use Test;
 
 BEGIN {
-    $test_count         = 34;
-    $test_hugepages     = 0;
-    $test_exec_checking = 0;
-    $test_map_checking  = 0;
+    $test_count            = 30;
+    $test_hugepages        = 0;
+    $test_exec_checking    = 0;
+    $test_map_checking     = 0;
+    $test_devzero_checking = 0;
 
     system("echo 1 > /proc/sys/vm/nr_hugepages 2> /dev/null");
     if ( system("grep -q 1 /proc/sys/vm/nr_hugepages 2> /dev/null") == 0 ) {
@@ -16,6 +17,12 @@ BEGIN {
 
     if ( system("grep -q 0 /sys/fs/selinux/checkreqprot 2> /dev/null") == 0 ) {
         $test_exec_checking = 1;
+        $test_count += 4;
+    }
+
+    if ( system("grep -q '/dev .*noexec' /proc/self/mounts 2> /dev/null") != 0 )
+    {
+        $test_devzero_checking = 1;
         $test_count += 4;
     }
 
@@ -62,13 +69,17 @@ ok( $result, 0 );
 $result = system "runcon -t test_no_execmem_t $basedir/mmap_anon_shared 2>&1";
 ok($result);
 
-# Test success and failure for mmap /dev/zero.
-$result =
-  system "runcon -t test_mmap_dev_zero_t $basedir/mmap_file_shared /dev/zero";
-ok( $result, 0 );
-$result = system
-  "runcon -t test_no_mmap_dev_zero_t $basedir/mmap_file_shared /dev/zero 2>&1";
-ok($result);
+if ($test_devzero_checking) {
+
+    # Test success and failure for mmap /dev/zero.
+    $result =
+      system
+      "runcon -t test_mmap_dev_zero_t $basedir/mmap_file_shared /dev/zero";
+    ok( $result, 0 );
+    $result = system
+"runcon -t test_no_mmap_dev_zero_t $basedir/mmap_file_shared /dev/zero 2>&1";
+    ok($result);
+}
 
 # Test success and failure for mprotect w/ anonymous shared memory.
 # In old kernels, this triggers a tmpfs file execute check.
@@ -80,13 +91,16 @@ $result = system
   "runcon -t test_no_mprotect_anon_shared_t $basedir/mprotect_anon_shared 2>&1";
 ok($result);
 
-# Test success and failure for mprotect /dev/zero.
-$result = system
-  "runcon -t test_mprotect_dev_zero_t $basedir/mprotect_file_shared /dev/zero";
-ok( $result, 0 );
-$result = system
+if ($test_devzero_checking) {
+
+    # Test success and failure for mprotect /dev/zero.
+    $result = system
+"runcon -t test_mprotect_dev_zero_t $basedir/mprotect_file_shared /dev/zero";
+    ok( $result, 0 );
+    $result = system
 "runcon -t test_no_mprotect_dev_zero_t $basedir/mprotect_file_shared /dev/zero 2>&1";
-ok($result);
+    ok($result);
+}
 
 # Test success and failure for execheap, independent of execmem.
 $result = system "runcon -t test_execheap_t $basedir/mprotect_heap";
