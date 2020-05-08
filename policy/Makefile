@@ -168,12 +168,16 @@ build: $(TARGETS)
 
 load: expand_check all
 	# General policy load
-	@-/usr/sbin/setsebool allow_domain_fd_use=0
+	@if /usr/sbin/getsebool allow_domain_fd_use 2> /dev/null; then \
+		/usr/sbin/setsebool allow_domain_fd_use=0; \
+	fi
 	$(SEMODULE) -i test_policy/test_policy.pp $(CIL_TARGETS)
 
 unload:
 	# General policy unload
-	@-/usr/sbin/setsebool allow_domain_fd_use=1
+	@if /usr/sbin/getsebool allow_domain_fd_use 2> /dev/null; then \
+		/usr/sbin/setsebool allow_domain_fd_use=1; \
+	fi
 	$(SEMODULE) -r test_policy $(subst .cil,,$(CIL_TARGETS))
 
 clean:
