@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -33,7 +34,7 @@ int main(int argc, char *argv[])
 	int opt, result, qcmd, save_err, test_id = geteuid();
 	char *context, *src = NULL, *tgt = NULL;
 	bool verbose = false;
-	char fmt_buf[2];
+	uint32_t fmtval;
 
 	while ((opt = getopt(argc, argv, "s:t:v")) != -1) {
 		switch (opt) {
@@ -77,7 +78,7 @@ int main(int argc, char *argv[])
 			printf("User Quota - ON\n");
 
 		qcmd = QCMD(Q_GETFMT, USRQUOTA);
-		result = quotactl(qcmd, src, test_id, fmt_buf);
+		result = quotactl(qcmd, src, test_id, (caddr_t)&fmtval);
 		save_err = errno;
 		if (result < 0) {
 			fprintf(stderr, "quotactl(Q_GETFMT, USRQUOTA) Failed: %s\n",
@@ -85,7 +86,7 @@ int main(int argc, char *argv[])
 			return save_err;
 		}
 		if (verbose)
-			printf("User Format: 0x%x\n", fmt_buf[0]);
+			printf("User Format: 0x%x\n", fmtval);
 
 		qcmd = QCMD(Q_QUOTAOFF, USRQUOTA);
 		result = quotactl(qcmd, src, QFMT_VFS_V0, tgt);
@@ -113,7 +114,7 @@ int main(int argc, char *argv[])
 			printf("Group Quota - ON\n");
 
 		qcmd = QCMD(Q_GETFMT, GRPQUOTA);
-		result = quotactl(qcmd, src, test_id, fmt_buf);
+		result = quotactl(qcmd, src, test_id, (caddr_t)&fmtval);
 		save_err = errno;
 		if (result < 0) {
 			fprintf(stderr, "quotactl(Q_GETFMT, GRPQUOTA) Failed: %s\n",
@@ -121,7 +122,7 @@ int main(int argc, char *argv[])
 			return save_err;
 		}
 		if (verbose)
-			printf("Group Format: 0x%x\n", fmt_buf[0]);
+			printf("Group Format: 0x%x\n", fmtval);
 
 		qcmd = QCMD(Q_QUOTAOFF, GRPQUOTA);
 		result = quotactl(qcmd, src, QFMT_VFS_V0, tgt);
