@@ -29,7 +29,6 @@
 interface(`unconfined_runs_test',`
 	gen_require(`
 		type unconfined_t;
-               type unconfined_devpts_t;
 		role unconfined_r;
 	')
 
@@ -38,7 +37,7 @@ interface(`unconfined_runs_test',`
 	role unconfined_r types $1;
       # Report back from the test domain to the caller.
       allow $1 unconfined_t:fd use;
-      allow $1 unconfined_devpts_t:chr_file { read write ioctl getattr };
+      term_use_all_ptys($1)
       allow $1 unconfined_t:fifo_file { read write ioctl getattr };
       allow $1 unconfined_t:process { sigchld };
 
