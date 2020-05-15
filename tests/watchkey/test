@@ -1,0 +1,29 @@
+#!/usr/bin/perl
+use Test::More;
+
+BEGIN {
+    $basedir = $0;
+    $basedir =~ s|(.*)/[^/]*|$1|;
+
+    # allow info to be shown during tests
+    $v = $ARGV[0];
+    if ($v) {
+        if ( $v ne "-v" ) {
+            plan skip_all => "Invalid option (use -v)";
+        }
+    }
+    else {
+        $v = " ";
+    }
+
+    plan tests => 2;
+}
+
+$result = system "runcon -t test_watchkey_t $basedir/watchkey $v";
+ok( $result eq 0 );
+
+# Deny key { view } - EACCES
+$result = system "runcon -t test_watchkey_no_view_t $basedir/watchkey $v 2>&1";
+ok( $result >> 8 eq 13 );
+
+exit;

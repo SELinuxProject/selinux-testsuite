@@ -104,7 +104,7 @@ TARGETS += test_bpf.te test_fdreceive_bpf.te test_binder_bpf.te
 endif
 
 ifeq ($(shell grep -q all_key_perms $(POLDEV)/include/support/all_perms.spt && echo true),true)
-TARGETS += test_keys.te
+TARGETS += test_keys.te test_watchkey.te
 endif
 
 ifeq ($(shell grep -q all_file_perms.*watch $(POLDEV)/include/support/all_perms.spt && echo true),true)

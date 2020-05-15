@@ -1,0 +1,27 @@
+#
+######### Check watch_queue for key changes policy module ##########
+#
+attribute watchkeydomain;
+
+################# Allow watch_queue key { view } ##########################
+type test_watchkey_t;
+# Note: allow rules for pipe2(2) 'fifo_file { ioctl }' are set via domain_type()
+domain_type(test_watchkey_t)
+unconfined_runs_test(test_watchkey_t)
+typeattribute test_watchkey_t testdomain;
+typeattribute test_watchkey_t watchkeydomain;
+
+allow test_watchkey_t self:key { view };
+
+################# Deny watch_queue key { view } ##########################
+type test_watchkey_no_view_t;
+domain_type(test_watchkey_no_view_t)
+unconfined_runs_test(test_watchkey_no_view_t)
+typeattribute test_watchkey_no_view_t testdomain;
+typeattribute test_watchkey_no_view_t watchkeydomain;
+
+#
+########### Allow these domains to be entered from sysadm domain ############
+#
+miscfiles_domain_entry_test_files(watchkeydomain)
+userdom_sysadm_entry_spec_domtrans_to(watchkeydomain)

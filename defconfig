@@ -110,3 +110,8 @@ CONFIG_NFSD_V4_SECURITY_LABEL=y
 CONFIG_XFS_FS=m
 CONFIG_XFS_QUOTA=y
 CONFIG_VFAT_FS=m
+
+# watch_queue for key changes.
+# They are not required for SELinux operation itself.
+CONFIG_WATCH_QUEUE=y
+CONFIG_KEY_NOTIFICATIONS=y
