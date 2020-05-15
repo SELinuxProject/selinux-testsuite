@@ -74,7 +74,7 @@ following command:
 		attr \
 		libbpf-devel \
 		keyutils-libs-devel \
-		kernel-devel \
+		kernel-devel-$(uname -r) \
 		quota \
 		xfsprogs-devel \
 		libuuid-devel
