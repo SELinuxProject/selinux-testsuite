@@ -74,10 +74,11 @@ following command:
 		attr \
 		libbpf-devel \
 		keyutils-libs-devel \
-		kernel-devel-$(uname -r) \
 		quota \
 		xfsprogs-devel \
-		libuuid-devel
+		libuuid-devel \
+		kernel-devel-$(uname -r) \
+		kernel-modules-$(uname -r)
 
 #### Debian
 
