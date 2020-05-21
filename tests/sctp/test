@@ -56,8 +56,17 @@ BEGIN {
             $test_calipso = 1;
         }
 
-        plan tests => $test_count;
+        # Determine if nftables has secmark support
+        $test_nft = 0;
+
+        $rc = system("nft -c -f $basedir/nftables-load 2>/dev/null");
+        if ( $rc == 0 ) {
+            $test_count += 8;
+            $test_nft = 1;
+        }
     }
+
+    plan tests => $test_count;
 }
 
 sub server_start {
@@ -749,64 +758,75 @@ if ($test_calipso) {
 }
 
 #
-##################### Test iptables configuration ############################
+################## Test iptables/nftables configuration ######################
 #
+sub test_tables {
+
+    # Start the stream server.
+    $pid = server_start( "-t test_sctp_server_t",
+        "sctp_server", "$v -n stream 1035" );
+
+ # Verify that authorized client can communicate with the server STREAM->STREAM.
+    $result = system
+"runcon -t test_sctp_client_t $basedir/sctp_client $v -e nopeer stream 127.0.0.1 1035";
+    ok( $result eq 0 );
+
+# Verify that a client without peer { recv } permission cannot communicate with the server STREAM->STREAM.
+    $result = system
+"runcon -t test_sctp_deny_peer_client_t -- $basedir/sctp_client $v -e nopeer stream 127.0.0.1 1035 2>&1";
+    ok( $result >> 8 eq 6 );
+
+ # Verify that authorized client can communicate with the server STREAM->STREAM.
+    $result = system
+"runcon -t test_sctp_client_t $basedir/sctp_client $v -e nopeer stream ::1 1035";
+    ok( $result eq 0 );
+
+# Verify that a client without peer { recv } permission cannot communicate with the server STREAM->STREAM.
+    $result = system
+"runcon -t test_sctp_deny_peer_client_t -- $basedir/sctp_client $v -e nopeer stream ::1 1035 2>&1";
+    ok( $result >> 8 eq 6 );
+
+    # Kill the stream server.
+    server_end($pid);
+
+    # Start the seq server.
+    $pid =
+      server_start( "-t test_sctp_server_t", "sctp_server", "$v -n seq 1035" );
+
+    # Verify that authorized client can communicate with the server SEQ->SEQ.
+    $result = system
+"runcon -t test_sctp_client_t $basedir/sctp_client $v -e nopeer seq 127.0.0.1 1035";
+    ok( $result eq 0 );
+
+# Verify that a client without peer { recv } permission cannot communicate with the server SEQ->SEQ.
+    $result = system
+"runcon -t test_sctp_deny_peer_client_t -- $basedir/sctp_client $v -e nopeer seq 127.0.0.1 1035 2>&1";
+    ok( $result >> 8 eq 6 );
+
+    # Verify that authorized client can communicate with the server SEQ->SEQ.
+    $result = system
+"runcon -t test_sctp_client_t $basedir/sctp_client $v -e nopeer seq ::1 1035";
+    ok( $result eq 0 );
+
+# Verify that a client without peer { recv } permission cannot communicate with the server SEQ->SEQ.
+    $result = system
+"runcon -t test_sctp_deny_peer_client_t -- $basedir/sctp_client $v -e nopeer seq ::1 1035 2>&1";
+    ok( $result >> 8 eq 6 );
+
+    # Kill the seq server.
+    server_end($pid);
+}
+
 print "# Testing iptables (IPv4/IPv6).\n";
 system "/bin/sh $basedir/iptables-load";
-
-# Start the stream server.
-$pid =
-  server_start( "-t test_sctp_server_t", "sctp_server", "$v -n stream 1035" );
-
-# Verify that authorized client can communicate with the server STREAM->STREAM.
-$result = system
-"runcon -t test_sctp_client_t $basedir/sctp_client $v -e nopeer stream 127.0.0.1 1035";
-ok( $result eq 0 );
-
-# Verify that a client without peer { recv } permission cannot communicate with the server STREAM->STREAM.
-$result = system
-"runcon -t test_sctp_deny_peer_client_t -- $basedir/sctp_client $v -e nopeer stream 127.0.0.1 1035 2>&1";
-ok( $result >> 8 eq 6 );
-
-# Verify that authorized client can communicate with the server STREAM->STREAM.
-$result = system
-"runcon -t test_sctp_client_t $basedir/sctp_client $v -e nopeer stream ::1 1035";
-ok( $result eq 0 );
-
-# Verify that a client without peer { recv } permission cannot communicate with the server STREAM->STREAM.
-$result = system
-"runcon -t test_sctp_deny_peer_client_t -- $basedir/sctp_client $v -e nopeer stream ::1 1035 2>&1";
-ok( $result >> 8 eq 6 );
-
-# Kill the stream server.
-server_end($pid);
-
-# Start the seq server.
-$pid = server_start( "-t test_sctp_server_t", "sctp_server", "$v -n seq 1035" );
-
-# Verify that authorized client can communicate with the server SEQ->SEQ.
-$result = system
-"runcon -t test_sctp_client_t $basedir/sctp_client $v -e nopeer seq 127.0.0.1 1035";
-ok( $result eq 0 );
-
-# Verify that a client without peer { recv } permission cannot communicate with the server SEQ->SEQ.
-$result = system
-"runcon -t test_sctp_deny_peer_client_t -- $basedir/sctp_client $v -e nopeer seq 127.0.0.1 1035 2>&1";
-ok( $result >> 8 eq 6 );
-
-# Verify that authorized client can communicate with the server SEQ->SEQ.
-$result = system
-  "runcon -t test_sctp_client_t $basedir/sctp_client $v -e nopeer seq ::1 1035";
-ok( $result eq 0 );
-
-# Verify that a client without peer { recv } permission cannot communicate with the server SEQ->SEQ.
-$result = system
-"runcon -t test_sctp_deny_peer_client_t -- $basedir/sctp_client $v -e nopeer seq ::1 1035 2>&1";
-ok( $result >> 8 eq 6 );
-
-# Kill the seq server.
-server_end($pid);
-
+test_tables();
 system "/bin/sh $basedir/iptables-flush";
+
+if ($test_nft) {
+    print "# Testing nftables (IPv4/IPv6).\n";
+    system "nft -f $basedir/nftables-load";
+    test_tables();
+    system "nft -f $basedir/nftables-flush";
+}
 
 exit;

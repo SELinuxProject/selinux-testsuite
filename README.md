@@ -57,6 +57,7 @@ similar dependencies):
 * keyutils-libs-devel _(tools used by the keys tests)_
 * kernel-devel _(used by the kernel module tests)_
 * quota, xfsprogs-devel and libuuid-devel _(used by the filesystem tests)_
+* nftables _(used by inet_socket and sctp tests if ver >= 9.3 for secmark testing )_
 
 On a modern Fedora system you can install these dependencies with the
 following command:
@@ -77,6 +78,7 @@ following command:
 		quota \
 		xfsprogs-devel \
 		libuuid-devel \
+		nftables \
 		kernel-devel-$(uname -r) \
 		kernel-modules-$(uname -r)
 
@@ -119,7 +121,8 @@ command:
 		quota \
 		xfsprogs \
 		xfslibs-dev \
-		uuid-dev
+		uuid-dev \
+		nftables
 
 On Debian, you need to build and install netlabel_tools manually since
 it is not yet packaged for Debian

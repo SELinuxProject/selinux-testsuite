@@ -27,6 +27,15 @@ BEGIN {
         $test_calipso_stream = 1;
     }
 
+    # Determine if nftables has secmark support
+    $test_nft = 0;
+
+    $rc = system("nft -c -f $basedir/nftables-load 2>/dev/null");
+    if ( $rc == 0 ) {
+        $test_count += 8;
+        $test_nft = 1;
+    }
+
     plan tests => $test_count;
 }
 
@@ -348,63 +357,75 @@ if ($test_ipsec) {
     system "/bin/sh $basedir/ipsec-flush";
 }
 
-# Load iptables (IPv4 & IPv6) configuration.
-system "/bin/sh $basedir/iptables-load";
+#
+################## Test iptables/nftables configuration ######################
+#
+sub test_tables {
 
-# Start the stream server.
-$pid = server_start( "-t test_inet_server_t", "-n stream 65535" );
+    # Start the stream server.
+    $pid = server_start( "-t test_inet_server_t", "-n stream 65535" );
 
-# Verify that authorized client can communicate with the server.
-$result = system
+    # Verify that authorized client can communicate with the server.
+    $result = system
 "runcon -t test_inet_client_t -- $basedir/client -e nopeer stream 127.0.0.1 65535";
-ok( $result eq 0 );
+    ok( $result eq 0 );
 
-# Verify that unauthorized client cannot communicate with the server.
-$result = system
+    # Verify that unauthorized client cannot communicate with the server.
+    $result = system
 "runcon -t test_inet_bad_client_t -- $basedir/client -e nopeer stream 127.0.0.1 65535 2>&1";
-ok( $result >> 8 eq 5 );
+    ok( $result >> 8 eq 5 );
 
-# Verify that authorized client can communicate with the server.
-$result = system
-  "runcon -t test_inet_client_t -- $basedir/client -e nopeer stream ::1 65535";
-ok( $result eq 0 );
+    # Verify that authorized client can communicate with the server.
+    $result = system
+"runcon -t test_inet_client_t -- $basedir/client -e nopeer stream ::1 65535";
+    ok( $result eq 0 );
 
-# Verify that unauthorized client cannot communicate with the server.
-$result = system
+    # Verify that unauthorized client cannot communicate with the server.
+    $result = system
 "runcon -t test_inet_bad_client_t -- $basedir/client -e nopeer stream ::1 65535 2>&1";
-ok( $result >> 8 eq 5 );
+    ok( $result >> 8 eq 5 );
 
-# Kill the server.
-server_end($pid);
+    # Kill the server.
+    server_end($pid);
 
-# Start the dgram server.
-$pid = server_start( "-t test_inet_server_t", "-n dgram 65535" );
+    # Start the dgram server.
+    $pid = server_start( "-t test_inet_server_t", "-n dgram 65535" );
 
-# Verify that authorized client can communicate with the server.
-$result = system
+    # Verify that authorized client can communicate with the server.
+    $result = system
 "runcon -t test_inet_client_t $basedir/client -e nopeer dgram 127.0.0.1 65535";
-ok( $result eq 0 );
+    ok( $result eq 0 );
 
-# Verify that unauthorized client cannot communicate with the server.
-$result = system
+    # Verify that unauthorized client cannot communicate with the server.
+    $result = system
 "runcon -t test_inet_bad_client_t -- $basedir/client -e nopeer dgram 127.0.0.1 65535 2>&1";
-ok( $result >> 8 eq 8 );
+    ok( $result >> 8 eq 8 );
 
-# Verify that authorized client can communicate with the server.
-$result = system
-  "runcon -t test_inet_client_t $basedir/client -e nopeer dgram ::1 65535";
-ok( $result eq 0 );
+    # Verify that authorized client can communicate with the server.
+    $result = system
+      "runcon -t test_inet_client_t $basedir/client -e nopeer dgram ::1 65535";
+    ok( $result eq 0 );
 
-# Verify that unauthorized client cannot communicate with the server.
-$result = system
+    # Verify that unauthorized client cannot communicate with the server.
+    $result = system
 "runcon -t test_inet_bad_client_t -- $basedir/client -e nopeer dgram ::1 65535 2>&1";
-ok( $result >> 8 eq 8 );
+    ok( $result >> 8 eq 8 );
 
-# Kill the server.
-server_end($pid);
+    # Kill the server.
+    server_end($pid);
+}
 
-# Flush iptables configuration.
+print "Testing iptables (IPv4/IPv6).\n";
+system "/bin/sh $basedir/iptables-load";
+test_tables();
 system "/bin/sh $basedir/iptables-flush";
+
+if ($test_nft) {
+    print "Testing nftables (IPv4/IPv6).\n";
+    system "nft -f $basedir/nftables-load";
+    test_tables();
+    system "nft -f $basedir/nftables-flush";
+}
 
 if ($test_calipso_stream) {
 

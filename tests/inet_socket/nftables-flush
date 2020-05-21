@@ -1,0 +1,2 @@
+delete table ip security
+delete table ip6 security
