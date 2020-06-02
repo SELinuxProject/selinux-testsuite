@@ -88,7 +88,7 @@ manage_dirs_pattern(test_overlay_mounter_t, test_overlay_mounter_files_t, test_o
 #
 # Needed to remove a transition file
 #
-allow test_overlay_mounter_t test_overlay_mounter_files_t:chr_file { getattr rename unlink };
+allow test_overlay_mounter_t test_overlay_mounter_files_t:chr_file { create getattr rename unlink };
 allow test_overlay_mounter_t test_overlay_files_rwx_t:chr_file { manage_chr_file_perms rename unlink };
 
 #
