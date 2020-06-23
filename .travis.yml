@@ -55,6 +55,8 @@ before_install:
   # establish a fake "selinuxfs" mount (policy/Makefile just greps for selinuxfs)
   - mkdir -p /tmp/fake-selinuxfs/policy_capabilities
   - echo 1 > /tmp/fake-selinuxfs/policy_capabilities/extended_socket_class
+  - mkdir -p /tmp/fake-selinuxfs/initial_contexts
+  - echo system_u:system_r:kernel_t:s0 > /tmp/fake-selinuxfs/initial_contexts/kernel
   - echo 999 >/tmp/fake-selinuxfs/policyvers
 
 script:
