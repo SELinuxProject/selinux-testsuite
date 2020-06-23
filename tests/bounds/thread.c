@@ -19,7 +19,7 @@ static int thread_status = 0;
 
 static void *worker(void *datap)
 {
-	security_context_t security_context = datap;
+	char *security_context = datap;
 	int rc;
 
 	rc = setcon(security_context);
@@ -31,7 +31,7 @@ static void *worker(void *datap)
 
 int main(int argc, char *argv[])
 {
-	security_context_t security_context;
+	char *security_context;
 	context_t context;
 	pthread_t thread;
 	int rc;

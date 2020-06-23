@@ -26,7 +26,7 @@ int main(int argc, char **argv)
 {
 	char buf[1];
 	int pid, rc, fd[2], fd2[2], opt;
-	security_context_t context_s;
+	char *context_s;
 	context_t context;
 	struct rlimit newrlim, oldrlim, *newrlimp = NULL, *oldrlimp = NULL;
 	bool get = false, set = false, soft = false;

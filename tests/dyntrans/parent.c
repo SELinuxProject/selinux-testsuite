@@ -11,7 +11,7 @@
 int main(int argc, char **argv)
 {
 	int rc;
-	security_context_t context_s;
+	char *context_s;
 	context_t context;
 
 	if (argc != 2) {

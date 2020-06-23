@@ -9,7 +9,7 @@
 int main(int argc, char **argv)
 {
 	char **childargv;
-	security_context_t context_s;
+	char *context_s;
 	context_t context;
 	int rc, fd;
 

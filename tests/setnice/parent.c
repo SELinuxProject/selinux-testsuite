@@ -14,7 +14,7 @@ int main(int argc, char **argv)
 {
 	char buf[1];
 	int pid, rc, rc2, fd[2], fd2[2];
-	security_context_t context_s;
+	char *context_s;
 	context_t context;
 
 	if (argc != 3) {
