@@ -5,10 +5,12 @@ set -ex
 if ! [ -d refpolicy/.git ]; then
 	git clone https://github.com/SELinuxProject/refpolicy
 else
-	git pull || { git checkout '*' && git pull; }
+	git -C refpolicy fetch origin
 fi
 
 cd refpolicy
+
+git checkout origin/master
 
 [ -f policy/modules.conf ] || make conf
 

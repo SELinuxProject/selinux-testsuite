@@ -4,11 +4,12 @@ set -ex
 
 if ! [ -d selinux-policy/.git ]; then
 	git clone --recursive https://github.com/fedora-selinux/selinux-policy
-	(cd selinux-policy/policy/modules/contrib && git checkout rawhide)
 else
-	(cd selinux-policy && git pull || { git checkout '*' && git pull; })
-	(cd selinux-policy/policy/modules/contrib && git pull)
+	git -C selinux-policy fetch origin
+	git -C selinux-policy/policy/modules/contrib fetch origin
 fi
+git -C selinux-policy checkout origin/rawhide
+git -C selinux-policy/policy/modules/contrib checkout origin/rawhide
 
 if ! [ -d container-selinux/.git ]; then
 	git clone https://github.com/containers/container-selinux.git
@@ -17,8 +18,9 @@ if ! [ -d container-selinux/.git ]; then
 			selinux-policy/policy/modules/contrib/$f
 	done
 else
-	(cd container-selinux && git pull)
+	git -C container-selinux fetch origin
 fi
+git -C container-selinux checkout origin/master
 
 cd selinux-policy
 
