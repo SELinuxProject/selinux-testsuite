@@ -37,13 +37,15 @@ endif
 
 ifeq ($(SUPPORTS_CIL),y)
 CIL_TARGETS = test_mlsconstrain.cil test_overlay_defaultrange.cil
-ifeq ($(shell [[ $(MAX_KERNEL_POLICY) -ge 32 && $(POL_VERS) -ge 32 ]] && echo true),true)
+ifeq ($(shell [ $(MAX_KERNEL_POLICY) -ge 32 ] && echo true),true)
+ifeq ($(shell [ $(POL_VERS) -ge 32 ] && echo true),true)
 # If other MLS tests get written this can be moved outside of the glblub test
 ifeq ($(POL_TYPE), MLS)
 CIL_TARGETS += test_glblub.cil
 else ifeq ($(POL_TYPE), MCS)
 CIL_TARGETS += test_add_levels.cil test_glblub.cil
 endif # POL_TYPE
+endif # POL_VERS
 endif # MAX_KERNEL_POLICY
 endif # SUPPORTS_CIL
 

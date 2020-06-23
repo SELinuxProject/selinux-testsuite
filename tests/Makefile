@@ -68,9 +68,13 @@ ifeq ($(shell grep -q key_socket $(POLDEV)/include/support/all_perms.spt && test
 SUBDIRS += key_socket
 endif
 
-ifeq ($(shell [[ $(MAX_KERNEL_POLICY) -ge 32 && ( $(POL_TYPE) == 'MLS' || $(POL_TYPE) == 'MCS' ) && $(POL_VERS) -ge 32 ]]  && echo true),true)
+ifeq ($(shell [ $(MAX_KERNEL_POLICY) -ge 32 ] && echo true),true)
+ifeq ($(shell [ $(POL_TYPE) = 'MLS' ] || [ $(POL_TYPE) = 'MCS' ] && echo true),true)
+ifeq ($(shell [ $(POL_VERS) -ge 32 ] && echo true),true)
 SUBDIRS += glblub
-endif
+endif # POL_VERS
+endif # POL_TYPE
+endif # MAX_KERNEL_POLICY
 
 ifeq ($(shell grep "^SELINUX_INFINIBAND_ENDPORT_TEST=" infiniband_endport/ibendport_test.conf | cut -d'=' -f 2),1)
 SUBDIRS += infiniband_endport
