@@ -12,7 +12,7 @@ cd refpolicy
 
 git checkout origin/master
 
-[ -f policy/modules.conf ] || make conf
+make conf
 
 make -j`nproc --all` BINDIR=/usr/local/bin SBINDIR=/usr/local/sbin
 sudo make install install-headers

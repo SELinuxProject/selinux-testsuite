@@ -26,8 +26,6 @@ cd selinux-policy
 
 grep -q refpolicy build.conf && sed -i 's/refpolicy/targeted/' build.conf
 
-[ -f policy/modules.conf ] || make conf
-
 make -j`nproc --all` BINDIR=/usr/local/bin SBINDIR=/usr/local/sbin
 sudo make install install-headers
 
