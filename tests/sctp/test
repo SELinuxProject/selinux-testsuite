@@ -1,6 +1,18 @@
 #!/usr/bin/perl
 use Test::More;
 
+#
+# These tests cover the net/sctp security hooks as discussed in kernel tree:
+#     Documentation/security/SCTP.rst
+# The only two places in SCTP code not tested as they need unusual sctp
+# packets to be sent are:
+#   net/sctp/sm_statefuns.c sctp_sf_do_unexpected_init - assoc_request
+#   net/sctp/sm_statefuns.c sctp_sf_do_5_2_4_dupcook - assoc_request
+#
+# Network traffic can be followed using tshark(1):
+#        tshark -O sctp,ipv6,ip,cipso,calipso -P -x -i any
+#
+
 BEGIN {
     $basedir = $0;
     $basedir =~ s|(.*)/[^/]*|$1|;
@@ -21,7 +33,7 @@ BEGIN {
         plan skip_all => "SCTP not supported";
     }
     else {
-        $test_count = 71;
+        $test_count = 75;
 
         # asconf parameter tests require two local non-loopback addresses.
         $ipaddress_list = `ip -o addr show up scope global`;
@@ -125,9 +137,8 @@ $result = system
   "runcon -t test_sctp_client_t $basedir/sctp_client $v -e nopeer seq ::1 1035";
 ok( $result eq 0 );
 
-######## This test requires setting a portcon statement in policy ###########
-# Verify that the client cannot communicate with server when using port not allowed STREAM->STREAM.
-# Note that the sctp_test policy only allows ports 1024-65535
+# Verify that the client cannot communicate with server when using port < 1024 STREAM->STREAM.
+# deny sctp_socket { name_connect }
 $result = system
 "runcon -t test_sctp_client_t -- $basedir/sctp_client $v -e nopeer stream ::1 1023 2>&1";
 ok( $result >> 8 eq 8 );
@@ -135,9 +146,8 @@ ok( $result >> 8 eq 8 );
 # Kill the stream server.
 server_end($pid);
 
-######## This test requires setting a portcon statement in policy ###########
-# Verify that the server cannot start when using port not allowed STREAM->STREAM.
-# Note that the sctp_test policy only allows ports 1024-65535
+# Verify that the server cannot start when using port < 1024.
+# deny sctp_socket { name_bind }
 $result =
   system "runcon -t test_sctp_server_t -- $basedir/sctp_bind $v stream 80 2>&1";
 ok($result);
@@ -145,6 +155,7 @@ ok($result);
 #
 ############################### CONNECTX #####################################
 #
+# net/sctp/socket.c sctp_setsockopt_connectx() SCTP_SOCKOPT_CONNECTX
 print "# Testing connectx.\n";
 
 $result = system
@@ -156,9 +167,31 @@ $result =
   "runcon -t test_sctp_connectx_t $basedir/sctp_connectx $v seq ::1 1035";
 ok( $result eq 0 );
 
+$result =
+  system
+"runcon -t test_sctp_deny_connectx_t $basedir/sctp_connectx $v seq ::1 1035 2>&1";
+ok( $result >> 8 eq 7 );
+
+#
+########################### SCTP_SENDMSG_CONNECT #############################
+#
+# net/sctp/socket.c sctp_sendmsg_new_asoc() SCTP_SENDMSG_CONNECT
+print "# Testing SCTP_SENDMSG_CONNECT.\n";
+
+$result =
+  system
+"runcon -t test_sctp_connectx_t $basedir/sctp_connectx $v -n seq 127.0.0.1 1035";
+ok( $result eq 0 );
+
+$result =
+  system
+"runcon -t test_sctp_deny_connectx_t $basedir/sctp_connectx $v -n seq ::1 1035 2>&1";
+ok( $result >> 8 eq 8 );
+
 #
 ################################ BINDX #######################################
 #
+# net/sctp/socket.c sctp_setsockopt_bindx() SCTP_SOCKOPT_BINDX_ADD
 print "# Testing bindx.\n";
 
 $result =
@@ -168,6 +201,11 @@ ok( $result eq 0 );
 $result =
   system "runcon -t test_sctp_bindx_t $basedir/sctp_bindx $v -r seq 1035";
 ok( $result eq 0 );
+
+$result =
+  system
+  "runcon -t test_sctp_deny_bindx_t $basedir/sctp_bindx $v -r seq 1035 2>&1";
+ok( $result >> 8 eq 2 );
 
 #
 ######################### SET_PRI_ADDR SET_PEER_ADDR ########################
@@ -274,6 +312,7 @@ system "/bin/sh $basedir/fb-label-flush";
 #
 #################### Test deny association permission ########################
 #
+# net/sctp/sm_statefuns.c sctp_sf_do_5_1B_init() assoc_request
 print "# Testing deny association.\n";
 system "/bin/sh $basedir/fb-deny-label-load";
 
@@ -329,6 +368,7 @@ $result = system
 ok( $result eq 0 );
 
 # Verify that authorized client cannot communicate with the server using invalid level STREAM->STREAM.
+# Fails with mlsconstrain peer { recv }
 $result = system
 "runcon -t test_sctp_client_t -l s0:c182.c193 -- $basedir/sctp_client $v stream 127.0.0.1 1035 2>&1";
 ok( $result >> 8 eq 6 );
@@ -771,7 +811,7 @@ sub test_tables {
 "runcon -t test_sctp_client_t $basedir/sctp_client $v -e nopeer stream 127.0.0.1 1035";
     ok( $result eq 0 );
 
-# Verify that a client without peer { recv } permission cannot communicate with the server STREAM->STREAM.
+# Verify that a client without packet { recv } permission cannot communicate with the server STREAM->STREAM.
     $result = system
 "runcon -t test_sctp_deny_peer_client_t -- $basedir/sctp_client $v -e nopeer stream 127.0.0.1 1035 2>&1";
     ok( $result >> 8 eq 6 );
@@ -781,7 +821,7 @@ sub test_tables {
 "runcon -t test_sctp_client_t $basedir/sctp_client $v -e nopeer stream ::1 1035";
     ok( $result eq 0 );
 
-# Verify that a client without peer { recv } permission cannot communicate with the server STREAM->STREAM.
+# Verify that a client without packet { recv } permission cannot communicate with the server STREAM->STREAM.
     $result = system
 "runcon -t test_sctp_deny_peer_client_t -- $basedir/sctp_client $v -e nopeer stream ::1 1035 2>&1";
     ok( $result >> 8 eq 6 );
@@ -798,7 +838,7 @@ sub test_tables {
 "runcon -t test_sctp_client_t $basedir/sctp_client $v -e nopeer seq 127.0.0.1 1035";
     ok( $result eq 0 );
 
-# Verify that a client without peer { recv } permission cannot communicate with the server SEQ->SEQ.
+# Verify that a client without packet { recv } permission cannot communicate with the server SEQ->SEQ.
     $result = system
 "runcon -t test_sctp_deny_peer_client_t -- $basedir/sctp_client $v -e nopeer seq 127.0.0.1 1035 2>&1";
     ok( $result >> 8 eq 6 );
@@ -808,7 +848,7 @@ sub test_tables {
 "runcon -t test_sctp_client_t $basedir/sctp_client $v -e nopeer seq ::1 1035";
     ok( $result eq 0 );
 
-# Verify that a client without peer { recv } permission cannot communicate with the server SEQ->SEQ.
+# Verify that a client without packet { recv } permission cannot communicate with the server SEQ->SEQ.
     $result = system
 "runcon -t test_sctp_deny_peer_client_t -- $basedir/sctp_client $v -e nopeer seq ::1 1035 2>&1";
     ok( $result >> 8 eq 6 );

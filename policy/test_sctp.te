@@ -59,6 +59,13 @@ allow test_sctp_server_t netlabel_sctp_peer_t:peer { recv };
 corenet_sctp_bind_all_nodes(test_sctp_server_t)
 corenet_inout_generic_node(test_sctp_server_t)
 corenet_inout_generic_if(test_sctp_server_t)
+mcs_constrained(test_sctp_server_t)
+
+#### Verify that the server cannot start when using port < 1024 ####
+# neverallow test_sctp_server_t reserved_port_t:sctp_socket { name_bind };
+# Stop clutter in audit log for this test:
+dontaudit test_sctp_server_t self:netlink_route_socket { create getattr bind };
+dontaudit test_sctp_server_t self:udp_socket { getattr connect };
 
 #
 ############################### Client #################################
@@ -85,7 +92,11 @@ typeattribute test_sctp_deny_peer_client_t testdomain;
 typeattribute test_sctp_deny_peer_client_t sctpsocketdomain;
 allow test_sctp_deny_peer_client_t self:sctp_socket create_stream_socket_perms;
 corenet_inout_generic_node(test_sctp_deny_peer_client_t)
-corenet_inout_generic_if(deny_assoc_sctp_peer_t)
+corenet_inout_generic_if(test_sctp_deny_peer_client_t)
+
+allow test_sctp_deny_peer_client_t test_sctp_server_packet_t:packet { send };
+allow test_sctp_server_t test_sctp_deny_peer_client_t:peer { recv };
+allow test_sctp_client_t test_sctp_deny_peer_client_t:sctp_socket { association };
 
 #
 ####################### Deny association permission #########################
@@ -117,11 +128,20 @@ unconfined_runs_test(test_sctp_connectx_t)
 typeattribute test_sctp_connectx_t testdomain;
 typeattribute test_sctp_connectx_t sctpsocketdomain;
 allow test_sctp_connectx_t self:sctp_socket create_stream_socket_perms;
-allow test_sctp_server_t test_sctp_connectx_t:peer { recv };
-allow test_sctp_connectx_t test_sctp_server_t:peer { recv };
 corenet_sctp_bind_all_nodes(test_sctp_connectx_t)
 corenet_inout_generic_node(test_sctp_connectx_t)
-corenet_inout_generic_if(test_sctp_connectx_t)
+
+#
+############################# Deny Connectx #################################
+#
+type test_sctp_deny_connectx_t;
+domain_type(test_sctp_deny_connectx_t)
+unconfined_runs_test(test_sctp_deny_connectx_t)
+typeattribute test_sctp_deny_connectx_t testdomain;
+typeattribute test_sctp_deny_connectx_t sctpsocketdomain;
+allow test_sctp_deny_connectx_t self:sctp_socket { create listen accept bind ioctl read getattr write getopt setopt };
+corenet_sctp_bind_all_nodes(test_sctp_deny_connectx_t)
+corenet_inout_generic_node(test_sctp_deny_connectx_t)
 
 #
 ############################## Bindx #####################################
@@ -132,11 +152,20 @@ unconfined_runs_test(test_sctp_bindx_t)
 typeattribute test_sctp_bindx_t testdomain;
 typeattribute test_sctp_bindx_t sctpsocketdomain;
 allow test_sctp_bindx_t self:sctp_socket create_stream_socket_perms;
-allow test_sctp_server_t test_sctp_bindx_t:peer { recv };
-allow test_sctp_bindx_t test_sctp_server_t:peer { recv };
 corenet_sctp_bind_all_nodes(test_sctp_bindx_t)
 corenet_inout_generic_node(test_sctp_bindx_t)
-corenet_inout_generic_if(test_sctp_bindx_t)
+
+#
+############################## Deny Bindx ###################################
+#
+type test_sctp_deny_bindx_t;
+domain_type(test_sctp_deny_bindx_t)
+unconfined_runs_test(test_sctp_deny_bindx_t)
+typeattribute test_sctp_deny_bindx_t testdomain;
+typeattribute test_sctp_deny_bindx_t sctpsocketdomain;
+allow test_sctp_deny_bindx_t self:sctp_socket { create ioctl read getattr write getopt setopt };
+corenet_sctp_bind_all_nodes(test_sctp_deny_bindx_t)
+corenet_inout_generic_node(test_sctp_deny_bindx_t)
 
 #
 ########## SET_PRI_ADDR + SET_PEER ADDR for ASCONF process testing ##########

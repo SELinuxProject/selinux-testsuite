@@ -11,7 +11,7 @@ static void usage(char *progname)
 		"stream  Use SCTP 1-to-1 style or:\n\t"
 		"seq     use SCTP 1-to-Many style.\n\t"
 		"port    port.\n", progname);
-	exit(1);
+	exit(-1);
 }
 
 int main(int argc, char **argv)
@@ -77,7 +77,7 @@ int main(int argc, char **argv)
 	if (result < 0) {
 		perror("sctp_bindx ADD - ipv4");
 		close(sock);
-		exit(1);
+		exit(2);
 	}
 
 	if (verbose)
@@ -93,7 +93,7 @@ int main(int argc, char **argv)
 	if (result < 0) {
 		perror("sctp_bindx ADD - ipv6");
 		close(sock);
-		exit(1);
+		exit(3);
 	}
 
 	if (verbose)
@@ -105,7 +105,7 @@ int main(int argc, char **argv)
 		if (result < 0) {
 			perror("sctp_bindx - REM");
 			close(sock);
-			exit(1);
+			exit(4);
 		}
 		if (verbose)
 			printf("sctp_bindx REM - ipv6\n");
