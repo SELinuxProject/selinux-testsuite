@@ -45,6 +45,7 @@ similar dependencies):
 * perl-Test  _(test harness used by the testsuite)_
 * perl-Test-Harness _(test harness used by the testsuite)_
 * perl-Test-Simple _(for `Test::More`)_
+* perl-lib _(for `lib`; split out from `perl-interpreter` since Fedora 33)_
 * selinux-policy-devel _(to build the test policy)_
 * gcc _(to build the test programs)_
 * libselinux-devel _(to build some of the test programs)_
@@ -60,11 +61,13 @@ similar dependencies):
 * nftables _(used by inet_socket and sctp tests if ver >= 9.3 for secmark testing )_
 
 On a modern Fedora system you can install these dependencies with the
-following command:
+following command (NOTE: On Fedora 32 and below you need to remove
+`perl-lib` from the package list):
 
 	# dnf install perl-Test \
 		perl-Test-Harness \
 		perl-Test-Simple \
+		perl-lib \
 		selinux-policy-devel \
 		gcc \
 		libselinux-devel \
