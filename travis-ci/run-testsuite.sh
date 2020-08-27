@@ -30,6 +30,7 @@ dnf install -y \
     libselinux-devel \
     net-tools \
     netlabel_tools \
+    nftables \
     iptables \
     lksctp-tools-devel \
     attr \
