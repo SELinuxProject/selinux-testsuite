@@ -99,7 +99,7 @@ int main(int argc, char **argv)
 	 *    EAGAIN - Resource temporarily unavailable - SOCK_SEQPACKET
 	 *        Uses SO_RCVTIMEO when NO connects are called.
 	 */
-	tm.tv_sec = 2;
+	tm.tv_sec = 4;
 	tm.tv_usec = 0;
 	result = setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, &tm, sizeof(tm));
 	if (result < 0) {
