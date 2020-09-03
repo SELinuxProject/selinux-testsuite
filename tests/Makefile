@@ -124,7 +124,9 @@ endif
 endif
 
 ifeq ($(shell grep -q all_key_perms $(POLDEV)/include/support/all_perms.spt && test -e $(INCLUDEDIR)/linux/watch_queue.h && grep -qs KEYCTL_WATCH_KEY $(INCLUDEDIR)/linux/keyctl.h && echo true),true)
+ifneq ($(shell ./kvercmp $$(uname -r) 5.8),-1)
 SUBDIRS += watchkey
+endif
 endif
 
 ifeq ($(DISTRO),RHEL4)
