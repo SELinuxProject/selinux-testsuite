@@ -4,7 +4,7 @@ dist: bionic
 
 env:
   matrix:
-    - FEDORA_KIND="releases" FEDORA_MAJOR="32"
+    - FEDORA_KIND="releases" FEDORA_MAJOR="33"
     - FEDORA_KIND="development" FEDORA_MAJOR="rawhide"
 
 addons:
