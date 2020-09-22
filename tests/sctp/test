@@ -50,7 +50,7 @@ BEGIN {
         }
 
         if ( $ipaddress[1] ne 0 and $ipaddress[0] ne $ipaddress[1] ) {
-            $test_count += 2;
+            $test_count += 3;
             $test_asconf = 1;
         }
 
@@ -208,37 +208,77 @@ $result =
 ok( $result >> 8 eq 2 );
 
 #
-######################### SET_PRI_ADDR SET_PEER_ADDR ########################
+##################### Dynamic Address Reconfiguration #####################
+#
+# These tests require two non-loopback addresses.
+#
+# Server - setsockopt(SCTP_SET_PEER_PRIMARY_ADDR, $ipaddress[0]);
+# net/sctp/sm_make_chunk.c sctp_process_asconf_param() SCTP_PARAM_SET_PRIMARY
+# Server -> Client (Set $ipaddress[0] as primary - client acks)
+#
+# Server - sctp_bindx(SCTP_BINDX_ADD_ADDR, $ipaddress[1]);
+# net/sctp/sm_make_chunk.c sctp_process_asconf_param() SCTP_PARAM_ADD_IP
+# Server -> Client (Set $ipaddress[1] as primary - client acks)
+#
+# These are sent by the server and require bind permission. They are
+# received by the client and the SCTP_PARAM_ADD_IP is validated when
+# $ipaddress[1] is set for use via:
+#    net/sctp/socket.c sctp_setsockopt_peer_primary_addr(setsockopt(SCTP_PRIMARY_ADDR))
+# This requires the 'bind' permission, if not granted client exits with 51.
 #
 
-# These tests require two local non-loopback addresses.
 if ($test_asconf) {
-    print "# Testing asconf parameter chunk processing.\n";
 
-    # To enable processing of incoming ASCONF parameters:
-    # SCTP_PARAM_SET_PRIMARY, SCTP_PARAM_ADD_IP and SCTP_PARAM_DEL_IP,
-    # need to set:
+    # To enable processing of ASCONF parameters SCTP_PARAM_SET_PRIMARY
+    # and SCTP_PARAM_ADD_IP need to set:
     system("echo 1 > /proc/sys/net/sctp/addip_enable");
     system("echo 1 > /proc/sys/net/sctp/addip_noauth_enable");
 
-    # Verify ASCONF params.
-    $result = system
-"runcon -t test_sctp_set_peer_addr_t $basedir/sctp_set_peer_addr $v $ipaddress[0] $ipaddress[1] 1035";
-    ok( $result eq 0 );
+    print "Testing Dynamic Address Reconfiguration\n";
 
-    # Start the asconf server.
+    # Server should automatically exit after each test
     $pid = server_start(
-        "-t test_sctp_set_peer_addr_t",
+        "-t sctp_asconf_params_server_t",
         "sctp_asconf_params_server",
         "$v $ipaddress[0] $ipaddress[1] 1035"
     );
 
-# This should fail connect permission attempting to send SCTP_PARAM_ADD_IP to client.
     $result = system
-"runcon -t test_sctp_client_t -- $basedir/sctp_asconf_params_client $v $ipaddress[0] 1035 2>&1";
-    ok($result);
+"runcon -t sctp_asconf_params_client_t $basedir/sctp_asconf_params_client $v $ipaddress[0] 1035";
+    ok( $result eq 0 );
 
-    # The server should automatically exit.
+    server_end($pid);
+
+    $pid = server_start(
+        "-t sctp_asconf_params_server_t",
+        "sctp_asconf_params_server",
+        "$v $ipaddress[0] $ipaddress[1] 1035"
+    );
+
+    print "Testing deny SCTP_PRIMARY_ADDR\n";
+    $result = system
+"runcon -t sctp_asconf_deny_pri_addr_client_t $basedir/sctp_asconf_params_client $v $ipaddress[0] 1035 2>&1";
+    ok( $result >> 8 eq 51 );    # setsockopt(2) failed
+
+    server_end($pid);
+
+    #
+    # This is a local only test as it's the neverallow rule that stops:
+    #    server -> client sctp_socket { connect };
+    #
+    # Srv sends SCTP_PARAM_ADD_IP and SCTP_PARAM_SET_PRIMARY in ASCONF's
+    # Client returns ASCONF_ACK's with 'Request refused - no authorization'
+    $pid = server_start(
+        "-t sctp_asconf_params_server_t",
+        "sctp_asconf_params_server",
+        "$v $ipaddress[0] $ipaddress[1] 1035"
+    );
+
+    print "Testing deny SCTP_PARAM_ADD_IP/SCTP_PARAM_SET_PRIMARY\n";
+    $result = system
+"runcon -t sctp_asconf_deny_param_add_client_t $basedir/sctp_asconf_params_client $v $ipaddress[0] 1035 2>&1";
+    ok( $result >> 8 eq 11 );   # Client error 'Dynamic Address Reconfiguration'
+
     server_end($pid);
 
     system("echo 0 > /proc/sys/net/sctp/addip_enable");

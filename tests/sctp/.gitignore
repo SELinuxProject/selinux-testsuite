@@ -6,4 +6,3 @@ sctp_client
 sctp_connectx
 sctp_peeloff_server
 sctp_server
-sctp_set_peer_addr

@@ -23,7 +23,7 @@ static void usage(char *progname)
 
 int main(int argc, char **argv)
 {
-	int opt, sock, newsock, result, if_index = 0, on = 1;
+	int opt, sock, newsock, result, if_index = 0, on = 1, off = 0;
 	socklen_t sinlen, opt_len;
 	struct sockaddr_storage sin;
 	struct addrinfo hints, *res;
@@ -134,7 +134,7 @@ int main(int argc, char **argv)
 	}
 
 	/* Enables sctp_data_io_events for sctp_recvmsg(3) for assoc_id. */
-	result = set_subscr_events(sock, on, 0);
+	result = set_subscr_events(sock, on, off, off, off);
 	if (result < 0) {
 		perror("Server setsockopt: SCTP_EVENTS");
 		close(sock);

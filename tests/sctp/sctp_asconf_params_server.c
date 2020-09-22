@@ -22,16 +22,18 @@ static void usage(char *progname)
 
 int main(int argc, char **argv)
 {
-	int opt, srv_sock, new_sock, result, on = 1;
+	int opt, srv_sock, result, on = 1, flags = 0, if_index = 0;
+	size_t new_len;
 	struct addrinfo srv_hints, *srv_res;
 	struct addrinfo *new_pri_addr_res;
 	struct sockaddr *sa_ptr;
-	socklen_t sinlen;
 	struct sockaddr_storage sin;
+	socklen_t sinlen = sizeof(sin);
 	struct sctp_setpeerprim setpeerprim;
+	struct sctp_sndrcvinfo sinfo;
 	bool verbose = false, is_ipv6 = false;
-	char buffer[128];
-	char *flag_file = NULL;
+	char buffer[512];
+	char *flag_file = NULL, *ptr, if_name[30], *new_pri_addr = NULL;
 
 	while ((opt = getopt(argc, argv, "f:v")) != -1) {
 		switch (opt) {
@@ -62,191 +64,230 @@ int main(int argc, char **argv)
 
 	memset(&srv_hints, 0, sizeof(struct addrinfo));
 	srv_hints.ai_flags = AI_PASSIVE;
-	srv_hints.ai_socktype = SOCK_STREAM;
+	srv_hints.ai_socktype = SOCK_SEQPACKET;
 	srv_hints.ai_protocol = IPPROTO_SCTP;
 
-	/* Set up server side */
+	/*
+	 * Setup the 2nd address for sending to client.
+	 */
+	/* If local link, get if_name & if_index */
+	if (is_ipv6) {
+		ptr = strpbrk(argv[optind], "%");
+		if (ptr) {
+			strcpy(if_name, ptr + 1);
+			if_index = if_nametoindex(if_name);
+			if (!if_index) {
+				perror("Server if_nametoindex");
+				exit(1);
+			}
+			if (verbose)
+				printf("if_name: %s if_index: %d\n",
+				       if_name, if_index);
+		}
+	}
+
+	/* Now remove % if on new peer */
+	new_len = strcspn(argv[optind + 1], "%");
+	new_pri_addr = strndup(argv[optind + 1], new_len);
+
+	/*
+	 * Use the 1st address for server side setup.
+	 */
 	result = getaddrinfo(argv[optind], argv[optind + 2],
 			     &srv_hints, &srv_res);
 	if (result < 0) {
-		fprintf(stderr, "getaddrinfo - server: %s\n",
+		fprintf(stderr, "Server getaddrinfo err: %s\n",
 			gai_strerror(result));
 		exit(1);
 	}
 	if (is_ipv6 && verbose)
-		printf("Server scopeID: %d\n",
+		printf("Server address: %s has scopeID: %d\n", argv[optind],
 		       ((struct sockaddr_in6 *)
 			srv_res->ai_addr)->sin6_scope_id);
 
 	srv_sock = socket(srv_res->ai_family, srv_res->ai_socktype,
 			  srv_res->ai_protocol);
 	if (srv_sock < 0) {
-		perror("socket - server");
+		perror("Server socket");
+		freeaddrinfo(srv_res);
 		exit(1);
 	}
 
 	result = setsockopt(srv_sock, SOL_SOCKET, SO_REUSEADDR, &on,
 			    sizeof(on));
 	if (result < 0) {
-		perror("setsockopt: SO_REUSEADDR");
-		close(srv_sock);
-		exit(1);
+		perror("Server setsockopt: SO_REUSEADDR");
+		goto err1;
 	}
 
-	result = bind(srv_sock, srv_res->ai_addr, srv_res->ai_addrlen);
+	result = sctp_bindx(srv_sock, srv_res->ai_addr, 1, SCTP_BINDX_ADD_ADDR);
 	if (result < 0) {
-		perror("bind");
-		close(srv_sock);
-		exit(1);
+		perror("Server bind");
+		goto err1;
 	}
 
-	listen(srv_sock, 1);
+	listen(srv_sock, SOMAXCONN);
 
 	if (flag_file) {
 		FILE *f = fopen(flag_file, "w");
 		if (!f) {
-			perror("Flag file open");
-			exit(1);
+			perror("Server Flag file open");
+			goto err1;
 		}
 		fprintf(f, "listening\n");
 		fclose(f);
 	}
 
-	sinlen = sizeof(sin);
-	new_sock = accept(srv_sock, (struct sockaddr *)&sin, &sinlen);
-	if (new_sock < 0) {
-		perror("accept");
-		result = 1;
-		goto err2;
-	}
-
-	/* This waits for a client message before continuing. */
-	result = read(new_sock, &buffer, sizeof(buffer));
+	result = set_subscr_events(srv_sock, on, on, on, on);
 	if (result < 0) {
-		perror("read");
-		exit(1);
+		perror("Server setsockopt SCTP_EVENTS");
+		goto err1;
 	}
-	buffer[result] = 0;
-	if (verbose)
-		printf("%s\n", buffer);
 
-	/* Obtain address info for the BINDX_ADD and new SCTP_PRIMARY_ADDR. */
-	result = getaddrinfo(argv[optind + 1], argv[optind + 2],
-			     &srv_hints, &new_pri_addr_res);
-	if (result < 0) {
-		fprintf(stderr, "getaddrinfo - new SCTP_PRIMARY_ADDR: %s\n",
-			gai_strerror(result));
-		close(srv_sock);
-		exit(1);
-	}
-	if (is_ipv6 && verbose)
-		printf("new_pri_addr scopeID: %d\n",
-		       ((struct sockaddr_in6 *)
-			new_pri_addr_res->ai_addr)->sin6_scope_id);
-
-
-	/* Now call sctp_bindx to add ADDR2, this will cause an
-	 * ASCONF - SCTP_PARAM_ADD_IP chunk to be sent to the CLIENT.
-	 * This is non-blocking so there maybe a delay before the CLIENT
-	 * receives the asconf chunk.
+	/*
+	 * Receive notifications for initial addr changes, then a request for
+	 * the 'new_pri_addr' from the client.
 	 */
-	if (verbose)
-		printf("Calling sctp_bindx ADD: %s\n", argv[optind + 1]);
-
-	result = sctp_bindx(new_sock,
-			    (struct sockaddr *)new_pri_addr_res->ai_addr,
-			    1, SCTP_BINDX_ADD_ADDR);
-	if (result < 0) {
-		if (errno == EACCES) {
-			perror("sctp_bindx ADD");
-		} else {
-			perror("sctp_bindx ADD");
-			result = 1;
+	memset(&sinfo, 0, sizeof(struct sctp_sndrcvinfo));
+	while (1) {
+		result = sctp_recvmsg(srv_sock, buffer, sizeof(buffer),
+				      (struct sockaddr *)&sin, &sinlen,
+				      &sinfo, &flags);
+		if (result < 0) {
+			perror("Server sctp_recvmsg-1");
 			goto err1;
+		}
+
+		if (flags & MSG_NOTIFICATION && flags & MSG_EOR) {
+			result = handle_event(buffer, NULL, NULL, verbose,
+					      "Server");
+			if (result == EVENT_SHUTDOWN)
+				goto err1;
+		} else {
+			if (verbose)
+				printf("Server received: %s\n", buffer);
+			break;
 		}
 	}
 
-	/* This waits for a client message before continuing. */
-	result = read(new_sock, &buffer, sizeof(buffer));
-	if (result < 0) {
-		perror("read");
-		exit(1);
-	}
-	buffer[result] = 0;
-	if (verbose)
-		printf("%s\n", buffer);
-
-	/* Now that the CLIENT has the new primary address ensure they use
-	 * it by SCTP_SET_PEER_PRIMARY_ADDR.
+	/*
+	 * Request the peer sets the 1st cmd line address as peer primary.
+	 * This uses Dynamic Address Reconfiguration by sending an asconf
+	 * chunk with SCTP_PARAM_SET_PRIMARY set to the client.
 	 */
 	memset(&setpeerprim, 0, sizeof(struct sctp_setpeerprim));
+	setpeerprim.sspp_assoc_id = sinfo.sinfo_assoc_id;
 	sa_ptr = (struct sockaddr *)&setpeerprim.sspp_addr;
 	if (is_ipv6)
-		memcpy(sa_ptr, new_pri_addr_res->ai_addr,
+		memcpy(sa_ptr, srv_res->ai_addr,
 		       sizeof(struct sockaddr_in6));
 	else
-		memcpy(sa_ptr, new_pri_addr_res->ai_addr,
+		memcpy(sa_ptr, srv_res->ai_addr,
 		       sizeof(struct sockaddr_in));
 
+	result = setsockopt(srv_sock, IPPROTO_SCTP,
+			    SCTP_SET_PEER_PRIMARY_ADDR,
+			    &setpeerprim,
+			    sizeof(struct sctp_setpeerprim));
+	if (result < 0) {
+		perror("Server setsockopt: SCTP_SET_PEER_PRIMARY_ADDR");
+		goto err1;
+	}
 	if (verbose)
-		printf("Calling setsockopt SCTP_SET_PEER_PRIMARY_ADDR: %s\n",
+		printf("Server setsockopt: SCTP_SET_PEER_PRIMARY_ADDR with:\n\t%s\n",
 		       argv[optind + 1]);
 
-	result = setsockopt(new_sock, IPPROTO_SCTP,
-			    SCTP_SET_PEER_PRIMARY_ADDR,
-			    &setpeerprim, sizeof(struct sctp_setpeerprim));
+	if (sin.ss_family == AF_INET6) /* Set scope_id for local link */
+		((struct sockaddr_in6 *)&sin)->sin6_scope_id = if_index;
+
+	/* Send client the new primary address */
+	result = sctp_sendmsg(srv_sock, new_pri_addr, new_len,
+			      (struct sockaddr *)&sin,
+			      sinlen, 0, 0, 0, 0, 0);
+	free(new_pri_addr);
 	if (result < 0) {
-		perror("setsockopt: SCTP_SET_PEER_PRIMARY_ADDR");
-		result = 1;
+		perror("Server sctp_sendmsg");
 		goto err1;
 	}
-	/* Sleep a sec to ensure client get info. */
-	result = read(new_sock, &buffer, sizeof(buffer));
+
+	/* Ready the 2nd cmd line address for BINDX_ADD */
+	result = getaddrinfo(argv[optind + 1], argv[optind + 2],
+			     &srv_hints, &new_pri_addr_res);
 	if (result < 0) {
-		perror("read");
-		exit(1);
+		fprintf(stderr, "Server getaddrinfo - new SCTP_PRIMARY_ADDR: %s\n",
+			gai_strerror(result));
+		goto err1;
 	}
-	buffer[result] = 0;
-	if (verbose)
-		printf("%s\n", buffer);
 
-	/* Then delete addr that checks ASCONF - SCTP_PARAM_DEL_IP. */
-	if (verbose)
-		printf("Calling sctp_bindx REM: %s\n", argv[optind]);
+	if (is_ipv6 && verbose)
+		printf("Server new_pri_addr: %s has scopeID: %d\n",
+		       argv[optind + 1],
+		       ((struct sockaddr_in6 *)
+			new_pri_addr_res->ai_addr)->sin6_scope_id);
 
-	result = sctp_bindx(new_sock, (struct sockaddr *)srv_res->ai_addr,
+	/*
+	 * Now call sctp_bindx(3) to add 'new_pri_addr'. This uses Dynamic
+	 * Address Reconfiguration by sending an asconf chunk with
+	 * SCTP_PARAM_ADD_IP set to the client.
+	 */
+	result = sctp_bindx(srv_sock,
+			    (struct sockaddr *)new_pri_addr_res->ai_addr,
+			    1, SCTP_BINDX_ADD_ADDR);
+	if (result < 0) {
+		perror("Server sctp_bindx ADD");
+		goto err1;
+	}
+	if (verbose)
+		printf("Server sctp_bindx(3) SCTP_BINDX_ADD_ADDR:\n\t%s\n",
+		       argv[optind + 1]);
+
+	/* Then delete 'addr' that DAR's - SCTP_PARAM_DEL_IP. */
+	result = sctp_bindx(srv_sock, (struct sockaddr *)srv_res->ai_addr,
 			    1, SCTP_BINDX_REM_ADDR);
 	if (result < 0) {
-		perror("sctp_bindx - REM");
-		result = 1;
+		perror("Server sctp_bindx - REM");
 		goto err1;
 	}
-
-	result = read(new_sock, &buffer, sizeof(buffer));
-	if (result <= 0) {
-		if (errno != 0)
-			perror("read");
-		result = 1;
-		goto err1;
-	}
-	buffer[result] = 0;
 	if (verbose)
-		printf("%s\n", buffer);
+		printf("Server sctp_bindx(3) SCTP_BINDX_REM_ADDR:\n\t%s\n",
+		       argv[optind]);
 
-	result = read(new_sock, &buffer, sizeof(buffer));
-	if (result < 0) {
-		perror("read");
-		exit(1);
+	/*
+	 * End of test - The 'new_pri_addr' is not used for any sessions as
+	 * the objective was to only exercise Dynamic Address Reconfiguration
+	 * so wait for client to complete before closing otherwise it
+	 * errors with ENOTCONN
+	 */
+	while (1) {
+		result = sctp_recvmsg(srv_sock, buffer, sizeof(buffer),
+				      (struct sockaddr *)&sin, &sinlen,
+				      &sinfo, &flags);
+		if (result < 0) {
+			perror("Server sctp_recvmsg-2");
+			goto err1;
+		}
+
+		if (verbose)
+			printf("Client assoc_id: %d\n", sinfo.sinfo_assoc_id);
+
+		if (flags & MSG_NOTIFICATION) {
+			result = handle_event(buffer, NULL, NULL, verbose, "Server");
+			if (result == EVENT_SHUTDOWN)
+				break;
+		} else {
+			if (verbose)
+				printf("Server received: %s\n", buffer);
+			break;
+		}
 	}
-	buffer[result] = 0;
-	if (verbose)
-		printf("%s\n", buffer);
 
 	result = 0;
-
-err1:
-	close(new_sock);
-err2:
+end:
 	close(srv_sock);
-	exit(result);
+	freeaddrinfo(srv_res);
+	freeaddrinfo(new_pri_addr_res);
+	return result;
+err1:
+	result = -1;
+	goto end;
 }

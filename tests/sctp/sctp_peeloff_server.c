@@ -16,36 +16,10 @@ static void usage(char *progname)
 	exit(1);
 }
 
-static sctp_assoc_t handle_event(void *buf)
-{
-	union sctp_notification *snp = buf;
-	struct sctp_assoc_change *sac;
-
-	switch (snp->sn_header.sn_type) {
-	case SCTP_ASSOC_CHANGE:
-		sac = &snp->sn_assoc_change;
-		return sac->sac_assoc_id;
-	case SCTP_PEER_ADDR_CHANGE:
-	case SCTP_SEND_FAILED:
-	case SCTP_REMOTE_ERROR:
-	case SCTP_SHUTDOWN_EVENT:
-	case SCTP_PARTIAL_DELIVERY_EVENT:
-	case SCTP_ADAPTATION_INDICATION:
-	case SCTP_AUTHENTICATION_INDICATION:
-	case SCTP_SENDER_DRY_EVENT:
-		printf("Unrequested event: %x\n", snp->sn_header.sn_type);
-		break;
-	default:
-		printf("Unknown event: %x\n", snp->sn_header.sn_type);
-		break;
-	}
-	return -1;
-}
-
 int main(int argc, char **argv)
 {
-	int opt, sock, result, peeloff_sk = 0, flags, on = 1;
-	sctp_assoc_t assoc_id;
+	int opt, sock, result, peeloff_sk = 0, flags, on = 1, off = 0;
+	sctp_assoc_t assoc_id = 0;
 	socklen_t sinlen, opt_len;
 	struct sockaddr_storage sin;
 	struct addrinfo hints, *res;
@@ -149,7 +123,7 @@ int main(int argc, char **argv)
 
 	do {
 		/* Get assoc_id for sctp_peeloff() */
-		result = set_subscr_events(sock, 0, 1);
+		result = set_subscr_events(sock, off, on, off, off);
 		if (result < 0) {
 			perror("Server setsockopt: SCTP_EVENTS");
 			close(sock);
@@ -172,7 +146,8 @@ int main(int argc, char **argv)
 					"Server SEQPACKET recvmsg");
 
 		if (flags & MSG_NOTIFICATION && flags & MSG_EOR) {
-			assoc_id = handle_event(msglabel);
+			handle_event(msglabel, NULL, &assoc_id,
+				     verbose, "Peeloff Server");
 			if (assoc_id <= 0) {
 				printf("Server Invalid association ID: %d\n",
 				       assoc_id);
@@ -180,7 +155,7 @@ int main(int argc, char **argv)
 				exit(1);
 			}
 			/* No more notifications */
-			result = set_subscr_events(sock, 0, 0);
+			result = set_subscr_events(sock, off, off, off, off);
 			if (result < 0) {
 				perror("Server setsockopt: SCTP_EVENTS");
 				close(sock);
@@ -210,9 +185,12 @@ int main(int argc, char **argv)
 				exit(1);
 			}
 
-			if (verbose)
+			if (verbose) {
 				print_addr_info((struct sockaddr *)&sin,
 						"Server SEQPACKET peeloff recvmsg");
+				printf("peeloff association ID: %d\n",
+				       assoc_id);
+			}
 		} else {
 			printf("Invalid sctp_recvmsg response FLAGS: %x\n",
 			       flags);
