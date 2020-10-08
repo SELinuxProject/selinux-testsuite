@@ -1,0 +1,27 @@
+name: checks
+on: [push, pull_request]
+jobs:
+  style-check:
+    runs-on: ubuntu-latest
+    container:
+      image: fedora:latest
+    steps:
+      - run: sudo dnf install -y astyle perltidy findutils git-core
+      - uses: actions/checkout@v2
+      - run: tools/check-syntax -f && git diff --exit-code
+  fedora-test:
+    runs-on: macos-latest
+    env:
+      FEDORA_VERSION: 33
+    steps:
+      - uses: actions/checkout@v2
+      # macOS sometimes allows symlinks to have permissions other than 777,
+      # so change all symlink perms to match the Linux convention. Otherwise
+      # the rsync run by Vagrant will complain that it can't copy over the
+      # perms.
+      - name: Fix symlink permissions
+        run: find . -type link -exec chmod -h 777 \{\} \;
+      - name: Create a Vagrant VM
+        run: vagrant up
+      - name: Run SELinux testsuite
+        run: vagrant ssh -- sudo make -C /root/testsuite test
