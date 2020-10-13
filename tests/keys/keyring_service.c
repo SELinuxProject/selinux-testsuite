@@ -91,15 +91,15 @@ int main(int argc, char **argv)
 		printf("\tKEYCTL_JOIN_SESSION_KEYRING newkey ID: 0x%x\n",
 		       newring);
 
-	private = add_key("user", "private", payload, strlen(payload),
-			  KEY_SPEC_SESSION_KEYRING);
+	private = add_key("user", "private", payload_private,
+			  sizeof(payload_private), KEY_SPEC_SESSION_KEYRING);
 	if (private < 0) {
 		fprintf(stderr, "Failed add_key(private): %s\n",
 			strerror(errno));
 		exit(6);
 	}
 
-	prime = add_key("user", "prime", payload, strlen(payload),
+	prime = add_key("user", "prime", payload_prime, sizeof(payload_prime),
 			KEY_SPEC_SESSION_KEYRING);
 	if (prime < 0) {
 		fprintf(stderr, "Failed add_key(prime): %s\n",
@@ -107,7 +107,7 @@ int main(int argc, char **argv)
 		exit(6);
 	}
 
-	base = add_key("user", "base", payload, strlen(payload),
+	base = add_key("user", "base", payload_base, sizeof(payload_base),
 		       KEY_SPEC_SESSION_KEYRING);
 	if (base < 0) {
 		fprintf(stderr, "Failed add_key(base): %s\n",
