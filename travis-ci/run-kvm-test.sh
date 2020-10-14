@@ -120,5 +120,17 @@ fi
 # our known_hosts. Also, we need to forward the project directory
 # so forks know where to go.
 #
+
+# First update to the latest kernel.
+ssh -tt -o StrictHostKeyChecking=no -o LogLevel=QUIET "root@$ipaddy" \
+    dnf install -y kernel
+
+# Then reboot.
+sudo virsh reboot fedoravm
+sleep 5
+
+while ! nc -w 10 -z "$ipaddy" 22; do sleep 0.5s; done
+
+# And run the testsuite.
 project_dir="$(basename "$TRAVIS_BUILD_DIR")"
 ssh -tt -o StrictHostKeyChecking=no -o LogLevel=QUIET "root@$ipaddy" "SELINUX_DIR=/root/$project_dir /root/$project_dir/$TEST_RUNNER"

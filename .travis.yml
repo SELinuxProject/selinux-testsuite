@@ -17,6 +17,7 @@ addons:
       - bridge-utils
       - libguestfs-tools
       - cpu-checker
+      - netcat
 
 before_install:
   # FYI: known good with HEAD at 8551fc60fc515cd290ba38ee8c758c1f4df52b56
