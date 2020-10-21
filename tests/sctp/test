@@ -35,6 +35,12 @@ BEGIN {
     else {
         $test_count = 75;
 
+        # Set up a GRE tunnel over loopback to ensure we have enough addresses
+        # for the ASCONF tests.
+        system "ip link add mygre type gretap local 127.0.0.1 remote 127.0.0.1";
+        system "ip addr add 10.123.123.123 dev mygre";
+        system "ip link set mygre up";
+
         # asconf parameter tests require two local non-loopback addresses.
         $ipaddress_list = `ip -o addr show up scope global`;
         $test_asconf    = 0;
@@ -908,5 +914,7 @@ if ($test_nft) {
     test_tables();
     system "nft -f $basedir/nftables-flush";
 }
+
+system "ip link del mygre";
 
 exit;
