@@ -226,6 +226,13 @@ int main(int argc, char **argv)
 			new_pri_addr_res->ai_addr)->sin6_scope_id);
 
 	/*
+	 * We can't do the sctp_bindx() calls too fast, otherwise the test
+	 * that checks if these are denied would fail. Therefore, sleep for
+	 * a bit to allow the client to catch up.
+	 */
+	sleep(1);
+
+	/*
 	 * Now call sctp_bindx(3) to add 'new_pri_addr'. This uses Dynamic
 	 * Address Reconfiguration by sending an asconf chunk with
 	 * SCTP_PARAM_ADD_IP set to the client.
