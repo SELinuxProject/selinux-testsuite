@@ -188,8 +188,8 @@ unconfined_runs_test(sctp_asconf_params_client_t)
 typeattribute sctp_asconf_params_client_t testdomain;
 typeattribute sctp_asconf_params_client_t sctpsocketdomain;
 allow sctp_asconf_params_client_t self:sctp_socket { create connect ioctl read getattr write getopt setopt };
+corenet_sctp_bind_all_nodes(sctp_asconf_params_client_t)
 corenet_inout_generic_node(sctp_asconf_params_client_t)
-corenet_sctp_bind_generic_node(sctp_asconf_params_client_t)
 corenet_inout_generic_if(sctp_asconf_params_client_t)
 
 # When running locally need this rule, else Client error 'Dynamic Address Reconfiguration'
@@ -206,8 +206,8 @@ unconfined_runs_test(sctp_asconf_deny_pri_addr_client_t)
 typeattribute sctp_asconf_deny_pri_addr_client_t testdomain;
 typeattribute sctp_asconf_deny_pri_addr_client_t sctpsocketdomain;
 allow sctp_asconf_deny_pri_addr_client_t self:sctp_socket { create connect ioctl read getattr write getopt setopt };
+corenet_sctp_bind_all_nodes(sctp_asconf_deny_pri_addr_client_t)
 corenet_inout_generic_node(sctp_asconf_deny_pri_addr_client_t)
-corenet_sctp_bind_generic_node(sctp_asconf_deny_pri_addr_client_t)
 corenet_inout_generic_if(sctp_asconf_deny_pri_addr_client_t)
 
 # net/sctp/sm_make_chunk.c sctp_process_asconf_param() SCTP_PARAM_ADD_IP and SCTP_PARAM_SET_PRIMARY
@@ -224,8 +224,8 @@ unconfined_runs_test(sctp_asconf_deny_param_add_client_t)
 typeattribute sctp_asconf_deny_param_add_client_t testdomain;
 typeattribute sctp_asconf_deny_param_add_client_t sctpsocketdomain;
 allow sctp_asconf_deny_param_add_client_t self:sctp_socket { create connect ioctl read getattr write getopt setopt };
+corenet_sctp_bind_all_nodes(sctp_asconf_deny_param_add_client_t)
 corenet_inout_generic_node(sctp_asconf_deny_param_add_client_t)
-corenet_sctp_bind_generic_node(sctp_asconf_deny_param_add_client_t)
 corenet_inout_generic_if(sctp_asconf_deny_param_add_client_t)
 
 # net/sctp/sm_make_chunk.c sctp_process_asconf_param() SCTP_PARAM_ADD_IP and SCTP_PARAM_SET_PRIMARY
