@@ -4,6 +4,7 @@ SBINDIR ?= $(PREFIX)/sbin
 POLDEV ?= $(PREFIX)/share/selinux/devel
 INCLUDEDIR ?= $(PREFIX)/include
 SELINUXFS ?= /sys/fs/selinux
+FILESYSTEMS ?= ext4 xfs jfs vfat
 
 export CFLAGS+=-g -O0 -Wall -D_GNU_SOURCE
 
@@ -16,6 +17,9 @@ POL_VERS := $(shell $(CHECKPOLICY) -V |cut -f 1 -d ' ')
 MOD_POL_VERS := $(shell $(CHECKMODULE) -V |cut -f 2 -d '-')
 MAX_KERNEL_POLICY := $(shell cat $(SELINUXFS)/policyvers)
 POL_TYPE := $(shell ./pol_detect $(SELINUXFS))
+
+# Filter out unavailable filesystems
+FILESYSTEMS := $(foreach fs,$(FILESYSTEMS),$(shell modprobe $(fs) && echo $(fs)))
 
 SUBDIRS:= domain_trans entrypoint execshare exectrace execute_no_trans \
 	fdreceive inherit link mkdir msg open ptrace readlink relabel rename \
@@ -111,7 +115,7 @@ SUBDIRS += lockdown
 endif
 
 ifeq ($(shell grep -q filesystem $(POLDEV)/include/support/all_perms.spt && echo true),true)
-SUBDIRS += filesystem
+SUBDIRS += $(addprefix filesystem/,$(FILESYSTEMS))
 ifeq ($(shell grep -q all_filesystem_perms.*watch $(POLDEV)/include/support/all_perms.spt && echo true),true)
 export CFLAGS += -DHAVE_FS_WATCH_PERM
 endif
@@ -119,7 +123,7 @@ endif
 
 ifeq ($(shell grep -q filesystem $(POLDEV)/include/support/all_perms.spt && echo true),true)
 ifneq ($(shell ./kvercmp $$(uname -r) 5.2),-1)
-SUBDIRS += fs_filesystem
+SUBDIRS += $(addprefix fs_filesystem/,$(FILESYSTEMS))
 endif
 endif
 

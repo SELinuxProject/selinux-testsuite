@@ -2,18 +2,25 @@
 use Test::More;
 
 # Load common subroutines.
-use File::Basename qw(dirname);
+use File::Basename qw(dirname basename);
 use Cwd qw(abs_path);
-use lib dirname( abs_path $0) . '/../filesystem';
+
+BEGIN {
+    $basedir = dirname($0);
+    $basedir = `cd $basedir && pwd`;
+    chomp($basedir);
+
+    # Some code in tests/filesystem is reused
+    $filesystem_dir = abs_path($basedir) . "/../filesystem";
+}
+use lib $filesystem_dir;
 use Filesystem
   qw(check_config udisks2_stop udisks2_restart get_loop_dev attach_dev make_fs mk_mntpoint_1 mk_mntpoint_2 cleanup cleanup1 reaper nfs_gen_opts);
 
 BEGIN {
-    $basedir = $0;
-    $basedir =~ s|(.*)/[^/]*|$1|;
-
-    # Some code in tests/filesystem is reused
-    $filesystem_dir = "$basedir/../filesystem";
+    # extract fs_type
+    $test_name = basename($basedir);
+    $fs_type   = $test_name ne "fs_filesystem" ? $test_name : " ";
 
     # Options: -v = Verbose, -e enable udisks(8) daemon, -f filesystem type
     $v              = " ";
@@ -23,8 +30,7 @@ BEGIN {
     $nfs_enabled    = 0;
     $vfat_enabled   = 0;
 
-    $i       = 0;
-    $fs_type = " ";
+    $i = 0;
     foreach $arg (@ARGV) {
         if ( $arg eq "-v" ) {
             $v = $arg;
@@ -133,15 +139,7 @@ BEGIN {
 print "Testing filesystem fs_type: $fs_type\n";
 
 # Generate an absolute path to a private mount
-$cwd = `pwd 2>/dev/null`;
-chomp($cwd);
-$private_path = "$cwd";
-if ( $basedir eq "." ) {
-    $private_path = "$cwd/mntpoint";
-}
-else {
-    $private_path = "$cwd/$basedir/mntpoint";
-}
+$private_path = abs_path($basedir) . "/mntpoint";
 
 # Keep a list of devices used for removal at end of test.
 $device_count = 0;
