@@ -121,15 +121,18 @@ fi
 # so forks know where to go.
 #
 
-# First update to the latest kernel.
-ssh -tt -o StrictHostKeyChecking=no -o LogLevel=QUIET "root@$ipaddy" \
-    dnf install -y kernel
+# Check if kernel-modules-$(uname -r) can be installed from repos,
+# otherwise update kernel and reboot.
+kernel_avail="$(ssh -tt -o StrictHostKeyChecking=no -q "root@$ipaddy" \
+    sh -c "dnf check-update kernel-modules-\$(uname -r) | wc -l")"
+if [ $kernel_avail -eq 0 ]; then
+    ssh -tt -o StrictHostKeyChecking=no -o LogLevel=QUIET "root@$ipaddy" \
+        dnf update -y kernel-core
 
-# Then reboot.
-sudo virsh reboot fedoravm
-sleep 5
-
-while ! nc -w 10 -z "$ipaddy" 22; do sleep 0.5s; done
+    sudo virsh reboot fedoravm
+    sleep 5
+    while ! nc -w 10 -z "$ipaddy" 22; do sleep 0.5s; done
+fi
 
 # And run the testsuite.
 project_dir="$(basename "$TRAVIS_BUILD_DIR")"

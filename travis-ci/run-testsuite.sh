@@ -16,7 +16,6 @@ pwd
 # the CI.
 setenforce 0
 
-dnf clean all -y
 dnf install -y \
     --allowerasing \
     --skip-broken \
