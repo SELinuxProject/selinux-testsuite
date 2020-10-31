@@ -112,6 +112,9 @@ BEGIN {
     }
     elsif ($vfat_enabled) {
 
+        # For setfilecon tests as not supported
+        $test_count -= 2;
+
         # For hooks.c may_create() FILESYSTEM__ASSOCIATE as not supported
         $test_count -= 3;
 
@@ -243,15 +246,12 @@ if ($test_type_trans) {
     ok( $result eq 0 );
 }
 
-print "Creating 'test_file' and changing its context via setfilecon(3)\n";
-$result =
-  system(
+if ( not $vfat_enabled ) {
+    print "Creating 'test_file' and changing its context via setfilecon(3)\n";
+    $result =
+      system(
 "runcon -t test_filesystem_t $filesystem_dir/create_file_change_context -t test_filesystem_filecon_t -f $private_path/mp1/test_file $v"
-  );
-if ($vfat_enabled) {
-    ok( $result >> 8 eq 95 );    # EOPNOTSUPP
-}
-else {
+      );
     ok( $result eq 0 );
 }
 
@@ -1010,16 +1010,16 @@ if ( not $nfs_enabled ) {
     ok( $result eq 0 );
 
     # Create file with 'test_filesystem_filecon_t' context
-    print "Creating test file $basedir/mntpoint/mp1/test_file\n";
-    $result =
-      system(
+    if ( not $vfat_enabled ) {
+        print "Creating test file $basedir/mntpoint/mp1/test_file\n";
+        $result =
+          system(
 "runcon -t test_filesystem_context_t $filesystem_dir/create_file_change_context -t test_filesystem_filecon_t -f $private_path/mp1/test_file $v"
-      );
-    if ($vfat_enabled) {
-        ok( $result >> 8 eq 95 );    # EOPNOTSUPP
+          );
+        ok( $result eq 0 );
     }
     else {
-        ok( $result eq 0 );
+        system("touch $private_path/mp1/test_file");
     }
 
     print "Unmount filesystem from $basedir/mntpoint/mp1\n";
