@@ -123,9 +123,9 @@ fi
 
 # Check if kernel-modules-$(uname -r) can be installed from repos,
 # otherwise update kernel and reboot.
-kernel_avail="$(ssh -tt -o StrictHostKeyChecking=no -q "root@$ipaddy" \
-    sh -c "dnf check-update kernel-modules-\$(uname -r) | wc -l")"
-if [ $kernel_avail -eq 0 ]; then
+if ! echo "dnf -q info --available kernel-modules-\$(uname -r)" | \
+    ssh -o StrictHostKeyChecking=no -q "root@$ipaddy"
+then
     ssh -tt -o StrictHostKeyChecking=no -o LogLevel=QUIET "root@$ipaddy" \
         dnf update -y kernel-core
 
