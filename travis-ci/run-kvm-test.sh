@@ -36,8 +36,9 @@ VCPUS="$(nproc)"
 #  - https://alt.fedoraproject.org/en/verify.html
 cd "$HOME"
 wget -r -nd -np -l 1 -H -e robots=off -A "*.raw.xz,*-CHECKSUM" "$BASE_URL"
-if [ $(ls -1q *.raw.xz | wc -l) -ne 1 ]; then
-    echo "$0: too many image files downloaded!" 1>&2
+latest_image="$(ls -1q *.raw.xz | tail -n 1)"
+if [ -z "$latest_image" ]; then
+    echo "$0: no image file downloaded!" 1>&2
     exit 1
 fi
 
@@ -49,7 +50,8 @@ fi
 sha256sum --ignore-missing -c ./*-CHECKSUM
 
 # Extract the image
-unxz -T0 *.raw.xz
+unxz -T0 "$latest_image"
+latest_image="${latest_image%.xz}"
 
 # Search is needed for $HOME so virt service can access the image file.
 chmod a+x "$HOME"
@@ -60,7 +62,7 @@ chmod a+x "$HOME"
 #   - Enable passwordless login
 #     - Force a relabel to fix labels on ssh keys
 #
-sudo virt-sysprep -a *.raw \
+sudo virt-sysprep -a "$latest_image" \
   --root-password password:123456 \
   --hostname fedoravm \
   --append-line '/etc/ssh/sshd_config:PermitRootLogin yes' \
@@ -81,7 +83,7 @@ sudo virt-install \
   --name fedoravm \
   --memory $MEMORY \
   --vcpus $VCPUS \
-  --disk *.raw \
+  --disk "$latest_image" \
   --import --noautoconsole
 
 #
