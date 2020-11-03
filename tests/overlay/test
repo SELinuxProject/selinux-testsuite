@@ -34,10 +34,10 @@ sub getfilecon {
 
 sub access {
     my ( $filename, $accesstype ) = @_;
-    $output =
-`runcon -t test_overlay_client_t -l s0:c10,c20 $basedir/access $filename $accesstype`;
-    $output =~ s/\n//g;
-    return $output;
+    $result = system(
+"runcon -t test_overlay_client_t -l s0:c10,c20 $basedir/access $filename $accesstype"
+    );
+    return $result >> 8;
 }
 
 sub xattr_test_setup {
@@ -496,63 +496,63 @@ sub test_52 {
 sub test_60 {
     print "Check read access on readfile, should succeed.\n";
     $result = access( "$basedir/container1/merged/readfile", "R_OK" );
-    ok( $result eq "True" );
+    ok( $result eq 0 );
     return;
 }
 
 sub test_61 {
     print "Check read access on writefile, should succeed.\n";
     $result = access( "$basedir/container1/merged/writefile", "R_OK" );
-    ok( $result eq "True" );
+    ok( $result eq 0 );
     return;
 }
 
 sub test_62 {
     print "Check read access on noaccessfile, should fail.\n";
     $result = access( "$basedir/container1/merged/noaccessfile", "R_OK" );
-    ok( $result eq "False" );
+    ok( $result eq 13 );
     return;
 }
 
 sub test_63 {
     print "Check write access on readfile, should fail.\n";
     $result = access( "$basedir/container1/merged/readfile", "W_OK" );
-    ok( $result eq "False" );
+    ok( $result eq 13 );
     return;
 }
 
 sub test_63_ctx {
     print "Check write access on readfile, should succeed.\n";
     $result = access( "$basedir/container1/merged/readfile", "W_OK" );
-    ok( $result eq "True" );
+    ok( $result eq 0 );
     return;
 }
 
 sub test_64 {
     print "Check write access on writefile, should succeed.\n";
     $result = access( "$basedir/container1/merged/writefile", "W_OK" );
-    ok( $result eq "True" );
+    ok( $result eq 0 );
     return;
 }
 
 sub test_65 {
     print "Check write access on noaccessfile, should fail.\n";
     $result = access( "$basedir/container1/merged/noaccessfile", "W_OK" );
-    ok( $result eq "False" );
+    ok( $result eq 13 );
     return;
 }
 
 sub test_66 {
     print "Check read to read null device should fail\n";
     $result = access( "$basedir/container1/merged/null_read", "R_OK" );
-    ok( $result eq "True" );
+    ok( $result eq 0 );
     return;
 }
 
 sub test_67 {
     print "Check write to read null device should fail\n";
     $result = access( "$basedir/container1/merged/null_read", "W_OK" );
-    ok( $result eq "False" );
+    ok( $result eq 13 );
     return;
 }
 

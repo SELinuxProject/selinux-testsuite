@@ -1,7 +1,0 @@
-#!/usr/bin/python3
-import os, sys
-try:
-        acc=eval("os.%s" % sys.argv[2])
-        print(os.access(sys.argv[1], acc))
-except AttributeError as e:
-        print(e)
