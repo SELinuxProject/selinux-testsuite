@@ -107,7 +107,9 @@ SUBDIRS += tun_tap
 endif
 
 ifeq ($(shell grep -q perf_event $(POLDEV)/include/support/all_perms.spt && echo true),true)
+ifeq ($(shell grep -q perfmon $(POLDEV)/include/support/all_perms.spt && echo true),true)
 SUBDIRS += perf_event
+endif
 endif
 
 ifeq ($(shell grep -q lockdown $(POLDEV)/include/support/all_perms.spt && echo true),true)

@@ -56,8 +56,7 @@ ok( $result eq 0 );
 if ($sys_admin) {
 
     # Deny capability { sys_admin } - EACCES perf_event_open(2)
-    $result =
-      system "runcon -t test_perf_no_admin_t $basedir/perf_event $v 2>&1";
+    $result = system "runcon -t test_perf_no_cap_t $basedir/perf_event $v 2>&1";
     ok( $result >> 8 eq 1 );
 }
 
