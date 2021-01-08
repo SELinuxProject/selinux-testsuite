@@ -135,6 +135,10 @@ SUBDIRS += watchkey
 endif
 endif
 
+ifeq ($(shell test -e $(INCLUDEDIR)/linux/userfaultfd.h && echo true),true)
+SUBDIRS += userfaultfd
+endif
+
 ifeq ($(DISTRO),RHEL4)
     SUBDIRS:=$(filter-out bounds dyntrace dyntrans inet_socket mmap nnp_nosuid overlay unix_socket, $(SUBDIRS))
 endif

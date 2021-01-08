@@ -1,0 +1,48 @@
+#!/usr/bin/perl
+
+use Test::More;
+
+BEGIN {
+    $basedir = $0;
+    $basedir =~ s|(.*)/[^/]*|$1|;
+
+    $result = system
+"runcon -t test_notransition_uffd_t $basedir/userfaultfd test_notransition_uffd_t";
+    if ( $result >> 8 == 8 ) {
+        plan skip_all => "SELinux support for userfaultfd not present";
+    }
+    else {
+        plan tests => 9;
+    }
+}
+
+$result = system
+"runcon -t test_notransition_uffd_t $basedir/userfaultfd test_notransition_uffd_t";
+ok( $result eq 0 );
+
+$result = system "runcon -t test_uffd_t $basedir/userfaultfd uffd_t";
+ok( $result eq 0 );
+
+$result = system "runcon -t test_nocreate_uffd_t $basedir/userfaultfd uffd_t";
+ok( $result >> 8 eq 1 );
+
+$result = system "runcon -t test_nogetattr_uffd_t $basedir/userfaultfd uffd_t";
+ok( $result >> 8 eq 2 );
+
+$result = system "runcon -t test_noioctl_uffd_t $basedir/userfaultfd uffd_t";
+ok( $result >> 8 eq 4 );
+
+$result = system "runcon -t test_api_ioctl_uffd_t $basedir/userfaultfd uffd_t";
+ok( $result >> 8 eq 5 );
+
+$result = system "runcon -t test_noread_uffd_t $basedir/userfaultfd uffd_t";
+ok( $result >> 8 eq 6 );
+
+$result =
+  system "runcon -t test_register_ioctl_uffd_t $basedir/userfaultfd uffd_t";
+ok( $result >> 8 eq 7 );
+
+$result = system "runcon -t test_copy_ioctl_uffd_t $basedir/userfaultfd uffd_t";
+ok( $result eq 0 );
+
+exit;

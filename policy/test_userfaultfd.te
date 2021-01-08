@@ -1,0 +1,51 @@
+#################################
+#
+# Policy for testing userfaultfd operations
+#
+
+attribute test_uffd_domain;
+
+type uffd_t;
+
+define(`userfaultfd_domain_type',`
+	type $1;
+	domain_type($1)
+	typeattribute $1 test_uffd_domain;
+	typeattribute $1 testdomain;
+')
+
+# Domain for confirming that without transition rule the userfaultfd
+# gets process' context
+userfaultfd_domain_type(test_notransition_uffd_t)
+
+# Domain for process that has all the permissions to use userfaultfd
+userfaultfd_domain_type(test_uffd_t)
+
+# Domain for process that cannot create userfaultfd
+userfaultfd_domain_type(test_nocreate_uffd_t)
+
+# Domain for process that cannot get attributed of userfaultfd
+userfaultfd_domain_type(test_nogetattr_uffd_t)
+
+# Domain for process which can only use UFFDIO_API ioctl on userfaultfd
+userfaultfd_domain_type(test_api_ioctl_uffd_t)
+
+# Domain for process which can use UFFDIO_API and UFFDIO_REGISTER ioctls
+# on userfaultfd
+userfaultfd_domain_type(test_register_ioctl_uffd_t)
+
+# Domain for process which can use UFFDIO_API, UFFDIO_REGISTER and
+# UFFDIO_COPY ioctls on userfaultfd
+userfaultfd_domain_type(test_copy_ioctl_uffd_t)
+
+# Domain for proces that cannot perform any ioctl operations on userfaultfd
+userfaultfd_domain_type(test_noioctl_uffd_t)
+
+# Domain for process that cannot read from userfaultfd
+userfaultfd_domain_type(test_noread_uffd_t)
+
+# Allow all of these domains to be executed
+#allow test_uffd_domain test_file_t:file { entrypoint map execute };
+miscfiles_domain_entry_test_files(test_uffd_domain)
+unconfined_runs_test(test_uffd_domain)
+userdom_sysadm_entry_spec_domtrans_to(test_uffd_domain)
