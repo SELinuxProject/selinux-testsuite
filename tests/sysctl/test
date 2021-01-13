@@ -3,21 +3,30 @@
 use Test;
 BEGIN { plan tests => 4 }
 
-$sysctl = "kernel.modprobe";
+$sysctl = "vm.swappiness";
+$val1   = "20";
+$val2   = "21";
+$val3   = "22";
 $oldval = `/sbin/sysctl -n $sysctl`;
+
+# set to a known value
+system "/sbin/sysctl -w $sysctl=$val1";
 
 $result = system "runcon -t test_sysctl_t -- /sbin/sysctl -n $sysctl 2>&1";
 ok( $result, 0 );
 
 $result =
-  system "runcon -t test_sysctl_t -- /sbin/sysctl -w $sysctl=$oldval 2>&1";
+  system "runcon -t test_sysctl_t -- /sbin/sysctl -w $sysctl=$val2 2>&1";
 ok( $result, 0 );
 
 $result = system "runcon -t test_nosysctl_t -- /sbin/sysctl -n $sysctl 2>&1";
 ok($result);
 
 $result =
-  system "runcon -t test_nosysctl_t -- /sbin/sysctl -w $sysctl=foobar 2>&1";
+  system "runcon -t test_nosysctl_t -- /sbin/sysctl -w $sysctl=$val3 2>&1";
 ok($result);
+
+# restore original value
+system "/sbin/sysctl -w $sysctl=$oldval";
 
 exit;
