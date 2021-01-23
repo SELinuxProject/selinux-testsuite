@@ -44,8 +44,10 @@ userfaultfd_domain_type(test_noioctl_uffd_t)
 # Domain for process that cannot read from userfaultfd
 userfaultfd_domain_type(test_noread_uffd_t)
 
+# userfaultfd(2) requires CAP_SYS_PTRACE
+allow test_uffd_domain self:capability { sys_ptrace };
+
 # Allow all of these domains to be executed
-#allow test_uffd_domain test_file_t:file { entrypoint map execute };
 miscfiles_domain_entry_test_files(test_uffd_domain)
 unconfined_runs_test(test_uffd_domain)
 userdom_sysadm_entry_spec_domtrans_to(test_uffd_domain)
