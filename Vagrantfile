@@ -33,8 +33,18 @@ Vagrant.configure("2") do |config|
     v.memory = 4096
   end
 
+  if ENV['KERNEL_SECNEXT'] == '1'
+    dnf_opts = '--nogpgcheck --releasever rawhide --repofrompath kernel-secnext,https://repo.paul-moore.com/rawhide/x86_64'
+    kernel_pkgs = 'kernel-devel kernel-modules'
+    reboot_cmd = 'reboot'
+  else
+    dnf_opts = ''
+    kernel_pkgs = 'kernel-devel-"$(uname -r)" kernel-modules-"$(uname -r)"'
+    reboot_cmd = ''
+  end
+
   config.vm.provision :shell, inline: <<SCRIPT
-    dnf install -y \
+    dnf install -y #{dnf_opts} \
       --allowerasing \
       --skip-broken \
       make \
@@ -59,7 +69,7 @@ Vagrant.configure("2") do |config|
       e2fsprogs \
       jfsutils \
       dosfstools \
-      kernel-devel-"$(uname -r)" \
-      kernel-modules-"$(uname -r)"
+      #{kernel_pkgs}
+    #{reboot_cmd}
 SCRIPT
 end

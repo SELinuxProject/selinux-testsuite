@@ -11,8 +11,14 @@ jobs:
       - run: tools/check-syntax -f && git diff --exit-code
   fedora-test:
     runs-on: macos-latest
+    strategy:
+      matrix:
+        env:
+          - { version: 33, secnext: 0 }
+          - { version: 33, secnext: 1 }
     env:
-      FEDORA_VERSION: 33
+      FEDORA_VERSION: ${{ matrix.env.version }}
+      KERNEL_SECNEXT: ${{ matrix.env.secnext }}
     steps:
       - uses: actions/checkout@v2
       # macOS sometimes allows symlinks to have permissions other than 777,
