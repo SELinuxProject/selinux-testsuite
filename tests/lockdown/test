@@ -3,40 +3,45 @@
 use Test;
 BEGIN { plan tests => 8 }
 
+$integrity_cmd       = "head -c 1 /sys/kernel/debug/sched_features";
+$confidentiality_cmd = "head -c 1 /sys/kernel/debug/tracing/tracing_on";
+
 # everything is allowed
 $result =
-  system "runcon -t test_lockdown_all_t -- head /dev/mem > /dev/null 2>&1";
+  system "runcon -t test_lockdown_all_t -- $integrity_cmd > /dev/null 2>&1";
 ok( $result, 0 );
 
 $result =
-  system "runcon -t test_lockdown_all_t -- head /proc/kcore > /dev/null 2>&1";
+  system
+  "runcon -t test_lockdown_all_t -- $confidentiality_cmd > /dev/null 2>&1";
 ok( $result, 0 );
 
 # only integrity operations allowed
 $result = system
-  "runcon -t test_lockdown_integrity_t -- head /dev/mem > /dev/null 2>&1";
+  "runcon -t test_lockdown_integrity_t -- $integrity_cmd > /dev/null 2>&1";
 ok( $result, 0 );
 
 $result = system
-  "runcon -t test_lockdown_integrity_t -- head /proc/kcore > /dev/null 2>&1";
+"runcon -t test_lockdown_integrity_t -- $confidentiality_cmd > /dev/null 2>&1";
 ok($result);
 
 # only confidentiality operations allowed
 $result = system
-  "runcon -t test_lockdown_confidentiality_t -- head /dev/mem > /dev/null 2>&1";
+"runcon -t test_lockdown_confidentiality_t -- $integrity_cmd > /dev/null 2>&1";
 ok($result);
 
 $result = system
-"runcon -t test_lockdown_confidentiality_t -- head /proc/kcore > /dev/null 2>&1";
+"runcon -t test_lockdown_confidentiality_t -- $confidentiality_cmd > /dev/null 2>&1";
 ok( $result, 0 );
 
 # nothing is allowed
 $result =
-  system "runcon -t test_lockdown_none_t -- head /dev/mem > /dev/null 2>&1";
+  system "runcon -t test_lockdown_none_t -- $integrity_cmd > /dev/null 2>&1";
 ok($result);
 
 $result =
-  system "runcon -t test_lockdown_none_t -- head /proc/kcore > /dev/null 2>&1";
+  system
+  "runcon -t test_lockdown_none_t -- $confidentiality_cmd > /dev/null 2>&1";
 ok($result);
 
 exit;

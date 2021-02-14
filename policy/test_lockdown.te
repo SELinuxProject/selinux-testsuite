@@ -12,8 +12,8 @@ unconfined_runs_test(test_lockdown_all_t)
 typeattribute test_lockdown_all_t lockdowndomain;
 typeattribute test_lockdown_all_t testdomain;
 
-dev_read_raw_memory(test_lockdown_all_t)
-kernel_read_core_if(test_lockdown_all_t)
+testsuite_read_debugfs_nolockdown(test_lockdown_all_t)
+testsuite_read_tracefs_nolockdown(test_lockdown_all_t)
 corecmd_bin_entry_type(test_lockdown_all_t)
 allow test_lockdown_all_t self:lockdown integrity;
 allow test_lockdown_all_t self:lockdown confidentiality;
@@ -25,8 +25,8 @@ unconfined_runs_test(test_lockdown_integrity_t)
 typeattribute test_lockdown_integrity_t lockdowndomain;
 typeattribute test_lockdown_integrity_t testdomain;
 
-dev_read_raw_memory(test_lockdown_integrity_t)
-kernel_read_core_if(test_lockdown_integrity_t)
+testsuite_read_debugfs_nolockdown(test_lockdown_integrity_t)
+testsuite_read_tracefs_nolockdown(test_lockdown_integrity_t)
 corecmd_bin_entry_type(test_lockdown_integrity_t)
 allow test_lockdown_integrity_t self:lockdown integrity;
 
@@ -37,8 +37,8 @@ unconfined_runs_test(test_lockdown_confidentiality_t)
 typeattribute test_lockdown_confidentiality_t lockdowndomain;
 typeattribute test_lockdown_confidentiality_t testdomain;
 
-dev_read_raw_memory(test_lockdown_confidentiality_t)
-kernel_read_core_if(test_lockdown_confidentiality_t)
+testsuite_read_debugfs_nolockdown(test_lockdown_confidentiality_t)
+testsuite_read_tracefs_nolockdown(test_lockdown_confidentiality_t)
 corecmd_bin_entry_type(test_lockdown_confidentiality_t)
 allow test_lockdown_confidentiality_t self:lockdown confidentiality;
 
@@ -49,6 +49,6 @@ unconfined_runs_test(test_lockdown_none_t)
 typeattribute test_lockdown_none_t lockdowndomain;
 typeattribute test_lockdown_none_t testdomain;
 
-dev_read_raw_memory(test_lockdown_none_t)
-kernel_read_core_if(test_lockdown_none_t)
+testsuite_read_debugfs_nolockdown(test_lockdown_none_t)
+testsuite_read_tracefs_nolockdown(test_lockdown_none_t)
 corecmd_bin_entry_type(test_lockdown_none_t)
