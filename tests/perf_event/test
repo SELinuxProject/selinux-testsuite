@@ -48,45 +48,56 @@ BEGIN {
     plan tests => $test_count;
 }
 
+$event_id = `cat /sys/kernel/debug/tracing/events/ftrace/function/id`;
+chomp($event_id);
+
 # perf_event { open cpu kernel tracepoint read write };
 print "Test perf_event\n";
-$result = system "runcon -t test_perf_t $basedir/perf_event $v";
+$result = system "runcon -t test_perf_t $basedir/perf_event $v $event_id";
 ok( $result eq 0 );
 
 if ($sys_admin) {
 
     # Deny capability { sys_admin } - EACCES perf_event_open(2)
-    $result = system "runcon -t test_perf_no_cap_t $basedir/perf_event $v 2>&1";
+    $result = system
+      "runcon -t test_perf_no_cap_t $basedir/perf_event $v $event_id 2>&1";
     ok( $result >> 8 eq 1 );
 }
 
 # Deny perf_event { open } - EACCES perf_event_open(2)
-$result = system "runcon -t test_perf_no_open_t $basedir/perf_event $v 2>&1";
+$result =
+  system "runcon -t test_perf_no_open_t $basedir/perf_event $v $event_id 2>&1";
 ok( $result >> 8 eq 1 );
 
 # Deny perf_event { cpu } - EACCES perf_event_open(2)
-$result = system "runcon -t test_perf_no_cpu_t $basedir/perf_event $v 2>&1";
+$result =
+  system "runcon -t test_perf_no_cpu_t $basedir/perf_event $v $event_id 2>&1";
 ok( $result >> 8 eq 1 );
 
 # Deny perf_event { kernel } - EACCES perf_event_open(2)
-$result = system "runcon -t test_perf_no_kernel_t $basedir/perf_event $v 2>&1";
+$result = system
+  "runcon -t test_perf_no_kernel_t $basedir/perf_event $v $event_id 2>&1";
 ok( $result >> 8 eq 1 );
 
 # Deny perf_event { tracepoint } - EACCES perf_event_open(2)
 $result =
-  system "runcon -t test_perf_no_tracepoint_t $basedir/perf_event $v 2>&1";
+  system
+  "runcon -t test_perf_no_tracepoint_t $basedir/perf_event $v $event_id 2>&1";
 ok( $result >> 8 eq 1 );
 
 # Deny perf_event { read } - EACCES mmap(2)
-$result = system "runcon -t test_perf_no_read_t $basedir/perf_event -m $v 2>&1";
+$result = system
+  "runcon -t test_perf_no_read_t $basedir/perf_event -m $v $event_id 2>&1";
 ok( $result >> 8 eq 6 );
 
 # Deny perf_event { read } - EACCES read(2)
-$result = system "runcon -t test_perf_no_read_t $basedir/perf_event -f $v 2>&1";
+$result = system
+  "runcon -t test_perf_no_read_t $basedir/perf_event -f $v $event_id 2>&1";
 ok( $result >> 8 eq 7 );
 
 # Deny perf_event { write } - EACCES ioctl(2) write
-$result = system "runcon -t test_perf_no_write_t $basedir/perf_event $v 2>&1";
+$result =
+  system "runcon -t test_perf_no_write_t $basedir/perf_event $v $event_id 2>&1";
 ok( $result >> 8 eq 2 );
 
 exit;

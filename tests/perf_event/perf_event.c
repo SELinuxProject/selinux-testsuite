@@ -20,8 +20,9 @@ enum {
 static void print_usage(char *progname)
 {
 	fprintf(stderr,
-		"usage:  %s [-f|-m] [-v]\n"
+		"usage:  %s [-f|-m] [-v] EVENT_ID\n"
 		"Where:\n\t"
+		"EVENT_ID  target ftrace event ID\n\n\t"
 		"-f  Read perf_event info using read(2)\n\t"
 		"-m  Read perf_event info using mmap(2)\n\t"
 		"    Default is to use read(2) and mmap(2)\n\t"
@@ -39,7 +40,7 @@ static long perf_event_open(struct perf_event_attr *hw_event, pid_t pid,
 int main(int argc, char **argv)
 {
 	int opt, result, page_size, mmap_size, fd;
-	long long count;
+	long long count, event_id;
 	bool verbose = false;
 	char *context;
 	void *base;
@@ -64,6 +65,13 @@ int main(int argc, char **argv)
 		}
 	}
 
+	if ((argc - optind) != 1)
+		print_usage(argv[0]);
+
+	event_id = atoll(argv[optind]);
+	if (event_id < 0)
+		print_usage(argv[0]);
+
 	if (verbose) {
 		result = getcon(&context);
 		if (result < 0) {
@@ -76,9 +84,9 @@ int main(int argc, char **argv)
 
 	/* Test perf_event { open cpu kernel tracepoint } */
 	memset(&pe_attr, 0, sizeof(struct perf_event_attr));
-	pe_attr.type = PERF_TYPE_HARDWARE | PERF_TYPE_TRACEPOINT;
+	pe_attr.type = PERF_TYPE_TRACEPOINT;
 	pe_attr.size = sizeof(struct perf_event_attr);
-	pe_attr.config = PERF_COUNT_HW_INSTRUCTIONS;
+	pe_attr.config = event_id;
 	pe_attr.disabled = 1;
 	pe_attr.exclude_hv = 1;
 
