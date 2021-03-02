@@ -6,7 +6,7 @@ BEGIN {
     $basedir =~ s|(.*)/[^/]*|$1|;
 
     $test_count = 8;
-    $sys_admin  = 0;
+    $capability = 0;
 
     # allow info to be shown during tests
     $v = $ARGV[0];
@@ -21,9 +21,9 @@ BEGIN {
 
     $level = `cat /proc/sys/kernel/perf_event_paranoid`;
     chomp($level);
-    if ( $level >= 2 ) {    # These tests require CAP_SYS_ADMIN
+    if ( $level >= 2 ) {    # These tests require CAP_PERFMON
         $test_count += 1;
-        $sys_admin = 1;
+        $capability = 1;
     }
 
     if ( $v eq "-v" ) {
@@ -56,9 +56,9 @@ print "Test perf_event\n";
 $result = system "runcon -t test_perf_t $basedir/perf_event $v $event_id";
 ok( $result eq 0 );
 
-if ($sys_admin) {
+if ($capability) {
 
-    # Deny capability { sys_admin } - EACCES perf_event_open(2)
+    # Deny capability { perfmon } - EACCES perf_event_open(2)
     $result = system
       "runcon -t test_perf_no_cap_t $basedir/perf_event $v $event_id 2>&1";
     ok( $result >> 8 eq 1 );
