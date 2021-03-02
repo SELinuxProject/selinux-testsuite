@@ -82,7 +82,7 @@ int main(int argc, char **argv)
 	pe_attr.disabled = 1;
 	pe_attr.exclude_hv = 1;
 
-	fd = perf_event_open(&pe_attr, -1, 1, -1, 0);
+	fd = perf_event_open(&pe_attr, -1, 0, -1, 0);
 	if (fd < 0) {
 		fprintf(stderr, "Failed perf_event_open(): %s\n",
 			strerror(errno));
