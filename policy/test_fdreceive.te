@@ -16,13 +16,11 @@ files_type(test_fdreceive_file2_t)
 # Domain for client process.
 type test_fdreceive_client_t;
 testsuite_domain_type(test_fdreceive_client_t)
-unconfined_runs_test(test_fdreceive_client_t)
 typeattribute test_fdreceive_client_t fdreceivedomain;
 
 # Domain for second client process.
 type test_fdreceive_client2_t;
 testsuite_domain_type(test_fdreceive_client2_t)
-unconfined_runs_test(test_fdreceive_client2_t)
 typeattribute test_fdreceive_client2_t fdreceivedomain;
 
 # Domain for server process.
@@ -30,7 +28,6 @@ typeattribute test_fdreceive_client2_t fdreceivedomain;
 # Can access test file, not second test file.
 type test_fdreceive_server_t;
 testsuite_domain_type(test_fdreceive_server_t);
-unconfined_runs_test(test_fdreceive_server_t)
 typeattribute test_fdreceive_server_t fdreceivedomain;
 
 # Allow all of these domains to be entered from the sysadm domain.

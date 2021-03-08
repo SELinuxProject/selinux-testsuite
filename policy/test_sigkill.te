@@ -8,7 +8,6 @@ attribute killdomain;
 # Domain for process that receives the signals.
 type test_kill_server_t;
 testsuite_domain_type(test_kill_server_t)
-unconfined_runs_test(test_kill_server_t)
 typeattribute test_kill_server_t killdomain;
 
 # For writing to flag file:
@@ -17,28 +16,24 @@ allow test_kill_server_t test_file_t:fifo_file rw_file_perms;
 # Domain for process that is allowed to send sigkill.
 type test_kill_sigkill_t;
 testsuite_domain_type(test_kill_sigkill_t)
-unconfined_runs_test(test_kill_sigkill_t)
 typeattribute test_kill_sigkill_t killdomain;
 allow test_kill_sigkill_t test_kill_server_t:process sigkill;
 
 # Domain for process that is allowed to send sigstop.
 type test_kill_sigstop_t;
 testsuite_domain_type(test_kill_sigstop_t)
-unconfined_runs_test(test_kill_sigstop_t)
 typeattribute test_kill_sigstop_t killdomain;
 allow test_kill_sigstop_t test_kill_server_t:process sigstop;
 
 # Domain for process that is allowed to send sigchld.
 type test_kill_sigchld_t;
 testsuite_domain_type(test_kill_sigchld_t)
-unconfined_runs_test(test_kill_sigchld_t)
 typeattribute test_kill_sigchld_t killdomain;
 allow test_kill_sigchld_t test_kill_server_t:process sigchld;
 
 # Domain for process that is allowed to send other signals.
 type test_kill_signal_t;
 testsuite_domain_type(test_kill_signal_t)
-unconfined_runs_test(test_kill_signal_t)
 typeattribute test_kill_signal_t killdomain;
 
 allow test_kill_signal_t test_kill_server_t:process signal;

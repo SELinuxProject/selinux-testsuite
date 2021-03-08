@@ -8,6 +8,21 @@ policy_module(test_policy,1.0.0)
 
 attribute testsuite_domain;
 
+optional_policy(`
+	gen_require(`
+		type unconfined_t;
+		role unconfined_r;
+	')
+
+	# Transition from the caller to the test domain.
+	allow unconfined_t testsuite_domain:process transition;
+	role unconfined_r types testsuite_domain;
+	# Report back from the test domain to the caller.
+	allow testsuite_domain unconfined_t:fd use;
+	allow testsuite_domain unconfined_t:fifo_file { read write ioctl getattr };
+	allow testsuite_domain unconfined_t:process { sigchld };
+')
+
 gen_require(`
 	role sysadm_r;
 ')
@@ -18,6 +33,10 @@ role sysadm_r types testsuite_domain;
 # Allow the test domains to access the sysadm terminal.
 # This allows read and write sysadm ttys and ptys.
 term_use_all_terms(testsuite_domain)
+
+# Allow the test domain to use leaked fd from init/init scripts
+allow testsuite_domain init_t:fd use;
+allow testsuite_domain initrc_t:fd use;
 
 # Allow the test domains to access the test directory and files
 # even if they are not root owned.

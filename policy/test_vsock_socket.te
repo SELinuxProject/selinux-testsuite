@@ -9,7 +9,6 @@ define(`vsock_server', `
 # Domain for server process.
 type test_vsock_server_$1_t;
 testsuite_domain_type(test_vsock_server_$1_t)
-unconfined_runs_test(test_vsock_server_$1_t)
 typeattribute test_vsock_server_$1_t vsocksocketdomain;
 
 # Permissions of the server process.
@@ -23,7 +22,6 @@ define(`vsock_client', `
 # Domain for stream client process.
 type test_vsock_client_$1_t;
 testsuite_domain_type(test_vsock_client_$1_t)
-unconfined_runs_test(test_vsock_client_$1_t)
 typeattribute test_vsock_client_$1_t vsocksocketdomain;
 
 # client can connect to the server via the socket file or via abstract sockets.

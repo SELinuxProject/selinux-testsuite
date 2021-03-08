@@ -9,7 +9,6 @@ attribute test_setsched_d;
 # Domain for the target process
 type test_setsched_target_t;
 testsuite_domain_type(test_setsched_target_t)
-unconfined_runs_test(test_setsched_target_t)
 corecmd_shell_entry_type(test_setsched_target_t)
 corecmd_exec_bin(test_setsched_target_t)
 typeattribute test_setsched_target_t test_setsched_d;
@@ -20,13 +19,11 @@ allow test_setsched_target_t test_file_t:fifo_file rw_file_perms;
 # Domain that can change the target's priority and scheduling policy.
 type test_setsched_yes_t;
 testsuite_domain_type(test_setsched_yes_t)
-unconfined_runs_test(test_setsched_yes_t)
 typeattribute test_setsched_yes_t test_setsched_d;
 
 # Domain that cannot change the target's priority or scheduling policy.
 type test_setsched_no_t;
 testsuite_domain_type(test_setsched_no_t)
-unconfined_runs_test(test_setsched_no_t)
 typeattribute test_setsched_no_t test_setsched_d;
 
 # Allow domain to be entered from the sysadm domain.

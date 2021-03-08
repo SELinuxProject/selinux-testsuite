@@ -51,7 +51,6 @@ allow sctpsocketdomain test_file_t:fifo_file rw_file_perms;
 #
 type test_sctp_server_t;
 testsuite_domain_type(test_sctp_server_t)
-unconfined_runs_test(test_sctp_server_t)
 typeattribute test_sctp_server_t sctpsocketdomain;
 allow test_sctp_server_t self:sctp_socket create_stream_socket_perms;
 allow test_sctp_server_t netlabel_sctp_peer_t:peer { recv };
@@ -71,7 +70,6 @@ dontaudit test_sctp_server_t self:udp_socket { getattr connect };
 #
 type test_sctp_client_t;
 testsuite_domain_type(test_sctp_client_t)
-unconfined_runs_test(test_sctp_client_t)
 typeattribute test_sctp_client_t sctpsocketdomain;
 allow test_sctp_client_t self:sctp_socket create_stream_socket_perms;
 allow test_sctp_server_t test_sctp_client_t:peer { recv };
@@ -85,7 +83,6 @@ corenet_inout_generic_if(test_sctp_client_t)
 #
 type test_sctp_deny_peer_client_t;
 testsuite_domain_type(test_sctp_deny_peer_client_t)
-unconfined_runs_test(test_sctp_deny_peer_client_t)
 typeattribute test_sctp_deny_peer_client_t sctpsocketdomain;
 allow test_sctp_deny_peer_client_t self:sctp_socket create_stream_socket_perms;
 corenet_inout_generic_node(test_sctp_deny_peer_client_t)
@@ -121,7 +118,6 @@ allow nfsd_t deny_assoc_sctp_peer_t:peer recv;
 #
 type test_sctp_connectx_t;
 testsuite_domain_type(test_sctp_connectx_t)
-unconfined_runs_test(test_sctp_connectx_t)
 typeattribute test_sctp_connectx_t sctpsocketdomain;
 allow test_sctp_connectx_t self:sctp_socket create_stream_socket_perms;
 corenet_sctp_bind_all_nodes(test_sctp_connectx_t)
@@ -132,7 +128,6 @@ corenet_inout_generic_node(test_sctp_connectx_t)
 #
 type test_sctp_deny_connectx_t;
 testsuite_domain_type(test_sctp_deny_connectx_t)
-unconfined_runs_test(test_sctp_deny_connectx_t)
 typeattribute test_sctp_deny_connectx_t sctpsocketdomain;
 allow test_sctp_deny_connectx_t self:sctp_socket { create listen accept bind ioctl read getattr write getopt setopt };
 corenet_sctp_bind_all_nodes(test_sctp_deny_connectx_t)
@@ -143,7 +138,6 @@ corenet_inout_generic_node(test_sctp_deny_connectx_t)
 #
 type test_sctp_bindx_t;
 testsuite_domain_type(test_sctp_bindx_t)
-unconfined_runs_test(test_sctp_bindx_t)
 typeattribute test_sctp_bindx_t sctpsocketdomain;
 allow test_sctp_bindx_t self:sctp_socket create_stream_socket_perms;
 corenet_sctp_bind_all_nodes(test_sctp_bindx_t)
@@ -154,7 +148,6 @@ corenet_inout_generic_node(test_sctp_bindx_t)
 #
 type test_sctp_deny_bindx_t;
 testsuite_domain_type(test_sctp_deny_bindx_t)
-unconfined_runs_test(test_sctp_deny_bindx_t)
 typeattribute test_sctp_deny_bindx_t sctpsocketdomain;
 allow test_sctp_deny_bindx_t self:sctp_socket { create ioctl read getattr write getopt setopt };
 corenet_sctp_bind_all_nodes(test_sctp_deny_bindx_t)
@@ -165,7 +158,6 @@ corenet_inout_generic_node(test_sctp_deny_bindx_t)
 #
 type sctp_asconf_params_server_t;
 testsuite_domain_type(sctp_asconf_params_server_t)
-unconfined_runs_test(sctp_asconf_params_server_t)
 typeattribute sctp_asconf_params_server_t sctpsocketdomain;
 allow sctp_asconf_params_server_t self:sctp_socket { create listen bind ioctl read getattr write getopt setopt };
 corenet_sctp_bind_all_nodes(sctp_asconf_params_server_t)
@@ -176,7 +168,6 @@ corenet_inout_generic_node(sctp_asconf_params_server_t)
 #
 type sctp_asconf_params_client_t;
 testsuite_domain_type(sctp_asconf_params_client_t)
-unconfined_runs_test(sctp_asconf_params_client_t)
 typeattribute sctp_asconf_params_client_t sctpsocketdomain;
 allow sctp_asconf_params_client_t self:sctp_socket { create connect ioctl read getattr write getopt setopt };
 corenet_sctp_bind_all_nodes(sctp_asconf_params_client_t)
@@ -193,7 +184,6 @@ allow sctp_asconf_params_client_t self:sctp_socket { bind };
 #
 type sctp_asconf_deny_pri_addr_client_t;
 testsuite_domain_type(sctp_asconf_deny_pri_addr_client_t)
-unconfined_runs_test(sctp_asconf_deny_pri_addr_client_t)
 typeattribute sctp_asconf_deny_pri_addr_client_t sctpsocketdomain;
 allow sctp_asconf_deny_pri_addr_client_t self:sctp_socket { create connect ioctl read getattr write getopt setopt };
 corenet_sctp_bind_all_nodes(sctp_asconf_deny_pri_addr_client_t)
@@ -210,7 +200,6 @@ allow sctp_asconf_params_server_t sctp_asconf_deny_pri_addr_client_t:sctp_socket
 #
 type sctp_asconf_deny_param_add_client_t;
 testsuite_domain_type(sctp_asconf_deny_param_add_client_t)
-unconfined_runs_test(sctp_asconf_deny_param_add_client_t)
 typeattribute sctp_asconf_deny_param_add_client_t sctpsocketdomain;
 allow sctp_asconf_deny_param_add_client_t self:sctp_socket { create connect ioctl read getattr write getopt setopt };
 corenet_sctp_bind_all_nodes(sctp_asconf_deny_param_add_client_t)

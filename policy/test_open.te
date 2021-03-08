@@ -12,14 +12,12 @@ files_type(test_open_file_t)
 # Domain for process that can open the test file for reading and writing.
 type test_open_t;
 testsuite_domain_type(test_open_t)
-unconfined_runs_test(test_open_t)
 typeattribute test_open_t test_open_domain;
 allow test_open_t test_open_file_t:file rw_file_perms;
 
 # Domain for process that cannot open the test file for reading or writing.
 type test_noopen_t;
 testsuite_domain_type(test_noopen_t)
-unconfined_runs_test(test_noopen_t)
 typeattribute test_noopen_t test_open_domain;
 # Allow open permission so that this tests read/write permissions.
 # TBD:  Add separate tests for open permission itself.
@@ -28,7 +26,6 @@ allow test_noopen_t test_open_file_t:file { getattr open };
 # Domain for process that can open test file for writing with O_APPEND.
 type test_append_t;
 testsuite_domain_type(test_append_t)
-unconfined_runs_test(test_append_t)
 typeattribute test_append_t test_open_domain;
 allow test_append_t test_open_file_t:file append_file_perms;
 

@@ -8,14 +8,12 @@ attribute fileopdomain;
 # Domain for process that is allowed to perform operations.
 type test_fileop_t;
 testsuite_domain_type(test_fileop_t)
-unconfined_runs_test(test_fileop_t)
 domain_obj_id_change_exemption(test_fileop_t)
 typeattribute test_fileop_t fileopdomain;
 
 # Domain for process that is not allowed to perform all operations.
 type test_nofileop_t;
 testsuite_domain_type(test_nofileop_t)
-unconfined_runs_test(test_nofileop_t)
 domain_obj_id_change_exemption(test_nofileop_t)
 typeattribute test_nofileop_t fileopdomain;
 
@@ -36,7 +34,6 @@ files_type(fileop_exec_t)
 # Domain for running certain executables
 type fileop_t;
 testsuite_domain_type(fileop_t)
-unconfined_runs_test(fileop_t)
 typeattribute fileop_t fileopdomain;
 read_files_pattern(fileop_t, fileop_exec_t, fileop_exec_t)
 

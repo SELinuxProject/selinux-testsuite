@@ -5,7 +5,6 @@ attribute keysockdomain;
 
 type test_key_sock_t;
 testsuite_domain_type(test_key_sock_t)
-unconfined_runs_test(test_key_sock_t)
 typeattribute test_key_sock_t keysockdomain;
 
 # key_socket rules:
@@ -21,7 +20,6 @@ allow test_key_sock_t self:key_socket { create write read setopt };
 #
 type test_key_sock_no_net_admin_t;
 testsuite_domain_type(test_key_sock_no_net_admin_t)
-unconfined_runs_test(test_key_sock_no_net_admin_t)
 typeattribute test_key_sock_no_net_admin_t keysockdomain;
 
 allow test_key_sock_no_net_admin_t self:key_socket { create write read setopt };
@@ -29,7 +27,6 @@ allow test_key_sock_no_net_admin_t self:key_socket { create write read setopt };
 ####################### Deny key_socket { create } ##########################
 type test_key_sock_no_create_t;
 testsuite_domain_type(test_key_sock_no_create_t)
-unconfined_runs_test(test_key_sock_no_create_t)
 typeattribute test_key_sock_no_create_t keysockdomain;
 
 allow test_key_sock_no_create_t self:capability { net_admin };
@@ -38,7 +35,6 @@ allow test_key_sock_no_create_t self:key_socket { write read setopt };
 ####################### Deny key_socket { write } ##########################
 type test_key_sock_no_write_t;
 testsuite_domain_type(test_key_sock_no_write_t)
-unconfined_runs_test(test_key_sock_no_write_t)
 typeattribute test_key_sock_no_write_t keysockdomain;
 
 allow test_key_sock_no_write_t self:capability { net_admin };
@@ -47,7 +43,6 @@ allow test_key_sock_no_write_t self:key_socket { create read setopt };
 ####################### Deny key_socket { read } ##########################
 type test_key_sock_no_read_t;
 testsuite_domain_type(test_key_sock_no_read_t)
-unconfined_runs_test(test_key_sock_no_read_t)
 typeattribute test_key_sock_no_read_t keysockdomain;
 
 allow test_key_sock_no_read_t self:capability { net_admin };

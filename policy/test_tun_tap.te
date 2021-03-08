@@ -8,7 +8,6 @@ kernel_request_load_module(tuntapdomain)
 
 type test_tun_tap_t;
 testsuite_domain_type(test_tun_tap_t)
-unconfined_runs_test(test_tun_tap_t)
 typeattribute test_tun_tap_t tuntapdomain;
 
 # tun_socket rules:
@@ -25,7 +24,6 @@ allow test_tun_tap_t self:tun_socket { create attach_queue };
 #
 type test_tun_tap_no_net_admin_t;
 testsuite_domain_type(test_tun_tap_no_net_admin_t)
-unconfined_runs_test(test_tun_tap_no_net_admin_t)
 typeattribute test_tun_tap_no_net_admin_t tuntapdomain;
 
 neverallow test_tun_tap_t self:capability { net_admin };
@@ -35,7 +33,6 @@ allow test_tun_tap_no_net_admin_t self:tun_socket { create write read setopt };
 ####################### Deny tun_socket { create } ##########################
 type test_tun_tap_no_create_t;
 testsuite_domain_type(test_tun_tap_no_create_t)
-unconfined_runs_test(test_tun_tap_no_create_t)
 typeattribute test_tun_tap_no_create_t tuntapdomain;
 
 allow test_tun_tap_no_create_t self:capability { net_admin };
@@ -45,7 +42,6 @@ neverallow test_tun_tap_no_create_t self:tun_socket { create };
 ################## Deny tun_socket { attach_queue } ########################
 type test_tun_tap_no_queue_t;
 testsuite_domain_type(test_tun_tap_no_queue_t)
-unconfined_runs_test(test_tun_tap_no_queue_t)
 typeattribute test_tun_tap_no_queue_t tuntapdomain;
 
 allow test_tun_tap_no_queue_t self:capability { net_admin };
@@ -57,7 +53,6 @@ neverallow test_tun_tap_no_queue_t self:tun_socket { attach_queue };
 ############ Test relabelto/relabelfrom via new context #####################
 type test_newcon_tun_tap_t;
 testsuite_domain_type(test_newcon_tun_tap_t)
-unconfined_runs_test(test_newcon_tun_tap_t)
 typeattribute test_newcon_tun_tap_t keydomain;
 
 allow test_tun_tap_t test_newcon_tun_tap_t:process { dyntransition };
@@ -72,7 +67,6 @@ allow test_newcon_tun_tap_t test_tun_tap_t:process dyntransition;
 ############ Deny relabelto via new context #####################
 type test_newcon_no_to_tun_tap_t;
 testsuite_domain_type(test_newcon_no_to_tun_tap_t)
-unconfined_runs_test(test_newcon_no_to_tun_tap_t)
 typeattribute test_newcon_no_to_tun_tap_t keydomain;
 
 allow test_tun_tap_t test_newcon_no_to_tun_tap_t:process { dyntransition };
@@ -87,7 +81,6 @@ allow test_newcon_no_to_tun_tap_t test_tun_tap_t:process { dyntransition };
 ############ Deny relabelfrom via new context #####################
 type test_newcon_no_from_tun_tap_t;
 testsuite_domain_type(test_newcon_no_from_tun_tap_t)
-unconfined_runs_test(test_newcon_no_from_tun_tap_t)
 typeattribute test_newcon_no_from_tun_tap_t keydomain;
 
 allow test_tun_tap_t test_newcon_no_from_tun_tap_t:process { dyntransition };

@@ -20,7 +20,6 @@ files_type(test_rename_dir_t)
 # Domain for process that can rename the test file and directory.
 type test_rename_t;
 testsuite_domain_type(test_rename_t)
-unconfined_runs_test(test_rename_t)
 typeattribute test_rename_t test_rename_domain;
 allow test_rename_t test_rename_src_dir_t:dir { search getattr write remove_name };
 allow test_rename_t test_rename_dst_dir_t:dir { search getattr write add_name };
@@ -30,7 +29,6 @@ allow test_rename_t test_rename_dir_t:dir { getattr rename write reparent };
 # Domain for process that can rename the test file over an existing file.
 type test_rename2_t;
 testsuite_domain_type(test_rename2_t)
-unconfined_runs_test(test_rename2_t)
 typeattribute test_rename2_t test_rename_domain;
 allow test_rename2_t test_rename_src_dir_t:dir { search getattr write remove_name };
 allow test_rename2_t test_rename_dst_dir_t:dir { search getattr write add_name remove_name };
@@ -41,7 +39,6 @@ allow test_rename2_t test_rename_dst_dir_t:file { getattr unlink };
 # it lacks rename permission to the file.
 type test_norename_t;
 testsuite_domain_type(test_norename_t)
-unconfined_runs_test(test_norename_t)
 typeattribute test_norename_t test_rename_domain;
 allow test_norename_t test_rename_src_dir_t:dir { search getattr write remove_name };
 allow test_norename_t test_rename_dst_dir_t:dir { search getattr write add_name };
@@ -51,7 +48,6 @@ allow test_norename_t test_rename_file_t:file { getattr };
 # it lacks remove_name permission to the src_dir.
 type test_norename2_t;
 testsuite_domain_type(test_norename2_t)
-unconfined_runs_test(test_norename2_t)
 typeattribute test_norename2_t test_rename_domain;
 allow test_norename2_t test_rename_src_dir_t:dir { search getattr write };
 allow test_norename2_t test_rename_dst_dir_t:dir { search getattr write add_name };
@@ -61,7 +57,6 @@ allow test_norename2_t test_rename_file_t:file { getattr rename };
 # it lacks add_name permission to the dst_dir.
 type test_norename3_t;
 testsuite_domain_type(test_norename3_t)
-unconfined_runs_test(test_norename3_t)
 typeattribute test_norename3_t test_rename_domain;
 allow test_norename3_t test_rename_src_dir_t:dir { search getattr write remove_name };
 allow test_norename3_t test_rename_dst_dir_t:dir { search getattr write };
@@ -72,7 +67,6 @@ allow test_norename3_t test_rename_file_t:file { getattr rename };
 # the dst_dir.
 type test_norename4_t;
 testsuite_domain_type(test_norename4_t)
-unconfined_runs_test(test_norename4_t)
 typeattribute test_norename4_t test_rename_domain;
 allow test_norename4_t test_rename_src_dir_t:dir { search getattr write remove_name };
 allow test_norename4_t test_rename_dst_dir_t:dir { search getattr write add_name };
@@ -84,7 +78,6 @@ allow test_norename4_t test_rename_dst_dir_t:file { getattr unlink };
 # the destination file.
 type test_norename5_t;
 testsuite_domain_type(test_norename5_t)
-unconfined_runs_test(test_norename5_t)
 typeattribute test_norename5_t test_rename_domain;
 allow test_norename5_t test_rename_src_dir_t:dir { search getattr write remove_name };
 allow test_norename5_t test_rename_dst_dir_t:dir { search getattr write add_name remove_name };
@@ -95,7 +88,6 @@ allow test_norename5_t test_rename_dst_dir_t:file { getattr };
 # because it lacks reparent permission.
 type test_norename6_t;
 testsuite_domain_type(test_norename6_t)
-unconfined_runs_test(test_norename6_t)
 typeattribute test_norename6_t test_rename_domain;
 allow test_norename6_t test_rename_src_dir_t:dir { search getattr write remove_name };
 allow test_norename6_t test_rename_dst_dir_t:dir { search getattr write add_name };
