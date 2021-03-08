@@ -8,7 +8,6 @@ attribute test_create_d;
 # Domain for process allowed to fork.
 type test_create_yes_t;
 testsuite_domain_type(test_create_yes_t)
-unconfined_runs_test(test_create_yes_t)
 typeattribute test_create_yes_t test_create_d;
 
 # Domain for process not allowed to fork.
@@ -20,7 +19,6 @@ type test_create_no_t;
 # Ideally, refpolicy would _not_ grant such permissions to every domain,
 # as it makes the permission effectively unusable in real policy.
 testsuite_domain_type_minimal(test_create_no_t)
-unconfined_runs_test(test_create_no_t)
 typeattribute test_create_no_t test_create_d;
 
 # General rules for the test_create_d

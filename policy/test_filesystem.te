@@ -23,7 +23,6 @@ files_type(test_filesystem_file_t)
 ################# Test all functions ##########################
 type test_filesystem_t;
 testsuite_domain_type(test_filesystem_t)
-unconfined_runs_test(test_filesystem_t)
 typeattribute test_filesystem_t filesystemdomain;
 
 allow test_filesystem_t self:capability { sys_admin };
@@ -68,7 +67,6 @@ allow test_filesystem_filetranscon_t test_filesystem_file_t:filesystem { associa
 # hooks.c may_context_mount_sb_relabel() FILESYSTEM__RELABELFROM
 type test_filesystem_sb_relabel_no_relabelfrom_t;
 testsuite_domain_type(test_filesystem_sb_relabel_no_relabelfrom_t)
-unconfined_runs_test(test_filesystem_sb_relabel_no_relabelfrom_t)
 typeattribute test_filesystem_sb_relabel_no_relabelfrom_t filesystemdomain;
 
 allow test_filesystem_sb_relabel_no_relabelfrom_t self:capability { sys_admin };
@@ -79,7 +77,6 @@ allow test_filesystem_sb_relabel_no_relabelfrom_t test_file_t:dir { mounton writ
 # hooks.c may_context_mount_sb_relabel() FILESYSTEM__RELABELTO
 type test_filesystem_sb_relabel_no_relabelto_t;
 testsuite_domain_type(test_filesystem_sb_relabel_no_relabelto_t)
-unconfined_runs_test(test_filesystem_sb_relabel_no_relabelto_t)
 typeattribute test_filesystem_sb_relabel_no_relabelto_t filesystemdomain;
 
 allow test_filesystem_sb_relabel_no_relabelto_t self:capability { sys_admin };
@@ -92,7 +89,6 @@ allow test_filesystem_sb_relabel_no_relabelto_t test_file_t:dir { mounton write 
 # hooks.c may_context_mount_inode_relabel() FILESYSTEM__RELABELFROM
 type test_filesystem_no_inode_no_relabelfrom_t;
 testsuite_domain_type(test_filesystem_no_inode_no_relabelfrom_t)
-unconfined_runs_test(test_filesystem_no_inode_no_relabelfrom_t)
 typeattribute test_filesystem_no_inode_no_relabelfrom_t filesystemdomain;
 
 allow test_filesystem_no_inode_no_relabelfrom_t self:capability { sys_admin };
@@ -103,7 +99,6 @@ allow test_filesystem_no_inode_no_relabelfrom_t test_file_t:dir { mounton write 
 # hooks.c may_context_mount_inode_relabel() FILESYSTEM__ASSOCIATE
 type test_filesystem_inode_relabel_no_associate_t;
 testsuite_domain_type(test_filesystem_inode_relabel_no_associate_t)
-unconfined_runs_test(test_filesystem_inode_relabel_no_associate_t)
 typeattribute test_filesystem_inode_relabel_no_associate_t filesystemdomain;
 
 allow test_filesystem_inode_relabel_no_associate_t self:capability { sys_admin };
@@ -116,7 +111,6 @@ allow test_filesystem_inode_relabel_no_associate_t test_file_t:dir { mounton wri
 # hooks.c may_create() FILESYSTEM__ASSOCIATE
 type test_filesystem_may_create_no_associate_t;
 testsuite_domain_type(test_filesystem_may_create_no_associate_t)
-unconfined_runs_test(test_filesystem_may_create_no_associate_t)
 typeattribute test_filesystem_may_create_no_associate_t filesystemdomain;
 
 allow test_filesystem_may_create_no_associate_t self:capability { sys_admin };
@@ -141,7 +135,6 @@ allow test_filesystem_may_create_no_associate_t unlabeled_t:file { create open r
 # hooks.c selinux_quotactl() FILESYSTEM__QUOTAMOD
 type test_filesystem_no_quotamod_t;
 testsuite_domain_type(test_filesystem_no_quotamod_t)
-unconfined_runs_test(test_filesystem_no_quotamod_t)
 typeattribute test_filesystem_no_quotamod_t filesystemdomain;
 
 allow test_filesystem_no_quotamod_t self:capability { sys_admin };
@@ -157,7 +150,6 @@ allow test_filesystem_no_quotamod_t test_file_t:dir { mounton write remove_name 
 # hooks.c selinux_quotactl() FILESYSTEM__QUOTAGET
 type test_filesystem_no_quotaget_t;
 testsuite_domain_type(test_filesystem_no_quotaget_t)
-unconfined_runs_test(test_filesystem_no_quotaget_t)
 typeattribute test_filesystem_no_quotaget_t filesystemdomain;
 
 allow test_filesystem_no_quotaget_t self:capability { sys_admin };
@@ -176,7 +168,6 @@ files_type(test_filesystem_no_quotaget_t)
 # hooks.c selinux_quota_on() FILE__QUOTAON
 type test_file_no_quotaon_t;
 testsuite_domain_type(test_file_no_quotaon_t)
-unconfined_runs_test(test_file_no_quotaon_t)
 typeattribute test_file_no_quotaon_t filesystemdomain;
 
 allow test_file_no_quotaon_t self:capability { sys_admin };
@@ -198,7 +189,6 @@ files_type(test_file_no_quotaon_t)
 # hooks.c selinux_sb_kern_mount() FILESYSTEM__MOUNT
 type test_filesystem_no_mount_t;
 testsuite_domain_type(test_filesystem_no_mount_t)
-unconfined_runs_test(test_filesystem_no_mount_t)
 typeattribute test_filesystem_no_mount_t filesystemdomain;
 
 allow test_filesystem_no_mount_t self:capability { sys_admin };
@@ -210,7 +200,6 @@ allow test_filesystem_no_mount_t test_file_t:dir { mounton write remove_name rmd
 # hooks.c selinux_sb_statfs() FILESYSTEM__GETATTR
 type test_filesystem_no_getattr_t;
 testsuite_domain_type(test_filesystem_no_getattr_t)
-unconfined_runs_test(test_filesystem_no_getattr_t)
 typeattribute test_filesystem_no_getattr_t filesystemdomain;
 
 allow test_filesystem_no_getattr_t self:capability { sys_admin };
@@ -224,7 +213,6 @@ allow test_filesystem_no_getattr_t test_file_t:dir { mounton write remove_name r
 # hooks.c selinux_mount() FILESYSTEM__REMOUNT
 type test_filesystem_no_remount_t;
 testsuite_domain_type(test_filesystem_no_remount_t)
-unconfined_runs_test(test_filesystem_no_remount_t)
 typeattribute test_filesystem_no_remount_t filesystemdomain;
 
 allow test_filesystem_no_remount_t self:capability { sys_admin };
@@ -238,7 +226,6 @@ allow test_filesystem_no_remount_t test_file_t:dir { mounton write remove_name r
 # hooks.c selinux_move_mount() FILE__MOUNTON
 type test_move_mount_no_mounton_t;
 testsuite_domain_type(test_move_mount_no_mounton_t)
-unconfined_runs_test(test_move_mount_no_mounton_t)
 typeattribute test_move_mount_no_mounton_t filesystemdomain;
 
 allow test_move_mount_no_mounton_t self:capability { sys_admin };
@@ -253,7 +240,6 @@ allow test_move_mount_no_mounton_t test_file_t:dir { write remove_name rmdir };
 # hooks.c selinux_umount() FILESYSTEM__UNMOUNT
 type test_filesystem_no_unmount_t;
 testsuite_domain_type(test_filesystem_no_unmount_t)
-unconfined_runs_test(test_filesystem_no_unmount_t)
 typeattribute test_filesystem_no_unmount_t filesystemdomain;
 
 allow test_filesystem_no_unmount_t self:capability { sys_admin };
@@ -266,7 +252,6 @@ allow test_filesystem_no_unmount_t test_file_t:dir { mounton write remove_name r
 # hooks.c selinux_inode_setxattr() FILESYSTEM__ASSOCIATE
 type test_filesystem_inode_setxattr_no_associate_t;
 testsuite_domain_type(test_filesystem_inode_setxattr_no_associate_t)
-unconfined_runs_test(test_filesystem_inode_setxattr_no_associate_t)
 typeattribute test_filesystem_inode_setxattr_no_associate_t filesystemdomain;
 
 allow test_filesystem_inode_setxattr_no_associate_t self:capability { sys_admin };
@@ -290,7 +275,6 @@ allow test_filesystem_inode_setxattr_no_associate_t unconfined_t:file { create r
 ################# Test process { setfscreate } #############
 type test_setfscreatecon_t;
 testsuite_domain_type(test_setfscreatecon_t)
-unconfined_runs_test(test_setfscreatecon_t)
 typeattribute test_setfscreatecon_t filesystemdomain;
 
 allow test_setfscreatecon_t self:capability { sys_admin };
@@ -300,7 +284,6 @@ allow test_setfscreatecon_t test_file_t:dir { add_name write remove_name };
 # Set new context on fs:
 type test_setfscreatecon_newcon_t;
 files_type(test_setfscreatecon_newcon_t)
-unconfined_runs_test(test_setfscreatecon_newcon_t)
 fs_associate(test_setfscreatecon_newcon_t)
 allow test_setfscreatecon_t test_setfscreatecon_newcon_t:dir { create getattr rmdir };
 
@@ -311,7 +294,6 @@ allow test_setfscreatecon_newcon_t nfs_t:filesystem { associate };
 ################# deny process { setfscreate } #############
 type test_no_setfscreatecon_t;
 testsuite_domain_type(test_no_setfscreatecon_t)
-unconfined_runs_test(test_no_setfscreatecon_t)
 typeattribute test_no_setfscreatecon_t filesystemdomain;
 
 allow test_no_setfscreatecon_t self:capability { sys_admin };
@@ -320,7 +302,6 @@ allow test_no_setfscreatecon_t self:capability { sys_admin };
 ################# Test fscontext= ##########################
 type test_filesystem_fscontext_t;
 testsuite_domain_type(test_filesystem_fscontext_t)
-unconfined_runs_test(test_filesystem_fscontext_t)
 typeattribute test_filesystem_fscontext_t filesystemdomain;
 
 type test_filesystem_fscontext_fs_t;
@@ -340,7 +321,6 @@ allow test_filesystem_filecon_t test_filesystem_fscontext_fs_t:filesystem { asso
 ########### Test context= #################
 type test_filesystem_context_t;
 testsuite_domain_type(test_filesystem_context_t)
-unconfined_runs_test(test_filesystem_context_t)
 typeattribute test_filesystem_context_t filesystemdomain;
 
 type test_filesystem_context_file_t;

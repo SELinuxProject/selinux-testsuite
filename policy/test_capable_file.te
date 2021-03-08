@@ -13,25 +13,21 @@ attribute capabledomain;
 type test_fcap_t;
 typeattribute test_fcap_t capabledomain;
 testsuite_domain_type(test_fcap_t)
-unconfined_runs_test(test_fcap_t)
 
 # Domain for processes that have restricted capability
 type test_resfcap_t;
 typeattribute test_resfcap_t capabledomain;
 testsuite_domain_type(test_resfcap_t)
-unconfined_runs_test(test_resfcap_t)
 
 # Another domain for processes that have restricted capability
 type test_res2fcap_t;
 typeattribute test_res2fcap_t capabledomain;
 testsuite_domain_type(test_res2fcap_t)
-unconfined_runs_test(test_res2fcap_t)
 
 # Domain for process that has no capability
 type test_nofcap_t;
 typeattribute test_nofcap_t capabledomain;
 testsuite_domain_type(test_nofcap_t)
-unconfined_runs_test(test_nofcap_t)
 
 # Allow execution of helper programs.
 corecmd_exec_bin(capabledomain)

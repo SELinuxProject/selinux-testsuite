@@ -8,7 +8,6 @@ attribute dyntracedomain;
 # Domain for parent process.
 type test_dyntrace_parent_t;
 testsuite_domain_type(test_dyntrace_parent_t)
-unconfined_runs_test(test_dyntrace_parent_t)
 domain_dyntrans_type(test_dyntrace_parent_t)
 typeattribute test_dyntrace_parent_t dyntracedomain;
 allow test_dyntrace_parent_t self:process ptrace;
@@ -17,14 +16,12 @@ allow test_dyntrace_parent_t self:process ptrace;
 # dynamic trans by the parent.
 type test_dyntrace_child_t;
 testsuite_domain_type(test_dyntrace_child_t)
-unconfined_runs_test(test_dyntrace_child_t)
 typeattribute test_dyntrace_child_t dyntracedomain;
 
 # Domain for child process that cannot be traced across a
 # dynamic transition by the parent.
 type test_dyntrace_notchild_t;
 testsuite_domain_type(test_dyntrace_notchild_t) 
-unconfined_runs_test(test_dyntrace_notchild_t)
 typeattribute test_dyntrace_notchild_t dyntracedomain;
 
 # Allow test_files_t to be entered from the sysadm domain.

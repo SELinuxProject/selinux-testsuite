@@ -7,7 +7,6 @@ attribute mac_admintestdomain;
 # Domain that is allowed mac_admin.
 type test_mac_admin_t;
 testsuite_domain_type(test_mac_admin_t)
-unconfined_runs_test(test_mac_admin_t)
 typeattribute test_mac_admin_t mac_admintestdomain;
 allow test_mac_admin_t self:process { setfscreate };
 
@@ -23,7 +22,6 @@ allow test_mac_admin_t self:capability2 mac_admin;
 # Domain that is not allowed mac_admin permission.
 type test_no_mac_admin_t;
 testsuite_domain_type(test_no_mac_admin_t)
-unconfined_runs_test(test_no_mac_admin_t)
 typeattribute test_no_mac_admin_t mac_admintestdomain;
 allow test_no_mac_admin_t self:process { setfscreate };
 

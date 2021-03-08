@@ -4,7 +4,6 @@ define(`FIOQSIZE', `{ 0x545e 0x5460 0x667f 0x6680 }')
 # Domain for process that is allowed the required ioctl xperms.
 type test_ioctl_xperm_t;
 testsuite_domain_type(test_ioctl_xperm_t)
-unconfined_runs_test(test_ioctl_xperm_t)
 typeattribute test_ioctl_xperm_t ioctldomain;
 allow test_ioctl_xperm_t test_ioctl_file_t:file { open read write ioctl getattr setattr };
 allowxperm test_ioctl_xperm_t test_ioctl_file_t:file ioctl FIOQSIZE;
@@ -12,7 +11,6 @@ allowxperm test_ioctl_xperm_t test_ioctl_file_t:file ioctl FIOQSIZE;
 # Domain for process that is not allowed the required ioctl xperms.
 type test_ioctl_noxperm_t;
 testsuite_domain_type(test_ioctl_noxperm_t)
-unconfined_runs_test(test_ioctl_noxperm_t)
 typeattribute test_ioctl_noxperm_t ioctldomain;
 allow test_ioctl_noxperm_t test_ioctl_file_t:file { open read getattr setattr ioctl };
 allowxperm test_ioctl_noxperm_t test_ioctl_file_t:file ioctl ~FIOQSIZE;

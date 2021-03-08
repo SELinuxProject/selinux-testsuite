@@ -8,7 +8,6 @@ attribute exectracedomain;
 # Domain for parent process.
 type test_exectrace_parent_t;
 testsuite_domain_type(test_exectrace_parent_t)
-unconfined_runs_test(test_exectrace_parent_t)
 typeattribute test_exectrace_parent_t exectracedomain;
 
 # Required for PTRACE_TRACEME.
@@ -17,13 +16,11 @@ allow test_exectrace_parent_t self:process ptrace;
 # Domain for child process that can be traced across an exec by the parent.
 type test_exectrace_child_t;
 testsuite_domain_type(test_exectrace_child_t)
-unconfined_runs_test(test_exectrace_child_t)
 typeattribute test_exectrace_child_t exectracedomain;
 
 # Domain for child process that cannot be traced across an exec by the parent.
 type test_exectrace_notchild_t;
 testsuite_domain_type(test_exectrace_notchild_t)
-unconfined_runs_test(test_exectrace_notchild_t)
 typeattribute test_exectrace_notchild_t exectracedomain;
 
 # Allow all of these domains to be entered from the sysadm domain.

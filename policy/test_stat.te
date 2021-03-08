@@ -12,14 +12,12 @@ files_type(test_stat_file_t)
 # Domain for process that can get attributes on the test file.
 type test_stat_t;
 testsuite_domain_type(test_stat_t)
-unconfined_runs_test(test_stat_t)
 typeattribute test_stat_t test_stat_domain;
 allow test_stat_t test_stat_file_t:file getattr;
 
 # Domain for process that cannot set attributes on the test file.
 type test_nostat_t;
 testsuite_domain_type(test_nostat_t)
-unconfined_runs_test(test_nostat_t)
 typeattribute test_nostat_t test_stat_domain;
 
 # TODO: what is a replacement for this in refpolicy???

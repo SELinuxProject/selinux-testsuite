@@ -37,8 +37,6 @@ allow test_overlay_mounter_t self:dir list_dir_perms;
 allow test_overlay_mounter_t self:file read_file_perms;
 allow test_overlay_mounter_t self:capability { sys_admin dac_override dac_read_search };
 
-unconfined_runs_test(test_overlay_mounter_t)
-
 kernel_read_system_state(test_overlay_mounter_t)
 kernel_read_proc_symlinks(test_overlay_mounter_t)
 kernel_request_load_module(test_overlay_mounter_t)
@@ -113,7 +111,6 @@ can_exec(test_overlay_mounter_t, test_file_t)
 allow test_overlay_client_t self:dir list_dir_perms;
 allow test_overlay_client_t self:file read_file_perms;
 
-unconfined_runs_test(test_overlay_client_t)
 mcs_constrained(test_overlay_client_t)
 
 corecmd_shell_entry_type(test_overlay_client_t)

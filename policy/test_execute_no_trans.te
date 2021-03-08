@@ -15,7 +15,6 @@ files_type(test_execute_notrans_denied_t);
 # Test domain that can only be entered via the types above.
 type test_execute_notrans_t;
 testsuite_domain_type(test_execute_notrans_t);
-unconfined_runs_test(test_execute_notrans_t)
 
 # Allow this domain to be entered via the shell.
 corecmd_shell_entry_type(test_execute_notrans_t)

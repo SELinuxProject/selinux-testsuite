@@ -48,5 +48,4 @@ allow test_uffd_domain self:capability { sys_ptrace };
 
 # Allow all of these domains to be executed
 miscfiles_domain_entry_test_files(test_uffd_domain)
-unconfined_runs_test(test_uffd_domain)
 userdom_sysadm_entry_spec_domtrans_to(test_uffd_domain)

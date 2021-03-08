@@ -8,14 +8,12 @@ attribute test_setpgid_d;
 # Domain for process allowed to setpgid
 type test_setpgid_yes_t;
 testsuite_domain_type(test_setpgid_yes_t)
-unconfined_runs_test(test_setpgid_yes_t)
 typeattribute test_setpgid_yes_t test_setpgid_d;
 
 # Domain for process not allowed to setpgid.
 # The same permissions as test_setpgid_yes_t, except process setpgid
 type test_setpgid_no_t;
 testsuite_domain_type_minimal(test_setpgid_no_t)
-unconfined_runs_test(test_setpgid_no_t)
 typeattribute test_setpgid_no_t test_setpgid_d;
 
 # Allow domain to be entered from the sysadm domain.

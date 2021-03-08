@@ -20,7 +20,6 @@ define(`extended_socket_class_test', `
 # Domain that is allowed to create $1_socket.
 type test_$1_t;
 testsuite_domain_type(test_$1_t)
-unconfined_runs_test(test_$1_t)
 typeattribute test_$1_t extsocktestdomain;
 
 # Allow $1 but not $2.
@@ -30,7 +29,6 @@ allow test_$1_t self:$1 create_socket_perms;
 # Domain that is not allowed to create $1.
 type test_no_$1_t;
 testsuite_domain_type(test_no_$1_t)
-unconfined_runs_test(test_no_$1_t)
 typeattribute test_no_$1_t extsocktestdomain;
 
 # Allow $2 but not $1.

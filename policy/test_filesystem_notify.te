@@ -43,7 +43,6 @@ allow test_filesystem_t test_filesystem_file_t:filesystem { watch };
 # hooks.c selinux_path_notify() FILESYSTEM__WATCH
 type test_filesystem_no_watch_t;
 testsuite_domain_type(test_filesystem_no_watch_t)
-unconfined_runs_test(test_filesystem_no_watch_t)
 typeattribute test_filesystem_no_watch_t filesystemdomain;
 
 allow test_filesystem_no_watch_t self:capability { sys_admin };
@@ -57,7 +56,6 @@ fs_associate(test_filesystem_no_watch_t)
 # hooks.c selinux_path_notify() FILE__WATCH_SB
 type test_filesystem_no_watch_sb_t;
 testsuite_domain_type(test_filesystem_no_watch_sb_t)
-unconfined_runs_test(test_filesystem_no_watch_sb_t)
 typeattribute test_filesystem_no_watch_sb_t filesystemdomain;
 
 allow test_filesystem_no_watch_sb_t self:capability { sys_admin };
@@ -72,7 +70,6 @@ fs_associate(test_filesystem_no_watch_sb_t)
 # hooks.c selinux_path_notify() FILE__WATCH_MOUNT
 type test_filesystem_no_watch_mount_t;
 testsuite_domain_type(test_filesystem_no_watch_mount_t)
-unconfined_runs_test(test_filesystem_no_watch_mount_t)
 typeattribute test_filesystem_no_watch_mount_t filesystemdomain;
 
 allow test_filesystem_no_watch_mount_t self:capability { sys_admin };

@@ -5,7 +5,6 @@
 
 attribute test_bounds_domain;
 attribute test_bounds_child_domain;
-unconfined_runs_test(test_bounds_domain)
 corecmd_bin_entry_type(test_bounds_domain)
 
 # Type for test files
