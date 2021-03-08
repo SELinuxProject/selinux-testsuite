@@ -169,4 +169,3 @@ allow test_request_keys_no_link_t test_keyring_service_t:key { read write search
 ########### Allow these domains to be entered from sysadm domain ############
 #
 miscfiles_domain_entry_test_files(keydomain)
-userdom_sysadm_entry_spec_domtrans_to(keydomain)

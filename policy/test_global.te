@@ -40,6 +40,9 @@ term_use_all_terms(testsuite_domain)
 allow testsuite_domain init_t:fd use;
 allow testsuite_domain initrc_t:fd use;
 
+# Allow the test domain to be entered from sysadm_t
+userdom_sysadm_entry_spec_domtrans_to(testsuite_domain)
+
 # Allow the test domains to access the test directory and files
 # even if they are not root owned.
 allow testsuite_domain self:capability { dac_override dac_read_search };

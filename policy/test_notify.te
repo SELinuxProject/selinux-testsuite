@@ -75,4 +75,3 @@ typeattribute test_rdonly_t test_notify_domain;
 allow test_rdonly_t test_notify_file_t:dir { read open watch };
 
 miscfiles_domain_entry_test_files(test_notify_domain)
-userdom_sysadm_entry_spec_domtrans_to(test_notify_domain)

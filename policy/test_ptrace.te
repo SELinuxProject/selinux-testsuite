@@ -36,7 +36,6 @@ allow test_ptrace_traced_t test_ptrace_tracer_t:process sigchld;
 # Allow all of these domains to be entered from the sysadm domains.
 # via a program in the test directory.
 miscfiles_domain_entry_test_files(ptracedomain)
-userdom_sysadm_entry_spec_domtrans_to(ptracedomain)
 
 # Allow execution of helper programs.
 corecmd_exec_bin(ptracedomain)

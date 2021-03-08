@@ -234,4 +234,3 @@ allow sctpsocketdomain self:unix_dgram_socket { create ioctl };
 ############ Allow these domains to be entered from sysadm domain ############
 #
 miscfiles_domain_entry_test_files(sctpsocketdomain)
-userdom_sysadm_entry_spec_domtrans_to(sctpsocketdomain)

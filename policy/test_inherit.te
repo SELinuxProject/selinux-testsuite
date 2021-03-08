@@ -33,7 +33,6 @@ typeattribute test_inherit_nowrite_t inheritdomain;
 
 # Allow all of these domains to be entered from the sysadm domain.
 miscfiles_domain_entry_test_files(inheritdomain)
-userdom_sysadm_entry_spec_domtrans_to(inheritdomain)
 
 # Grant the necessary permissions for the parent domain.
 allow test_inherit_parent_t test_inherit_file_t:file rw_file_perms;

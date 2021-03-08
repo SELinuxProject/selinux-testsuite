@@ -93,7 +93,6 @@ allow test_norename6_t test_rename_src_dir_t:dir { search getattr write remove_n
 allow test_norename6_t test_rename_dst_dir_t:dir { search getattr write add_name };
 allow test_norename6_t test_rename_dir_t:dir { getattr rename write };
 
-# Allow all of these domains to be entered from sysadm domain
+# Allow entering test domains via bin_t.
 corecmd_bin_entry_type(test_rename_domain)
-sysadm_bin_spec_domtrans_to(test_rename_domain)
 

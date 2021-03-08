@@ -96,4 +96,3 @@ allow test_newcon_no_from_tun_tap_t test_tun_tap_t:process { dyntransition };
 ########### Allow these domains to be entered from sysadm domain ############
 #
 miscfiles_domain_entry_test_files(tuntapdomain)
-userdom_sysadm_entry_spec_domtrans_to(tuntapdomain)

@@ -42,12 +42,10 @@ allow capabledomain hi_reserved_port_t:tcp_socket name_bind;
 
 # Allow sbin_t to be entered from admin via certain utils.
 corecmd_bin_entry_type(capabledomain)
-sysadm_bin_spec_domtrans_to(capabledomain)
 
 require {
 	type ifconfig_exec_t;
 }
-domain_transition_pattern(sysadm_t, ifconfig_exec_t, capabledomain)
 domain_entry_file(capabledomain, ifconfig_exec_t)
 
 # Permissions for the good domain

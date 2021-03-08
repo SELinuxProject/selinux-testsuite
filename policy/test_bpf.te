@@ -62,4 +62,3 @@ allow test_bpf_deny_prog_run_t self:bpf { map_create map_read map_write prog_loa
 ############ Allow these domains to be entered from sysadm domain ############
 #
 miscfiles_domain_entry_test_files(bpfdomain)
-userdom_sysadm_entry_spec_domtrans_to(bpfdomain)

@@ -32,4 +32,3 @@ allow test_ibendport_manage_subnet_t test_ibendport_t:infiniband_endport manage_
 
 # Allow all of these domains to be entered from the sysadm domain.
 miscfiles_domain_entry_test_files(ibendportdomain)
-userdom_sysadm_entry_spec_domtrans_to(ibendportdomain)

@@ -62,4 +62,3 @@ allow_map(test_binder_client_no_bpf_perm_t, device_t, chr_file)
 ########### Allow these domains to be entered from sysadm domain ############
 #
 miscfiles_domain_entry_test_files(binderbpfdomain)
-userdom_sysadm_entry_spec_domtrans_to(binderbpfdomain)

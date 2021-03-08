@@ -57,4 +57,3 @@ kernel_request_load_module(extsocktestdomain)
 
 # Entry into the test domains via the test program.
 miscfiles_domain_entry_test_files(extsocktestdomain)
-userdom_sysadm_entry_spec_domtrans_to(extsocktestdomain)

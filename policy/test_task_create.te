@@ -25,4 +25,3 @@ typeattribute test_create_no_t test_create_d;
 
 # Allow domain to be entered from the sysadm domain.
 miscfiles_domain_entry_test_files(test_create_d)
-userdom_sysadm_entry_spec_domtrans_to(test_create_d)
