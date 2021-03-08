@@ -73,5 +73,3 @@ testsuite_domain_type(test_rdonly_t)
 typeattribute test_rdonly_t test_notify_domain;
 
 allow test_rdonly_t test_notify_file_t:dir { read open watch };
-
-miscfiles_domain_entry_test_files(test_notify_domain)

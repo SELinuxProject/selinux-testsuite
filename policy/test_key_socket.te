@@ -48,10 +48,5 @@ typeattribute test_key_sock_no_read_t keysockdomain;
 allow test_key_sock_no_read_t self:capability { net_admin };
 allow test_key_sock_no_read_t self:key_socket { create write setopt };
 
-#
-########### Allow these domains to be entered from sysadm domain ############
-#
-miscfiles_domain_entry_test_files(keysockdomain)
-
 # For CONFIG_NET_KEY=m
 kernel_request_load_module(keysockdomain)

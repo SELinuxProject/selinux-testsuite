@@ -164,8 +164,3 @@ typeattribute test_request_keys_no_link_t keydomain;
 
 allow test_request_keys_no_link_t self:key { create write search read view link setattr };
 allow test_request_keys_no_link_t test_keyring_service_t:key { read write search view setattr };
-
-#
-########### Allow these domains to be entered from sysadm domain ############
-#
-miscfiles_domain_entry_test_files(keydomain)

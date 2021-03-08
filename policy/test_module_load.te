@@ -41,8 +41,3 @@ allow test_kmodule_deny_module_request_t test_file_t:system { module_load };
 allow test_kmodule_deny_module_request_t self:system { module_load };
 allow_lockdown_integrity(test_kmodule_deny_module_request_t)
 neverallow test_kmodule_deny_module_request_t kernel_t:system { module_request };
-
-#
-########### Allow these domains to be entered from sysadm domain ############
-#
-miscfiles_domain_entry_test_files(kmoduledomain)

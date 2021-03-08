@@ -54,9 +54,6 @@ files_type(mqop_mqwrite_t)
 type mqop_mqrw_t;
 files_type(mqop_mqrw_t)
 
-# basic permision for all mqopdomains
-miscfiles_domain_entry_test_files(mqopdomain)
-
 corecmd_bin_entry_type(mqopdomain)
 
 allow mqopdomain device_t:dir search_dir_perms;

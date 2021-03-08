@@ -20,8 +20,3 @@ type test_create_no_t;
 # as it makes the permission effectively unusable in real policy.
 testsuite_domain_type_minimal(test_create_no_t)
 typeattribute test_create_no_t test_create_d;
-
-# General rules for the test_create_d
-
-# Allow domain to be entered from the sysadm domain.
-miscfiles_domain_entry_test_files(test_create_d)

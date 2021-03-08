@@ -29,9 +29,6 @@ libs_use_shared_libs(setnicedomain)
 libs_exec_ld_so(setnicedomain)
 libs_exec_lib_files(setnicedomain)
 
-# Allow all of these domains to be entered from sysadm domain
-# via a shell script in the test directory or by....
-miscfiles_domain_entry_test_files(setnicedomain)
 domain_transition_pattern(test_setnice_change_t, test_file_t, {test_setnice_set_t test_setnice_noset_t})
 allow test_setnice_change_t test_setnice_set_t:fd use;
 allow test_setnice_set_t test_setnice_change_t:fd use;

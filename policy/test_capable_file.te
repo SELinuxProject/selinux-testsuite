@@ -38,8 +38,7 @@ libs_use_shared_libs(capabledomain)
 libs_exec_ld_so(capabledomain)
 libs_exec_lib_files(capabledomain)
 
-# Allow entering test domains via test_file_t and bin_t.
-miscfiles_domain_entry_test_files(capabledomain)
+# Allow entering test domains via bin_t.
 corecmd_bin_entry_type(capabledomain)
 
 # Allow these domains to create a temporay file.

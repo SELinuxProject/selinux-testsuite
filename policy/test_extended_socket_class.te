@@ -54,6 +54,3 @@ extended_socket_class_test(alg_socket, socket)
 
 # Trigger kernel module auto-loading of the network protocol implementations.
 kernel_request_load_module(extsocktestdomain)
-
-# Entry into the test domains via the test program.
-miscfiles_domain_entry_test_files(extsocktestdomain)

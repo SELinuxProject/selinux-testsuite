@@ -58,6 +58,3 @@ allow test_unix_server_t test_unix_dgram_client_t:unix_dgram_socket sendto;
 type test_socketpair_t;
 testsuite_domain_type(test_socketpair_t)
 typeattribute test_socketpair_t unixsocketdomain;
-
-# Allow all of these domains to be entered from the sysadm domain.
-miscfiles_domain_entry_test_files(unixsocketdomain)

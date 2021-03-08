@@ -42,6 +42,3 @@ vsock_client(noread, connect create getattr getopt setopt shutdown write)
 vsock_client(nogetattr, connect create getopt setopt read shutdown write)
 vsock_client(nogetopt, connect create getattr setopt read shutdown write)
 vsock_client(nosetopt, connect create getattr getopt read shutdown write)
-
-# Allow all of these domains to be entered from the sysadm domain.
-miscfiles_domain_entry_test_files(vsocksocketdomain)

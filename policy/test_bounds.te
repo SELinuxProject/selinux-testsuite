@@ -61,6 +61,3 @@ allow test_bounds_parent_t test_bounds_unbound_t : process { dyntransition };
 # Allow permission via attribute
 allow test_bounds_child_domain test_bounds_file_green_t : file { getattr setattr };
 allow test_bounds_child_domain test_bounds_file_blue_t : file { getattr setattr };
-
-# Allow all of these domains to be entered from sysadm domain
-miscfiles_domain_entry_test_files(test_bounds_domain)

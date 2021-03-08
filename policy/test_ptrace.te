@@ -33,10 +33,6 @@ userdom_search_user_home_dirs(test_ptrace_traced_t)
 # Let the tracer wait on the traced domain.
 allow test_ptrace_traced_t test_ptrace_tracer_t:process sigchld;
 
-# Allow all of these domains to be entered from the sysadm domains.
-# via a program in the test directory.
-miscfiles_domain_entry_test_files(ptracedomain)
-
 # Allow execution of helper programs.
 corecmd_exec_bin(ptracedomain)
 domain_exec_all_entry_files(ptracedomain)

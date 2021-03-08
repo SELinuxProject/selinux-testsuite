@@ -20,9 +20,6 @@ type test_execshare_notchild_t;
 testsuite_domain_type(test_execshare_notchild_t);
 typeattribute test_execshare_notchild_t execsharedomain;
 
-# Allow all of these domains to be entered from the sysadm domain.
-miscfiles_domain_entry_test_files(execsharedomain)
-
 # Grant the necessary permissions for the child domain.
 domain_entry_file_spec_domtrans(test_execshare_parent_t, test_execshare_child_t)
 allow test_execshare_parent_t test_execshare_child_t:fd use;

@@ -45,6 +45,3 @@ userfaultfd_domain_type(test_noread_uffd_t)
 
 # userfaultfd(2) requires CAP_SYS_PTRACE
 allow test_uffd_domain self:capability { sys_ptrace };
-
-# Allow all of these domains to be executed
-miscfiles_domain_entry_test_files(test_uffd_domain)

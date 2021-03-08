@@ -36,10 +36,3 @@ spec_domtrans_pattern(test_no_$1_t, test_file_t, test_$1_child_t)
 
 prlimit_test(setrlimit)
 prlimit_test(getrlimit)
-
-#
-# Common rules for all prlimit test domains.
-#
-
-# Entry into the test domains via the test program.
-miscfiles_domain_entry_test_files(prlimittestdomain)

@@ -229,8 +229,3 @@ allow sctpsocketdomain proc_net_t:file { read };
 allow sctpsocketdomain sysctl_net_t:dir { search };
 allow sctpsocketdomain self:udp_socket { create };
 allow sctpsocketdomain self:unix_dgram_socket { create ioctl };
-
-#
-############ Allow these domains to be entered from sysadm domain ############
-#
-miscfiles_domain_entry_test_files(sctpsocketdomain)
