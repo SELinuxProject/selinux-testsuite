@@ -57,8 +57,3 @@ allow test_binder_client_no_bpf_perm_t test_binder_bpf_mgr_t:binder { call };
 allow test_binder_client_no_bpf_perm_t test_binder_bpf_provider_t:fd { use };
 allow test_binder_client_no_bpf_perm_t device_t:chr_file { getattr ioctl open read write };
 allow_map(test_binder_client_no_bpf_perm_t, device_t, chr_file)
-
-#
-########### Allow these domains to be entered from sysadm domain ############
-#
-miscfiles_domain_entry_test_files(binderbpfdomain)

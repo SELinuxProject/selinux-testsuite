@@ -51,8 +51,11 @@ allow testsuite_domain self:capability { dac_override dac_read_search };
 #allow sysadm_t self:process setexec;
 #selinux_get_fs_mount(sysadm_t)
 
-# Let all test domains read test directories and files.
+# Let all test domains read test directories and files and to use test
+# files as entry points.
 miscfiles_read_test_files(testsuite_domain)
+miscfiles_domain_entry_test_files(testsuite_domain)
+miscfiles_exec_test_files(testsuite_domain)
 
 # Let the test domains set their current, exec and fscreate contexts.
 allow testsuite_domain self:process setcurrent;

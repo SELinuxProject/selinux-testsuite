@@ -53,9 +53,6 @@ libs_use_shared_libs(fileopdomain)
 libs_exec_ld_so(fileopdomain)
 libs_exec_lib_files(fileopdomain)
 
-# Allow all of these domains to be entered from sysadm domain
-miscfiles_domain_entry_test_files(fileopdomain)
-
 corecmd_bin_entry_type(fileopdomain)
 
 domain_entry_file(fileop_t, fileop_exec_t)

@@ -48,6 +48,3 @@ allow test_fdreceive_bpf_client3_t self:process { setrlimit };
 # Server side rules:
 allow test_fdreceive_server_t test_fdreceive_bpf_client3_t:fd { use };
 allow test_fdreceive_server_t test_fdreceive_bpf_client3_t:bpf { map_write };
-
-# Allow all of these domains to be entered from the sysadm domain.
-miscfiles_domain_entry_test_files(fdreceivebpfdomain)

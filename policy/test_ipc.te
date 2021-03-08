@@ -67,7 +67,6 @@ fs_rw_tmpfs_files(ipcdomain)
 
 # Allow all of these domains to be entered from user domains.
 # via a shell script in the test directory or by another program.
-miscfiles_domain_entry_test_files(ipcdomain)
 corecmd_bin_entry_type(ipcdomain)
 
 allow test_ipc_base_t self:sem create_sem_perms;

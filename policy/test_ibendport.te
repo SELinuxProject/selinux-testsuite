@@ -29,6 +29,3 @@ corenet_ib_access_unlabeled_pkeys(test_ibendport_manage_subnet_t)
 ')
 
 allow test_ibendport_manage_subnet_t test_ibendport_t:infiniband_endport manage_subnet;
-
-# Allow all of these domains to be entered from the sysadm domain.
-miscfiles_domain_entry_test_files(ibendportdomain)

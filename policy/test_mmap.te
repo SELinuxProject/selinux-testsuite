@@ -152,6 +152,3 @@ testsuite_domain_type(test_no_execmod_t)
 typeattribute test_no_execmod_t mmaptestdomain;
 allow test_no_execmod_t test_mmap_file_t:file { open read execute };
 allow_map(test_no_execmod_t, test_mmap_file_t, file)
-
-# Allow entrypoint via the test programs.
-miscfiles_domain_entry_test_files(mmaptestdomain)

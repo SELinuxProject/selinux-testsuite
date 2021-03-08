@@ -30,7 +30,6 @@ libs_exec_lib_files(ioctldomain)
 
 # Allow all of these domains to be entered from sysadm domain
 # via a shell script in the test directory or by....
-miscfiles_domain_entry_test_files(ioctldomain)
 corecmd_bin_entry_type(ioctldomain)
 
 # Allow the test domains some access to the temp file

@@ -24,8 +24,5 @@ type test_getsched_no_t;
 testsuite_domain_type(test_getsched_no_t)
 typeattribute test_getsched_no_t test_getsched_d;
 
-# Allow domain to be entered from the sysadm domain.
-miscfiles_domain_entry_test_files(test_getsched_d)
-
 # Give test_getsched_yes_t the permission needed.
 allow test_getsched_yes_t test_getsched_target_t:process getsched;

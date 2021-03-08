@@ -15,6 +15,3 @@ typeattribute test_setpgid_yes_t test_setpgid_d;
 type test_setpgid_no_t;
 testsuite_domain_type_minimal(test_setpgid_no_t)
 typeattribute test_setpgid_no_t test_setpgid_d;
-
-# Allow domain to be entered from the sysadm domain.
-miscfiles_domain_entry_test_files(test_setpgid_d)

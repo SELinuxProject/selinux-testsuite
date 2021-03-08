@@ -41,8 +41,5 @@ netlink_socket_test(netlink_crypto_socket)
 # Common rules for all netlink socket class test domains.
 #
 
-# Entry into the test domains via the test program.
-miscfiles_domain_entry_test_files(netlinksocktestdomain)
-
 # Trigger kernel module auto-loading of the protocol implementations.
 kernel_request_load_module(netlinksocktestdomain)

@@ -30,9 +30,6 @@ type test_fdreceive_server_t;
 testsuite_domain_type(test_fdreceive_server_t);
 typeattribute test_fdreceive_server_t fdreceivedomain;
 
-# Allow all of these domains to be entered from the sysadm domain.
-miscfiles_domain_entry_test_files(fdreceivedomain)
-
 # Grant the necessary permissions for the server domain.
 ## Create the Unix domain socket file.
 allow test_fdreceive_server_t test_file_t:dir rw_dir_perms;

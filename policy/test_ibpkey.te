@@ -22,6 +22,3 @@ corenet_ib_pkey(test_ibpkey_t)
 ifdef(`corenet_ib_access_unlabeled_pkeys',`
 corenet_ib_access_unlabeled_pkeys(test_ibpkey_access_t)
 ')
-
-# Allow all of these domains to be entered from the sysadm domain.
-miscfiles_domain_entry_test_files(ibpkeydomain)

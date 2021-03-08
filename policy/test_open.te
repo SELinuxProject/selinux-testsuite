@@ -28,6 +28,3 @@ type test_append_t;
 testsuite_domain_type(test_append_t)
 typeattribute test_append_t test_open_domain;
 allow test_append_t test_open_file_t:file append_file_perms;
-
-# Allow all of these domains to be entered from sysadm domain
-miscfiles_domain_entry_test_files(test_open_domain)

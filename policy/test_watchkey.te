@@ -15,8 +15,3 @@ allow test_watchkey_t self:key { view };
 type test_watchkey_no_view_t;
 testsuite_domain_type(test_watchkey_no_view_t)
 typeattribute test_watchkey_no_view_t watchkeydomain;
-
-#
-########### Allow these domains to be entered from sysadm domain ############
-#
-miscfiles_domain_entry_test_files(watchkeydomain)
