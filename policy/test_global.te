@@ -9,7 +9,6 @@ policy_module(test_policy,1.0.0)
 attribute testdomain;
 
 gen_require(`
-	role staff_r;
 	role system_r;
 	role sysadm_r;
 ')
