@@ -25,12 +25,21 @@ optional_policy(`
 	dontaudit unconfined_t testsuite_domain:process { noatsecure rlimitinh siginh };
 ')
 
-gen_require(`
-	role sysadm_r;
-')
+optional_policy(`
+	gen_require(`
+		role sysadm_r;
+	')
 
-# Authorize sysadm_r for the test domains.
-role sysadm_r types testsuite_domain;
+	# Authorize sysadm_r for the test domains.
+	role sysadm_r types testsuite_domain;
+
+	# Allow the test domain to be entered from sysadm_t
+	sysadm_entry_spec_domtrans_to(testsuite_domain)
+
+	# Let sysadm_t use runcon to run the test programs in various domains.
+	#allow sysadm_t self:process setexec;
+	#selinux_get_fs_mount(sysadm_t)
+')
 
 # Allow the test domains to access the sysadm terminal.
 # This allows read and write sysadm ttys and ptys.
@@ -40,16 +49,9 @@ term_use_all_terms(testsuite_domain)
 allow testsuite_domain init_t:fd use;
 allow testsuite_domain initrc_t:fd use;
 
-# Allow the test domain to be entered from sysadm_t
-sysadm_entry_spec_domtrans_to(testsuite_domain)
-
 # Allow the test domains to access the test directory and files
 # even if they are not root owned.
 allow testsuite_domain self:capability { dac_override dac_read_search };
-
-# Let sysadm_t use runcon to run the test programs in various domains.
-#allow sysadm_t self:process setexec;
-#selinux_get_fs_mount(sysadm_t)
 
 # Let all test domains read test directories and files and to use test
 # files as entry points.
