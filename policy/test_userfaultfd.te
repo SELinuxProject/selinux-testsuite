@@ -9,9 +9,8 @@ type uffd_t;
 
 define(`userfaultfd_domain_type',`
 	type $1;
-	domain_type($1)
+	testsuite_domain_type($1)
 	typeattribute $1 test_uffd_domain;
-	typeattribute $1 testdomain;
 ')
 
 # Domain for confirming that without transition rule the userfaultfd

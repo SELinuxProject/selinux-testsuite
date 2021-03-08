@@ -7,9 +7,8 @@ attribute ibendportdomain;
 
 # Domain for process.
 type test_ibendport_manage_subnet_t;
-domain_type(test_ibendport_manage_subnet_t)
+testsuite_domain_type(test_ibendport_manage_subnet_t)
 unconfined_runs_test(test_ibendport_manage_subnet_t)
-typeattribute test_ibendport_manage_subnet_t testdomain;
 typeattribute test_ibendport_manage_subnet_t ibendportdomain;
 
 type test_ibendport_t;

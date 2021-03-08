@@ -7,9 +7,8 @@ attribute capusernsdomain;
 
 # Domain for process that is allowed non-init userns capabilities
 type test_cap_userns_t;
-domain_type(test_cap_userns_t)
+testsuite_domain_type(test_cap_userns_t)
 unconfined_runs_test(test_cap_userns_t)
-typeattribute test_cap_userns_t testdomain;
 typeattribute test_cap_userns_t capusernsdomain;
 
 # This domain is allowed sys_admin on non-init userns for mount.
@@ -17,9 +16,8 @@ allow test_cap_userns_t self:cap_userns sys_admin;
 
 # Domain for process that is not allowed non-init userns capabilities
 type test_no_cap_userns_t;
-domain_type(test_no_cap_userns_t)
+testsuite_domain_type(test_no_cap_userns_t)
 unconfined_runs_test(test_no_cap_userns_t)
-typeattribute test_no_cap_userns_t testdomain;
 typeattribute test_no_cap_userns_t capusernsdomain;
 
 # Rules common to both domains.

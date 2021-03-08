@@ -4,16 +4,16 @@
 #
 
 # Domain for mounter process.
-type test_overlay_mounter_t, testdomain;
-domain_type(test_overlay_mounter_t)
+type test_overlay_mounter_t;
+testsuite_domain_type(test_overlay_mounter_t)
 
 # Domain for client process.
-type test_overlay_client_t, testdomain;
-domain_type(test_overlay_client_t)
+type test_overlay_client_t;
+testsuite_domain_type(test_overlay_client_t)
 
 # Domain for server process.
-type test_overlay_server_t, testdomain;
-domain_type(test_overlay_server_t)
+type test_overlay_server_t;
+testsuite_domain_type(test_overlay_server_t)
 
 type test_overlay_files_ro_t;
 files_type(test_overlay_files_ro_t)

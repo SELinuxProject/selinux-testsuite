@@ -20,9 +20,8 @@ corenet_all_recvfrom_unlabeled(kernel_t)
 
 # Domain for server process.
 type test_inet_server_t;
-domain_type(test_inet_server_t)
+testsuite_domain_type(test_inet_server_t)
 unconfined_runs_test(test_inet_server_t)
-typeattribute test_inet_server_t testdomain;
 typeattribute test_inet_server_t inetsocketdomain;
 allow test_inet_server_t self:tcp_socket create_stream_socket_perms;
 allow test_inet_server_t self:udp_socket create_socket_perms;
@@ -48,9 +47,8 @@ ifdef(`mcs_untrusted_proc', `
 
 # Domain for client process.
 type test_inet_client_t;
-domain_type(test_inet_client_t)
+testsuite_domain_type(test_inet_client_t)
 unconfined_runs_test(test_inet_client_t)
-typeattribute test_inet_client_t testdomain;
 typeattribute test_inet_client_t inetsocketdomain;
 allow test_inet_client_t self:tcp_socket create_stream_socket_perms;
 allow test_inet_client_t self:udp_socket create_socket_perms;
@@ -65,9 +63,8 @@ allow test_inet_client_t test_inet_server_t:peer recv;
 
 # Domain for a client process not authorized to communicate with the server.
 type test_inet_bad_client_t;
-domain_type(test_inet_bad_client_t)
+testsuite_domain_type(test_inet_bad_client_t)
 unconfined_runs_test(test_inet_bad_client_t)
-typeattribute test_inet_bad_client_t testdomain;
 typeattribute test_inet_bad_client_t inetsocketdomain;
 allow test_inet_bad_client_t self:tcp_socket create_stream_socket_perms;
 allow test_inet_bad_client_t self:udp_socket create_socket_perms;
@@ -81,9 +78,8 @@ corenet_inout_generic_node(test_inet_bad_client_t)
 
 # Domain for a process allowed to bind(2).
 type test_inet_bind_t;
-domain_type(test_inet_bind_t)
+testsuite_domain_type(test_inet_bind_t)
 unconfined_runs_test(test_inet_bind_t)
-typeattribute test_inet_bind_t testdomain;
 typeattribute test_inet_bind_t inetsocketdomain;
 allow test_inet_bind_t self:tcp_socket create_stream_socket_perms;
 allow test_inet_bind_t self:udp_socket create_socket_perms;
@@ -94,9 +90,8 @@ corenet_udp_bind_all_nodes(test_inet_bind_t)
 
 # Domain for a process not allowed name_bind permission to the port.
 type test_inet_no_name_bind_t;
-domain_type(test_inet_no_name_bind_t)
+testsuite_domain_type(test_inet_no_name_bind_t)
 unconfined_runs_test(test_inet_no_name_bind_t)
-typeattribute test_inet_no_name_bind_t testdomain;
 typeattribute test_inet_no_name_bind_t inetsocketdomain;
 allow test_inet_no_name_bind_t self:tcp_socket create_stream_socket_perms;
 allow test_inet_no_name_bind_t self:udp_socket create_socket_perms;
@@ -105,9 +100,8 @@ corenet_udp_bind_all_nodes(test_inet_no_name_bind_t)
 
 # Domain for a process not allowed node_bind permission to the node.
 type test_inet_no_node_bind_t;
-domain_type(test_inet_no_node_bind_t)
+testsuite_domain_type(test_inet_no_node_bind_t)
 unconfined_runs_test(test_inet_no_node_bind_t)
-typeattribute test_inet_no_node_bind_t testdomain;
 typeattribute test_inet_no_node_bind_t inetsocketdomain;
 allow test_inet_no_node_bind_t self:tcp_socket create_stream_socket_perms;
 allow test_inet_no_node_bind_t self:udp_socket create_socket_perms;
@@ -116,9 +110,8 @@ corenet_udp_bind_all_unreserved_ports(test_inet_no_node_bind_t)
 
 # Domain for a process allowed to connect(2).
 type test_inet_connect_t;
-domain_type(test_inet_connect_t)
+testsuite_domain_type(test_inet_connect_t)
 unconfined_runs_test(test_inet_connect_t)
-typeattribute test_inet_connect_t testdomain;
 typeattribute test_inet_connect_t inetsocketdomain;
 allow test_inet_connect_t self:tcp_socket create_stream_socket_perms;
 allow test_inet_connect_t self:udp_socket create_socket_perms;
@@ -130,9 +123,8 @@ corenet_inout_generic_node(test_inet_connect_t)
 
 # Domain for a process not allowed name_connect permission.
 type test_inet_no_name_connect_t;
-domain_type(test_inet_no_name_connect_t)
+testsuite_domain_type(test_inet_no_name_connect_t)
 unconfined_runs_test(test_inet_no_name_connect_t)
-typeattribute test_inet_no_name_connect_t testdomain;
 typeattribute test_inet_no_name_connect_t inetsocketdomain;
 allow test_inet_no_name_connect_t self:tcp_socket create_stream_socket_perms;
 allow test_inet_no_name_connect_t self:udp_socket create_socket_perms;

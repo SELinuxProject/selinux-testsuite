@@ -11,17 +11,15 @@ attribute prlimittestdomain;
 define(`prlimit_test', `
 # Domain that is allowed $1 permission to the child.
 type test_$1_t;
-domain_type(test_$1_t)
+testsuite_domain_type(test_$1_t)
 unconfined_runs_test(test_$1_t)
 typeattribute test_$1_t prlimittestdomain;
-typeattribute test_$1_t testdomain;
 
 # Child domain
 type test_$1_child_t;
-domain_type(test_$1_child_t)
+testsuite_domain_type(test_$1_child_t)
 unconfined_runs_test(test_$1_child_t)
 typeattribute test_$1_child_t prlimittestdomain;
-typeattribute test_$1_child_t testdomain;
 
 # Transition from parent to child.
 spec_domtrans_pattern(test_$1_t, test_file_t, test_$1_child_t)
@@ -31,10 +29,9 @@ allow test_$1_t test_$1_child_t:process $1;
 
 # Domain that is not allowed $1 permission.
 type test_no_$1_t;
-domain_type(test_no_$1_t)
+testsuite_domain_type(test_no_$1_t)
 unconfined_runs_test(test_no_$1_t)
 typeattribute test_no_$1_t prlimittestdomain;
-typeattribute test_no_$1_t testdomain;
 
 # Transition from parent to child.
 spec_domtrans_pattern(test_no_$1_t, test_file_t, test_$1_child_t)

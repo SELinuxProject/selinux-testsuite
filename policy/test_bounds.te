@@ -30,19 +30,17 @@ files_type(test_bounds_file_blue_t)
 
 # Domain for process that allows to other domains
 type test_bounds_parent_t;
-domain_type(test_bounds_parent_t)
+testsuite_domain_type(test_bounds_parent_t)
 typeattribute test_bounds_parent_t test_bounds_domain;
-typeattribute test_bounds_parent_t testdomain;
 
 allow test_bounds_parent_t test_bounds_file_red_t : file { read_file_perms setattr };
 allow test_bounds_parent_t test_bounds_file_green_t : file { read_file_perms setattr };
 
 # Domain for process that has a bounds type
 type test_bounds_child_t;
-domain_type(test_bounds_child_t)
+testsuite_domain_type(test_bounds_child_t)
 typeattribute test_bounds_child_t test_bounds_domain;
 typeattribute test_bounds_child_t test_bounds_child_domain;
-typeattribute test_bounds_child_t testdomain;
 typebounds test_bounds_parent_t test_bounds_child_t;
 
 allow test_bounds_child_t test_bounds_file_red_t : file { rw_file_perms setattr };
@@ -50,10 +48,9 @@ allow test_bounds_child_t test_bounds_file_blue_t : file { read_file_perms };
 
 # Domain for process that does not have any bounds type
 type test_bounds_unbound_t;
-domain_type(test_bounds_unbound_t)
+testsuite_domain_type(test_bounds_unbound_t)
 typeattribute test_bounds_unbound_t test_bounds_domain;
 typeattribute test_bounds_unbound_t test_bounds_child_domain;
-typeattribute test_bounds_unbound_t testdomain;
 
 allow test_bounds_unbound_t test_bounds_file_red_t : file { rw_file_perms setattr };
 allow test_bounds_unbound_t test_bounds_file_blue_t : file { read_file_perms };

@@ -8,24 +8,21 @@ attribute atsecuredomain;
 
 # Domain for process that is not allowed noatsecure to the new domain.
 type test_atsecure_denied_t;
-domain_type(test_atsecure_denied_t)
+testsuite_domain_type(test_atsecure_denied_t)
 unconfined_runs_test(test_atsecure_denied_t)
 typeattribute test_atsecure_denied_t atsecuredomain;
-typeattribute test_atsecure_denied_t testdomain;
 
 # Domain for process that is allowed noatsecure to the new domain.
 type test_atsecure_allowed_t;
-domain_type(test_atsecure_allowed_t)
+testsuite_domain_type(test_atsecure_allowed_t)
 unconfined_runs_test(test_atsecure_allowed_t)
 typeattribute test_atsecure_allowed_t atsecuredomain;
-typeattribute test_atsecure_allowed_t testdomain;
 
 # New domain for the process after the transition.
 type test_atsecure_newdomain_t;
-domain_type(test_atsecure_newdomain_t)
+testsuite_domain_type(test_atsecure_newdomain_t)
 unconfined_runs_test(test_atsecure_newdomain_t)
 typeattribute test_atsecure_newdomain_t atsecuredomain;
-typeattribute test_atsecure_newdomain_t testdomain;
 
 # Allow the domain entrypoints and transitions.
 corecmd_bin_entry_type(atsecuredomain)

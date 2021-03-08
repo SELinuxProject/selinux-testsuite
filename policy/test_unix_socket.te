@@ -7,9 +7,8 @@ attribute unixsocketdomain;
 
 # Domain for server process.
 type test_unix_server_t;
-domain_type(test_unix_server_t)
+testsuite_domain_type(test_unix_server_t)
 unconfined_runs_test(test_unix_server_t)
-typeattribute test_unix_server_t testdomain;
 typeattribute test_unix_server_t unixsocketdomain;
 
 # Socket file for the server process.
@@ -24,9 +23,8 @@ allow test_unix_server_t test_file_t:fifo_file rw_file_perms;
 
 # Domain for stream client process.
 type test_unix_stream_client_t;
-domain_type(test_unix_stream_client_t)
+testsuite_domain_type(test_unix_stream_client_t)
 unconfined_runs_test(test_unix_stream_client_t)
-typeattribute test_unix_stream_client_t testdomain;
 typeattribute test_unix_stream_client_t unixsocketdomain;
 
 # Socket file for the client process.
@@ -42,9 +40,8 @@ allow test_unix_stream_client_t test_unix_server_t:unix_stream_socket connectto;
 
 # Domain for dgram client process.
 type test_unix_dgram_client_t;
-domain_type(test_unix_dgram_client_t)
+testsuite_domain_type(test_unix_dgram_client_t)
 unconfined_runs_test(test_unix_dgram_client_t)
-typeattribute test_unix_dgram_client_t testdomain;
 typeattribute test_unix_dgram_client_t unixsocketdomain;
 
 # Reuse the same type for its socket file.
@@ -62,9 +59,8 @@ allow test_unix_server_t test_unix_dgram_client_t:unix_dgram_socket sendto;
 
 # Domain for socketpair(2) process.
 type test_socketpair_t;
-domain_type(test_socketpair_t)
+testsuite_domain_type(test_socketpair_t)
 unconfined_runs_test(test_socketpair_t)
-typeattribute test_socketpair_t testdomain;
 typeattribute test_socketpair_t unixsocketdomain;
 
 # Allow all of these domains to be entered from the sysadm domain.
