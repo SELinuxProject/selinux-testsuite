@@ -20,4 +20,3 @@ typeattribute test_watchkey_no_view_t watchkeydomain;
 ########### Allow these domains to be entered from sysadm domain ############
 #
 miscfiles_domain_entry_test_files(watchkeydomain)
-userdom_sysadm_entry_spec_domtrans_to(watchkeydomain)

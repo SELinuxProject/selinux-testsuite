@@ -32,7 +32,6 @@ typeattribute test_fdreceive_server_t fdreceivedomain;
 
 # Allow all of these domains to be entered from the sysadm domain.
 miscfiles_domain_entry_test_files(fdreceivedomain)
-userdom_sysadm_entry_spec_domtrans_to(fdreceivedomain)
 
 # Grant the necessary permissions for the server domain.
 ## Create the Unix domain socket file.

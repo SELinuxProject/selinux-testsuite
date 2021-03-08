@@ -43,4 +43,3 @@ prlimit_test(getrlimit)
 
 # Entry into the test domains via the test program.
 miscfiles_domain_entry_test_files(prlimittestdomain)
-userdom_sysadm_entry_spec_domtrans_to(prlimittestdomain)

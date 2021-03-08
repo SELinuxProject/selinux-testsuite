@@ -413,4 +413,3 @@ allow test_move_mount_no_mounton_t dosfs_t:filesystem { associate };
 ########### Allow these domains to be entered from sysadm domain ############
 #
 miscfiles_domain_entry_test_files(filesystemdomain)
-userdom_sysadm_entry_spec_domtrans_to(filesystemdomain)

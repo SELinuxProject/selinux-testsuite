@@ -18,7 +18,6 @@ testsuite_domain_type(test_execute_notrans_t);
 
 # Allow this domain to be entered via the shell.
 corecmd_shell_entry_type(test_execute_notrans_t)
-userdom_sysadm_entry_spec_domtrans_to(test_execute_notrans_t)
 
 #Allow test_execute_notrans permissions to the allowed type
 can_exec(test_execute_notrans_t,test_execute_notrans_allowed_t)

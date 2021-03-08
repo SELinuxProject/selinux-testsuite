@@ -75,4 +75,3 @@ allow_lockdown_confidentiality(test_perf_no_write_t)
 ########### Allow these domains to be entered from sysadm domain ############
 #
 miscfiles_domain_entry_test_files(perfdomain)
-userdom_sysadm_entry_spec_domtrans_to(perfdomain)

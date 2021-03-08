@@ -46,4 +46,3 @@ neverallow test_kmodule_deny_module_request_t kernel_t:system { module_request }
 ########### Allow these domains to be entered from sysadm domain ############
 #
 miscfiles_domain_entry_test_files(kmoduledomain)
-userdom_sysadm_entry_spec_domtrans_to(kmoduledomain)

@@ -47,4 +47,3 @@ allow mac_admintestdomain unlabeled_t:dir { getattr create };
 
 # Entry into the test domains via the test program.
 corecmd_bin_entry_type(mac_admintestdomain)
-userdom_sysadm_entry_spec_domtrans_to(mac_admintestdomain)

@@ -31,9 +31,7 @@ libs_exec_lib_files(ioctldomain)
 # Allow all of these domains to be entered from sysadm domain
 # via a shell script in the test directory or by....
 miscfiles_domain_entry_test_files(ioctldomain)
-userdom_sysadm_entry_spec_domtrans_to(ioctldomain)
 corecmd_bin_entry_type(ioctldomain)
-sysadm_bin_spec_domtrans_to(ioctldomain)
 
 # Allow the test domains some access to the temp file
 allow test_ioctl_t test_ioctl_file_t:file { open read write ioctl getattr setattr };

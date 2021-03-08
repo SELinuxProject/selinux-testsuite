@@ -18,4 +18,3 @@ typeattribute test_setpgid_no_t test_setpgid_d;
 
 # Allow domain to be entered from the sysadm domain.
 miscfiles_domain_entry_test_files(test_setpgid_d)
-userdom_sysadm_entry_spec_domtrans_to(test_setpgid_d)

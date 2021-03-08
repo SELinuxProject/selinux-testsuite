@@ -35,6 +35,3 @@ allow_map(atsecuredomain, test_file_t, file)
 # Only allow the allowed domain noatsecure permission to the
 # new domain.
 allow test_atsecure_allowed_t test_atsecure_newdomain_t:process noatsecure;
-
-# Allow all of these domains to be entered from the sysadm domain.
-userdom_sysadm_entry_spec_domtrans_to(atsecuredomain)
