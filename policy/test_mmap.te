@@ -6,25 +6,22 @@
 attribute mmaptestdomain;
 
 type test_mmap_zero_t;
-domain_type(test_mmap_zero_t)
+testsuite_domain_type(test_mmap_zero_t)
 unconfined_runs_test(test_mmap_zero_t)
-typeattribute test_mmap_zero_t testdomain;
 typeattribute test_mmap_zero_t mmaptestdomain;
 allow test_mmap_zero_t self:memprotect mmap_zero;
 
 type test_no_mmap_zero_t;
-domain_type(test_no_mmap_zero_t)
+testsuite_domain_type(test_no_mmap_zero_t)
 unconfined_runs_test(test_no_mmap_zero_t)
-typeattribute test_no_mmap_zero_t testdomain;
 typeattribute test_no_mmap_zero_t mmaptestdomain;
 
 type test_mmap_file_t;
 files_type(test_mmap_file_t)
 
 type test_execmem_t;
-domain_type(test_execmem_t)
+testsuite_domain_type(test_execmem_t)
 unconfined_runs_test(test_execmem_t)
-typeattribute test_execmem_t testdomain;
 typeattribute test_execmem_t mmaptestdomain;
 allow test_execmem_t self:process execmem;
 # For mprotect_file_private test.
@@ -39,9 +36,8 @@ allow test_execmem_t self:shm create_shm_perms;
 allow test_execmem_t tmpfs_t:file { read write execute };
 
 type test_no_execmem_t;
-domain_type(test_no_execmem_t)
+testsuite_domain_type(test_no_execmem_t)
 unconfined_runs_test(test_no_execmem_t)
-typeattribute test_no_execmem_t testdomain;
 typeattribute test_no_execmem_t mmaptestdomain;
 # For mprotect_file_private test.
 allow test_no_execmem_t test_mmap_file_t:file { open read };
@@ -55,9 +51,8 @@ allow test_no_execmem_t self:shm create_shm_perms;
 allow test_no_execmem_t tmpfs_t:file { read write };
 
 type test_mprotect_anon_shared_t;
-domain_type(test_mprotect_anon_shared_t)
+testsuite_domain_type(test_mprotect_anon_shared_t)
 unconfined_runs_test(test_mprotect_anon_shared_t)
-typeattribute test_mprotect_anon_shared_t testdomain;
 typeattribute test_mprotect_anon_shared_t mmaptestdomain;
 
 gen_require(`
@@ -75,33 +70,29 @@ allow_map(test_mprotect_anon_shared_t, hugetlbfs_t, file)
 allow test_mprotect_anon_shared_t self:process execmem;
 
 type test_no_mprotect_anon_shared_t;
-domain_type(test_no_mprotect_anon_shared_t)
+testsuite_domain_type(test_no_mprotect_anon_shared_t)
 unconfined_runs_test(test_no_mprotect_anon_shared_t)
-typeattribute test_no_mprotect_anon_shared_t testdomain;
 typeattribute test_no_mprotect_anon_shared_t mmaptestdomain;
 allow test_no_mprotect_anon_shared_t tmpfs_t:file read;
 allow test_no_mprotect_anon_shared_t hugetlbfs_t:file { read write };
 allow_map(test_no_mprotect_anon_shared_t, hugetlbfs_t, file)
 
 type test_mmap_dev_zero_t;
-domain_type(test_mmap_dev_zero_t)
+testsuite_domain_type(test_mmap_dev_zero_t)
 unconfined_runs_test(test_mmap_dev_zero_t)
-typeattribute test_mmap_dev_zero_t testdomain;
 typeattribute test_mmap_dev_zero_t mmaptestdomain;
 dev_rwx_zero(test_mmap_dev_zero_t)
 
 type test_no_mmap_dev_zero_t;
-domain_type(test_no_mmap_dev_zero_t)
+testsuite_domain_type(test_no_mmap_dev_zero_t)
 unconfined_runs_test(test_no_mmap_dev_zero_t)
-typeattribute test_no_mmap_dev_zero_t testdomain;
 typeattribute test_no_mmap_dev_zero_t mmaptestdomain;
 dev_rw_zero(test_no_mmap_dev_zero_t)
 allow_map(test_no_mmap_dev_zero_t, zero_device_t, chr_file)
 
 type test_mprotect_dev_zero_t;
-domain_type(test_mprotect_dev_zero_t)
+testsuite_domain_type(test_mprotect_dev_zero_t)
 unconfined_runs_test(test_mprotect_dev_zero_t)
-typeattribute test_mprotect_dev_zero_t testdomain;
 typeattribute test_mprotect_dev_zero_t mmaptestdomain;
 dev_rw_zero(test_mprotect_dev_zero_t)
 allow_map(test_mprotect_dev_zero_t, zero_device_t, chr_file)
@@ -114,79 +105,69 @@ allow test_mprotect_dev_zero_t tmpfs_t:file { read execute };
 allow test_mprotect_dev_zero_t self:process execmem;
 
 type test_no_mprotect_dev_zero_t;
-domain_type(test_no_mprotect_dev_zero_t)
+testsuite_domain_type(test_no_mprotect_dev_zero_t)
 unconfined_runs_test(test_no_mprotect_dev_zero_t)
-typeattribute test_no_mprotect_dev_zero_t testdomain;
 typeattribute test_no_mprotect_dev_zero_t mmaptestdomain;
 dev_rw_zero(test_no_mprotect_dev_zero_t)
 allow_map(test_no_mprotect_dev_zero_t, zero_device_t, chr_file)
 
 type test_file_rwx_t;
-domain_type(test_file_rwx_t)
+testsuite_domain_type(test_file_rwx_t)
 unconfined_runs_test(test_file_rwx_t)
-typeattribute test_file_rwx_t testdomain;
 typeattribute test_file_rwx_t mmaptestdomain;
 allow test_file_rwx_t test_mmap_file_t:file { open read write execute };
 allow_map(test_file_rwx_t, test_mmap_file_t, file)
 
 # Same as test_file_rwx_t but intentionally omitting map permission.
 type test_no_map_t;
-domain_type(test_no_map_t)
+testsuite_domain_type(test_no_map_t)
 unconfined_runs_test(test_no_map_t)
-typeattribute test_no_map_t testdomain;
 typeattribute test_no_map_t mmaptestdomain;
 allow test_no_map_t test_mmap_file_t:file { open read write execute };
 
 type test_file_rx_t;
-domain_type(test_file_rx_t)
+testsuite_domain_type(test_file_rx_t)
 unconfined_runs_test(test_file_rx_t)
-typeattribute test_file_rx_t testdomain;
 typeattribute test_file_rx_t mmaptestdomain;
 allow test_file_rx_t test_mmap_file_t:file { open read execute };
 allow_map(test_file_rx_t, test_mmap_file_t, file)
 
 type test_file_rw_t;
-domain_type(test_file_rw_t)
+testsuite_domain_type(test_file_rw_t)
 unconfined_runs_test(test_file_rw_t)
-typeattribute test_file_rw_t testdomain;
 typeattribute test_file_rw_t mmaptestdomain;
 allow test_file_rw_t test_mmap_file_t:file { open read write };
 allow_map(test_file_rw_t, test_mmap_file_t, file)
 
 type test_file_r_t;
-domain_type(test_file_r_t)
+testsuite_domain_type(test_file_r_t)
 unconfined_runs_test(test_file_r_t)
-typeattribute test_file_r_t testdomain;
 typeattribute test_file_r_t mmaptestdomain;
 allow test_file_r_t test_mmap_file_t:file { open read };
 allow_map(test_file_r_t, test_mmap_file_t, file)
 
 type test_execstack_t;
-domain_type(test_execstack_t)
+testsuite_domain_type(test_execstack_t)
 unconfined_runs_test(test_execstack_t)
-typeattribute test_execstack_t testdomain;
 typeattribute test_execstack_t mmaptestdomain;
 allow test_execstack_t self:process { execmem execstack };
 
 type test_execheap_t;
-domain_type(test_execheap_t)
+testsuite_domain_type(test_execheap_t)
 unconfined_runs_test(test_execheap_t)
-typeattribute test_execheap_t testdomain;
 typeattribute test_execheap_t mmaptestdomain;
 allow test_execheap_t self:process { execmem execheap };
 
 type test_execmod_t;
-domain_type(test_execmod_t)
+testsuite_domain_type(test_execmod_t)
 unconfined_runs_test(test_execmod_t)
-typeattribute test_execmod_t testdomain;
 typeattribute test_execmod_t mmaptestdomain;
 allow test_execmod_t test_mmap_file_t:file { open read execute execmod };
 allow_map(test_execmod_t, test_mmap_file_t, file)
 
 type test_no_execmod_t;
-domain_type(test_no_execmod_t)
+testsuite_domain_type(test_no_execmod_t)
 unconfined_runs_test(test_no_execmod_t)
-typeattribute test_no_execmod_t testdomain;
 typeattribute test_no_execmod_t mmaptestdomain;
 allow test_no_execmod_t test_mmap_file_t:file { open read execute };
 allow_map(test_no_execmod_t, test_mmap_file_t, file)

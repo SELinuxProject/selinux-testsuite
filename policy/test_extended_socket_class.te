@@ -19,10 +19,9 @@ attribute extsocktestdomain;
 define(`extended_socket_class_test', `
 # Domain that is allowed to create $1_socket.
 type test_$1_t;
-domain_type(test_$1_t)
+testsuite_domain_type(test_$1_t)
 unconfined_runs_test(test_$1_t)
 typeattribute test_$1_t extsocktestdomain;
-typeattribute test_$1_t testdomain;
 
 # Allow $1 but not $2.
 # This is to ensure that the kernel is checking the right class.
@@ -30,10 +29,9 @@ allow test_$1_t self:$1 create_socket_perms;
 
 # Domain that is not allowed to create $1.
 type test_no_$1_t;
-domain_type(test_no_$1_t)
+testsuite_domain_type(test_no_$1_t)
 unconfined_runs_test(test_no_$1_t)
 typeattribute test_no_$1_t extsocktestdomain;
-typeattribute test_no_$1_t testdomain;
 
 # Allow $2 but not $1.
 # This is to ensure that the kernel is checking the right class.

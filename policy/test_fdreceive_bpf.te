@@ -7,10 +7,9 @@ attribute fdreceivebpfdomain;
 
 # Domain for bpf client process.
 type test_fdreceive_bpf_client_t;
-domain_type(test_fdreceive_bpf_client_t)
+testsuite_domain_type(test_fdreceive_bpf_client_t)
 unconfined_runs_test(test_fdreceive_bpf_client_t)
 typeattribute test_fdreceive_bpf_client_t fdreceivebpfdomain;
-typeattribute test_fdreceive_bpf_client_t testdomain;
 allow test_fdreceive_bpf_client_t test_fdreceive_file_t:file { rw_file_perms };
 allow test_fdreceive_bpf_client_t test_file_t:sock_file { rw_sock_file_perms };
 allow test_fdreceive_bpf_client_t test_fdreceive_server_t:unix_stream_socket { connectto };
@@ -25,10 +24,9 @@ allow test_fdreceive_server_t test_fdreceive_bpf_client_t:bpf { prog_run} ;
 # Domain for bpf client2 process - Removes BPF prog_run perm from server.
 # Tests security_file_receive flow.
 type test_fdreceive_bpf_client2_t;
-domain_type(test_fdreceive_bpf_client2_t)
+testsuite_domain_type(test_fdreceive_bpf_client2_t)
 unconfined_runs_test(test_fdreceive_bpf_client2_t)
 typeattribute test_fdreceive_bpf_client2_t fdreceivebpfdomain;
-typeattribute test_fdreceive_bpf_client2_t testdomain;
 allow test_fdreceive_bpf_client2_t test_fdreceive_file_t:file { rw_file_perms };
 allow test_fdreceive_bpf_client2_t test_file_t:sock_file { rw_sock_file_perms };
 allow test_fdreceive_bpf_client2_t test_fdreceive_server_t:unix_stream_socket { connectto };
@@ -41,10 +39,9 @@ allow test_fdreceive_server_t test_fdreceive_bpf_client2_t:fd { use };
 # Domain for bpf client3 process - Removes BPF map_read perm from server.
 # Tests security_file_receive flow.
 type test_fdreceive_bpf_client3_t;
-domain_type(test_fdreceive_bpf_client3_t)
+testsuite_domain_type(test_fdreceive_bpf_client3_t)
 unconfined_runs_test(test_fdreceive_bpf_client3_t)
 typeattribute test_fdreceive_bpf_client3_t fdreceivebpfdomain;
-typeattribute test_fdreceive_bpf_client3_t testdomain;
 allow test_fdreceive_bpf_client3_t test_fdreceive_file_t:file { rw_file_perms };
 allow test_fdreceive_bpf_client3_t test_file_t:sock_file { rw_sock_file_perms };
 allow test_fdreceive_bpf_client3_t test_fdreceive_server_t:unix_stream_socket { connectto };

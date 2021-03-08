@@ -2,7 +2,6 @@
 # Declarations for type attributes for test domains.
 # 
 
-attribute testdomain;
 attribute capabledomain;
 attribute execsharedomain;
 attribute exectracedomain;

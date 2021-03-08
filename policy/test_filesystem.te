@@ -22,9 +22,8 @@ files_type(test_filesystem_file_t)
 
 ################# Test all functions ##########################
 type test_filesystem_t;
-domain_type(test_filesystem_t)
+testsuite_domain_type(test_filesystem_t)
 unconfined_runs_test(test_filesystem_t)
-typeattribute test_filesystem_t testdomain;
 typeattribute test_filesystem_t filesystemdomain;
 
 allow test_filesystem_t self:capability { sys_admin };
@@ -68,9 +67,8 @@ allow test_filesystem_filetranscon_t test_filesystem_file_t:filesystem { associa
 #################### Deny filesystem { relabelfrom } ######################
 # hooks.c may_context_mount_sb_relabel() FILESYSTEM__RELABELFROM
 type test_filesystem_sb_relabel_no_relabelfrom_t;
-domain_type(test_filesystem_sb_relabel_no_relabelfrom_t)
+testsuite_domain_type(test_filesystem_sb_relabel_no_relabelfrom_t)
 unconfined_runs_test(test_filesystem_sb_relabel_no_relabelfrom_t)
-typeattribute test_filesystem_sb_relabel_no_relabelfrom_t testdomain;
 typeattribute test_filesystem_sb_relabel_no_relabelfrom_t filesystemdomain;
 
 allow test_filesystem_sb_relabel_no_relabelfrom_t self:capability { sys_admin };
@@ -80,9 +78,8 @@ allow test_filesystem_sb_relabel_no_relabelfrom_t test_file_t:dir { mounton writ
 #################### Deny filesystem { relabelto } ######################
 # hooks.c may_context_mount_sb_relabel() FILESYSTEM__RELABELTO
 type test_filesystem_sb_relabel_no_relabelto_t;
-domain_type(test_filesystem_sb_relabel_no_relabelto_t)
+testsuite_domain_type(test_filesystem_sb_relabel_no_relabelto_t)
 unconfined_runs_test(test_filesystem_sb_relabel_no_relabelto_t)
-typeattribute test_filesystem_sb_relabel_no_relabelto_t testdomain;
 typeattribute test_filesystem_sb_relabel_no_relabelto_t filesystemdomain;
 
 allow test_filesystem_sb_relabel_no_relabelto_t self:capability { sys_admin };
@@ -94,9 +91,8 @@ allow test_filesystem_sb_relabel_no_relabelto_t test_file_t:dir { mounton write 
 #################### Deny filesystem { relabelfrom } ######################
 # hooks.c may_context_mount_inode_relabel() FILESYSTEM__RELABELFROM
 type test_filesystem_no_inode_no_relabelfrom_t;
-domain_type(test_filesystem_no_inode_no_relabelfrom_t)
+testsuite_domain_type(test_filesystem_no_inode_no_relabelfrom_t)
 unconfined_runs_test(test_filesystem_no_inode_no_relabelfrom_t)
-typeattribute test_filesystem_no_inode_no_relabelfrom_t testdomain;
 typeattribute test_filesystem_no_inode_no_relabelfrom_t filesystemdomain;
 
 allow test_filesystem_no_inode_no_relabelfrom_t self:capability { sys_admin };
@@ -106,9 +102,8 @@ allow test_filesystem_no_inode_no_relabelfrom_t test_file_t:dir { mounton write 
 #################### Deny filesystem { associate } ######################
 # hooks.c may_context_mount_inode_relabel() FILESYSTEM__ASSOCIATE
 type test_filesystem_inode_relabel_no_associate_t;
-domain_type(test_filesystem_inode_relabel_no_associate_t)
+testsuite_domain_type(test_filesystem_inode_relabel_no_associate_t)
 unconfined_runs_test(test_filesystem_inode_relabel_no_associate_t)
-typeattribute test_filesystem_inode_relabel_no_associate_t testdomain;
 typeattribute test_filesystem_inode_relabel_no_associate_t filesystemdomain;
 
 allow test_filesystem_inode_relabel_no_associate_t self:capability { sys_admin };
@@ -120,9 +115,8 @@ allow test_filesystem_inode_relabel_no_associate_t test_file_t:dir { mounton wri
 ########## Deny filesystem { associate } for create file ################
 # hooks.c may_create() FILESYSTEM__ASSOCIATE
 type test_filesystem_may_create_no_associate_t;
-domain_type(test_filesystem_may_create_no_associate_t)
+testsuite_domain_type(test_filesystem_may_create_no_associate_t)
 unconfined_runs_test(test_filesystem_may_create_no_associate_t)
-typeattribute test_filesystem_may_create_no_associate_t testdomain;
 typeattribute test_filesystem_may_create_no_associate_t filesystemdomain;
 
 allow test_filesystem_may_create_no_associate_t self:capability { sys_admin };
@@ -146,9 +140,8 @@ allow test_filesystem_may_create_no_associate_t unlabeled_t:file { create open r
 #################### Deny filesystem { quotamod } ######################
 # hooks.c selinux_quotactl() FILESYSTEM__QUOTAMOD
 type test_filesystem_no_quotamod_t;
-domain_type(test_filesystem_no_quotamod_t)
+testsuite_domain_type(test_filesystem_no_quotamod_t)
 unconfined_runs_test(test_filesystem_no_quotamod_t)
-typeattribute test_filesystem_no_quotamod_t testdomain;
 typeattribute test_filesystem_no_quotamod_t filesystemdomain;
 
 allow test_filesystem_no_quotamod_t self:capability { sys_admin };
@@ -163,9 +156,8 @@ allow test_filesystem_no_quotamod_t test_file_t:dir { mounton write remove_name 
 #################### Deny filesystem { quotaget } ######################
 # hooks.c selinux_quotactl() FILESYSTEM__QUOTAGET
 type test_filesystem_no_quotaget_t;
-domain_type(test_filesystem_no_quotaget_t)
+testsuite_domain_type(test_filesystem_no_quotaget_t)
 unconfined_runs_test(test_filesystem_no_quotaget_t)
-typeattribute test_filesystem_no_quotaget_t testdomain;
 typeattribute test_filesystem_no_quotaget_t filesystemdomain;
 
 allow test_filesystem_no_quotaget_t self:capability { sys_admin };
@@ -183,9 +175,8 @@ files_type(test_filesystem_no_quotaget_t)
 #################### Deny file { quotaon } ######################
 # hooks.c selinux_quota_on() FILE__QUOTAON
 type test_file_no_quotaon_t;
-domain_type(test_file_no_quotaon_t)
+testsuite_domain_type(test_file_no_quotaon_t)
 unconfined_runs_test(test_file_no_quotaon_t)
-typeattribute test_file_no_quotaon_t testdomain;
 typeattribute test_file_no_quotaon_t filesystemdomain;
 
 allow test_file_no_quotaon_t self:capability { sys_admin };
@@ -206,9 +197,8 @@ files_type(test_file_no_quotaon_t)
 #################### Deny filesystem { mount } ######################
 # hooks.c selinux_sb_kern_mount() FILESYSTEM__MOUNT
 type test_filesystem_no_mount_t;
-domain_type(test_filesystem_no_mount_t)
+testsuite_domain_type(test_filesystem_no_mount_t)
 unconfined_runs_test(test_filesystem_no_mount_t)
-typeattribute test_filesystem_no_mount_t testdomain;
 typeattribute test_filesystem_no_mount_t filesystemdomain;
 
 allow test_filesystem_no_mount_t self:capability { sys_admin };
@@ -219,9 +209,8 @@ allow test_filesystem_no_mount_t test_file_t:dir { mounton write remove_name rmd
 #################### Deny filesystem { getattr } ######################
 # hooks.c selinux_sb_statfs() FILESYSTEM__GETATTR
 type test_filesystem_no_getattr_t;
-domain_type(test_filesystem_no_getattr_t)
+testsuite_domain_type(test_filesystem_no_getattr_t)
 unconfined_runs_test(test_filesystem_no_getattr_t)
-typeattribute test_filesystem_no_getattr_t testdomain;
 typeattribute test_filesystem_no_getattr_t filesystemdomain;
 
 allow test_filesystem_no_getattr_t self:capability { sys_admin };
@@ -234,9 +223,8 @@ allow test_filesystem_no_getattr_t test_file_t:dir { mounton write remove_name r
 #################### Deny filesystem { remount } ######################
 # hooks.c selinux_mount() FILESYSTEM__REMOUNT
 type test_filesystem_no_remount_t;
-domain_type(test_filesystem_no_remount_t)
+testsuite_domain_type(test_filesystem_no_remount_t)
 unconfined_runs_test(test_filesystem_no_remount_t)
-typeattribute test_filesystem_no_remount_t testdomain;
 typeattribute test_filesystem_no_remount_t filesystemdomain;
 
 allow test_filesystem_no_remount_t self:capability { sys_admin };
@@ -249,9 +237,8 @@ allow test_filesystem_no_remount_t test_file_t:dir { mounton write remove_name r
 #################### Deny file { mounton } ######################
 # hooks.c selinux_move_mount() FILE__MOUNTON
 type test_move_mount_no_mounton_t;
-domain_type(test_move_mount_no_mounton_t)
+testsuite_domain_type(test_move_mount_no_mounton_t)
 unconfined_runs_test(test_move_mount_no_mounton_t)
-typeattribute test_move_mount_no_mounton_t testdomain;
 typeattribute test_move_mount_no_mounton_t filesystemdomain;
 
 allow test_move_mount_no_mounton_t self:capability { sys_admin };
@@ -265,9 +252,8 @@ allow test_move_mount_no_mounton_t test_file_t:dir { write remove_name rmdir };
 #################### Deny filesystem { unmount } ######################
 # hooks.c selinux_umount() FILESYSTEM__UNMOUNT
 type test_filesystem_no_unmount_t;
-domain_type(test_filesystem_no_unmount_t)
+testsuite_domain_type(test_filesystem_no_unmount_t)
 unconfined_runs_test(test_filesystem_no_unmount_t)
-typeattribute test_filesystem_no_unmount_t testdomain;
 typeattribute test_filesystem_no_unmount_t filesystemdomain;
 
 allow test_filesystem_no_unmount_t self:capability { sys_admin };
@@ -279,9 +265,8 @@ allow test_filesystem_no_unmount_t test_file_t:dir { mounton write remove_name r
 ########## Deny filesystem { associate } for setxattr ################
 # hooks.c selinux_inode_setxattr() FILESYSTEM__ASSOCIATE
 type test_filesystem_inode_setxattr_no_associate_t;
-domain_type(test_filesystem_inode_setxattr_no_associate_t)
+testsuite_domain_type(test_filesystem_inode_setxattr_no_associate_t)
 unconfined_runs_test(test_filesystem_inode_setxattr_no_associate_t)
-typeattribute test_filesystem_inode_setxattr_no_associate_t testdomain;
 typeattribute test_filesystem_inode_setxattr_no_associate_t filesystemdomain;
 
 allow test_filesystem_inode_setxattr_no_associate_t self:capability { sys_admin };
@@ -304,9 +289,8 @@ allow test_filesystem_inode_setxattr_no_associate_t unconfined_t:file { create r
 
 ################# Test process { setfscreate } #############
 type test_setfscreatecon_t;
-domain_type(test_setfscreatecon_t)
+testsuite_domain_type(test_setfscreatecon_t)
 unconfined_runs_test(test_setfscreatecon_t)
-typeattribute test_setfscreatecon_t testdomain;
 typeattribute test_setfscreatecon_t filesystemdomain;
 
 allow test_setfscreatecon_t self:capability { sys_admin };
@@ -326,9 +310,8 @@ allow test_setfscreatecon_newcon_t nfs_t:filesystem { associate };
 
 ################# deny process { setfscreate } #############
 type test_no_setfscreatecon_t;
-domain_type(test_no_setfscreatecon_t)
+testsuite_domain_type(test_no_setfscreatecon_t)
 unconfined_runs_test(test_no_setfscreatecon_t)
-typeattribute test_no_setfscreatecon_t testdomain;
 typeattribute test_no_setfscreatecon_t filesystemdomain;
 
 allow test_no_setfscreatecon_t self:capability { sys_admin };
@@ -336,9 +319,8 @@ allow test_no_setfscreatecon_t self:capability { sys_admin };
 
 ################# Test fscontext= ##########################
 type test_filesystem_fscontext_t;
-domain_type(test_filesystem_fscontext_t)
+testsuite_domain_type(test_filesystem_fscontext_t)
 unconfined_runs_test(test_filesystem_fscontext_t)
-typeattribute test_filesystem_fscontext_t testdomain;
 typeattribute test_filesystem_fscontext_t filesystemdomain;
 
 type test_filesystem_fscontext_fs_t;
@@ -357,9 +339,8 @@ allow test_filesystem_filecon_t test_filesystem_fscontext_fs_t:filesystem { asso
 
 ########### Test context= #################
 type test_filesystem_context_t;
-domain_type(test_filesystem_context_t)
+testsuite_domain_type(test_filesystem_context_t)
 unconfined_runs_test(test_filesystem_context_t)
-typeattribute test_filesystem_context_t testdomain;
 typeattribute test_filesystem_context_t filesystemdomain;
 
 type test_filesystem_context_file_t;

@@ -6,17 +6,15 @@
 
 # Type for process that is allowed certain capabilities
 type test_ncap_t;
-domain_type(test_ncap_t)
+testsuite_domain_type(test_ncap_t)
 unconfined_runs_test(test_ncap_t)
 typeattribute test_ncap_t capabledomain;
-typeattribute test_ncap_t testdomain;
 
 # Type for process that has restricted capability
 type test_resncap_t;
-domain_type(test_resncap_t)
+testsuite_domain_type(test_resncap_t)
 unconfined_runs_test(test_resncap_t)
 typeattribute test_resncap_t capabledomain;
-typeattribute test_resncap_t testdomain;
 
 # Allow access to the network - all permissions is fine, we're testing
 # capabilities here.

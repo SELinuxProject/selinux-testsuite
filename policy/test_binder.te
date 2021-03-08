@@ -4,9 +4,8 @@ attribute binderdomain;
 ################################## Manager ##################################
 #
 type test_binder_mgr_t;
-domain_type(test_binder_mgr_t)
+testsuite_domain_type(test_binder_mgr_t)
 unconfined_runs_test(test_binder_mgr_t)
-typeattribute test_binder_mgr_t testdomain;
 typeattribute test_binder_mgr_t binderdomain;
 allow test_binder_mgr_t test_binder_client_t:binder { transfer };
 allow test_binder_mgr_t device_t:chr_file { ioctl open read write };
@@ -19,9 +18,8 @@ allow test_binder_mgr_t test_file_t:fifo_file rw_file_perms;
 ########################### Service Provider ################################
 #
 type test_binder_provider_t;
-domain_type(test_binder_provider_t)
+testsuite_domain_type(test_binder_provider_t)
 unconfined_runs_test(test_binder_provider_t)
-typeattribute test_binder_provider_t testdomain;
 typeattribute test_binder_provider_t binderdomain;
 allow test_binder_provider_t test_binder_mgr_t:binder { call transfer };
 allow test_binder_provider_t device_t:chr_file { ioctl open read write };
@@ -33,9 +31,8 @@ allow test_binder_provider_t test_file_t:fifo_file rw_file_perms;
 #################### Service Provider no fd {use} ###########################
 # test 7
 type test_binder_provider_no_fd_t;
-domain_type(test_binder_provider_no_fd_t)
+testsuite_domain_type(test_binder_provider_no_fd_t)
 unconfined_runs_test(test_binder_provider_no_fd_t)
-typeattribute test_binder_provider_no_fd_t testdomain;
 typeattribute test_binder_provider_no_fd_t binderdomain;
 allow test_binder_provider_no_fd_t test_binder_mgr_t:binder { call transfer };
 allow test_binder_client_t test_binder_provider_no_fd_t:binder { call impersonate };
@@ -48,9 +45,8 @@ allow test_binder_provider_no_fd_t test_file_t:fifo_file rw_file_perms;
 ################################# Client ####################################
 #
 type test_binder_client_t;
-domain_type(test_binder_client_t)
+testsuite_domain_type(test_binder_client_t)
 unconfined_runs_test(test_binder_client_t)
-typeattribute test_binder_client_t testdomain;
 typeattribute test_binder_client_t binderdomain;
 allow test_binder_client_t test_binder_provider_t:binder { call impersonate };
 allow test_binder_client_t test_binder_mgr_t:binder { call };
@@ -62,9 +58,8 @@ allow_map(test_binder_client_t, device_t, chr_file)
 ######################## Client No call Manager #############################
 #
 type test_binder_client_no_call_mgr_t;
-domain_type(test_binder_client_no_call_mgr_t)
+testsuite_domain_type(test_binder_client_no_call_mgr_t)
 unconfined_runs_test(test_binder_client_no_call_mgr_t)
-typeattribute test_binder_client_no_call_mgr_t testdomain;
 typeattribute test_binder_client_no_call_mgr_t binderdomain;
 allow test_binder_client_no_call_mgr_t test_binder_provider_t:binder { call impersonate };
 allow test_binder_client_no_call_mgr_t device_t:chr_file { getattr ioctl open read write };
@@ -74,9 +69,8 @@ allow_map(test_binder_client_no_call_mgr_t, device_t, chr_file)
 ################## Client No call Service Provider ##########################
 #
 type test_binder_client_no_call_sp_t;
-domain_type(test_binder_client_no_call_sp_t)
+testsuite_domain_type(test_binder_client_no_call_sp_t)
 unconfined_runs_test(test_binder_client_no_call_sp_t)
-typeattribute test_binder_client_no_call_sp_t testdomain;
 typeattribute test_binder_client_no_call_sp_t binderdomain;
 allow test_binder_mgr_t test_binder_client_no_call_sp_t:binder { transfer };
 allow test_binder_client_no_call_sp_t test_binder_mgr_t:binder { call };
@@ -87,9 +81,8 @@ allow_map(test_binder_client_no_call_sp_t, device_t, chr_file)
 ######################## Client No impersonate ##############################
 #
 type test_binder_client_no_im_t;
-domain_type(test_binder_client_no_im_t)
+testsuite_domain_type(test_binder_client_no_im_t)
 unconfined_runs_test(test_binder_client_no_im_t)
-typeattribute test_binder_client_no_im_t testdomain;
 typeattribute test_binder_client_no_im_t binderdomain;
 allow test_binder_mgr_t test_binder_client_no_im_t:binder { transfer };
 allow test_binder_client_no_im_t test_binder_provider_t:binder { call };
@@ -102,9 +95,8 @@ allow_map(test_binder_client_no_im_t, device_t, chr_file)
 ########################## Client No transfer ###############################
 #
 type test_binder_client_no_transfer_t;
-domain_type(test_binder_client_no_transfer_t)
+testsuite_domain_type(test_binder_client_no_transfer_t)
 unconfined_runs_test(test_binder_client_no_transfer_t)
-typeattribute test_binder_client_no_transfer_t testdomain;
 typeattribute test_binder_client_no_transfer_t binderdomain;
 allow test_binder_client_no_transfer_t test_binder_mgr_t:binder { call };
 allow test_binder_client_no_transfer_t test_binder_provider_t:binder { call impersonate };

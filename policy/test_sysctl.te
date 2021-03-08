@@ -7,17 +7,15 @@ attribute sysctldomain;
 
 # Domain for process that is allowed to perform sysctl.
 type test_sysctl_t;
-domain_type(test_sysctl_t)
+testsuite_domain_type(test_sysctl_t)
 unconfined_runs_test(test_sysctl_t)
 typeattribute test_sysctl_t sysctldomain;
-typeattribute test_sysctl_t testdomain;
 
 # Domain for process that is not allowed to perform sysctl.
 type test_nosysctl_t;
-domain_type(test_nosysctl_t)
+testsuite_domain_type(test_nosysctl_t)
 unconfined_runs_test(test_nosysctl_t)
 typeattribute test_nosysctl_t sysctldomain;
-typeattribute test_nosysctl_t testdomain;
 
 # Allow all of these domains to be entered from sysadm domain
 # via /sbin/sysctl.

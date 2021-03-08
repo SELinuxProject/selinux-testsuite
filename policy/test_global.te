@@ -6,55 +6,55 @@ policy_module(test_policy,1.0.0)
 # Declarations
 #
 
-attribute testdomain;
+attribute testsuite_domain;
 
 gen_require(`
 	role sysadm_r;
 ')
 
 # Authorize sysadm_r for the test domains.
-role sysadm_r types testdomain;
+role sysadm_r types testsuite_domain;
 
 # Allow the test domains to access the sysadm terminal.
 # This allows read and write sysadm ttys and ptys.
-term_use_all_terms(testdomain)
+term_use_all_terms(testsuite_domain)
 
 # Allow the test domains to access the test directory and files
 # even if they are not root owned.
-allow testdomain self:capability { dac_override dac_read_search };
+allow testsuite_domain self:capability { dac_override dac_read_search };
 
 # Let sysadm_t use runcon to run the test programs in various domains.
 #allow sysadm_t self:process setexec;
 #selinux_get_fs_mount(sysadm_t)
 
 # Let all test domains read test directories and files.
-miscfiles_read_test_files(testdomain)
+miscfiles_read_test_files(testsuite_domain)
 
 # Let the test domains set their current, exec and fscreate contexts.
-allow testdomain self:process setcurrent;
-#domain_dyntrans_type(testdomain)
-#selinux_get_fs_mount(testdomain)
-allow testdomain self:process setexec;
+allow testsuite_domain self:process setcurrent;
+#domain_dyntrans_type(testsuite_domain)
+#selinux_get_fs_mount(testsuite_domain)
+allow testsuite_domain self:process setexec;
 
 # General permissions commonly required for test operation.
 # general_domain_access
-allow testdomain self:process ~{ptrace setcurrent setexec setfscreate setrlimit execmem execstack execheap setkeycreate};
-allow testdomain self:fd use;
-allow testdomain self:fifo_file rw_file_perms;
-allow testdomain self:unix_dgram_socket create_socket_perms;
-allow testdomain self:unix_stream_socket create_stream_socket_perms;
-allow testdomain self:unix_dgram_socket sendto;
-files_search_tmp(testdomain)
+allow testsuite_domain self:process ~{fork ptrace setcurrent setexec setfscreate setpgid setrlimit execmem execstack execheap setkeycreate};
+allow testsuite_domain self:fd use;
+allow testsuite_domain self:fifo_file rw_file_perms;
+allow testsuite_domain self:unix_dgram_socket create_socket_perms;
+allow testsuite_domain self:unix_stream_socket create_stream_socket_perms;
+allow testsuite_domain self:unix_dgram_socket sendto;
+files_search_tmp(testsuite_domain)
 
 # permission to use shared library
-libs_use_ld_so(testdomain)
-libs_use_shared_libs(testdomain)
+libs_use_ld_so(testsuite_domain)
+libs_use_shared_libs(testsuite_domain)
 
-allow testdomain proc_t:file { getattr read open };
-files_list_var(testdomain)
-files_list_home(testdomain)
-dev_read_rand(testdomain)
-files_list_pids(testdomain)
+allow testsuite_domain proc_t:file { getattr read open };
+files_list_var(testsuite_domain)
+files_list_home(testsuite_domain)
+dev_read_rand(testsuite_domain)
+files_list_pids(testsuite_domain)
 require {
 	type root_t;
 	type etc_t;
@@ -70,26 +70,26 @@ require {
 	type initrc_t;
 	type console_device_t;
 }
-allow testdomain { root_t etc_t bin_t sbin_t lib_t usr_t devpts_t }:dir list_dir_perms;
-allow testdomain lib_t:file read_file_perms;
-allow testdomain lib_t:lnk_file read;
-allow testdomain etc_t:file read_file_perms;
-allow testdomain { devtty_t null_device_t zero_device_t }:chr_file rw_file_perms;
-miscfiles_read_localization(testdomain)
-domain_use_interactive_fds(testdomain)
-seutil_read_config(testdomain)
+allow testsuite_domain { root_t etc_t bin_t sbin_t lib_t usr_t devpts_t }:dir list_dir_perms;
+allow testsuite_domain lib_t:file read_file_perms;
+allow testsuite_domain lib_t:lnk_file read;
+allow testsuite_domain etc_t:file read_file_perms;
+allow testsuite_domain { devtty_t null_device_t zero_device_t }:chr_file rw_file_perms;
+miscfiles_read_localization(testsuite_domain)
+domain_use_interactive_fds(testsuite_domain)
+seutil_read_config(testsuite_domain)
 
 # can getsecurity
-selinux_getattr_fs(testdomain)
-selinux_validate_context(testdomain)
-selinux_compute_access_vector(testdomain)
-selinux_compute_create_context(testdomain)
-selinux_compute_relabel_context(testdomain)
-selinux_compute_user_contexts(testdomain)
+selinux_getattr_fs(testsuite_domain)
+selinux_validate_context(testsuite_domain)
+selinux_compute_access_vector(testsuite_domain)
+selinux_compute_create_context(testsuite_domain)
+selinux_compute_relabel_context(testsuite_domain)
+selinux_compute_user_contexts(testsuite_domain)
 
 ifdef(`distro_redhat', `
     ifdef(`auth_read_passwd', `
-        auth_read_passwd(testdomain)
+        auth_read_passwd(testsuite_domain)
     ')
 ')
 

@@ -6,18 +6,16 @@ attribute watchkeydomain;
 ################# Allow watch_queue key { view } ##########################
 type test_watchkey_t;
 # Note: allow rules for pipe2(2) 'fifo_file { ioctl }' are set via domain_type()
-domain_type(test_watchkey_t)
+testsuite_domain_type(test_watchkey_t)
 unconfined_runs_test(test_watchkey_t)
-typeattribute test_watchkey_t testdomain;
 typeattribute test_watchkey_t watchkeydomain;
 
 allow test_watchkey_t self:key { view };
 
 ################# Deny watch_queue key { view } ##########################
 type test_watchkey_no_view_t;
-domain_type(test_watchkey_no_view_t)
+testsuite_domain_type(test_watchkey_no_view_t)
 unconfined_runs_test(test_watchkey_no_view_t)
-typeattribute test_watchkey_no_view_t testdomain;
 typeattribute test_watchkey_no_view_t watchkeydomain;
 
 #

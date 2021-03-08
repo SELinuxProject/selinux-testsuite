@@ -5,8 +5,7 @@
 
 # A domain bounded by the unconfined domain.
 type test_bounded_t;
-domain_type(test_bounded_t)
-typeattribute test_bounded_t testdomain;
+testsuite_domain_type(test_bounded_t)
 typebounds unconfined_t test_bounded_t;
 
 # The entrypoint type for this domain.
@@ -21,8 +20,7 @@ unconfined_run_to(test_bounded_t, test_bounded_exec_t)
 
 # A domain that is not bounded by the unconfined domain.
 type test_notbounded_t;
-domain_type(test_notbounded_t)
-typeattribute test_notbounded_t testdomain;
+testsuite_domain_type(test_notbounded_t)
 
 # The entrypoint type for this domain.
 type test_notbounded_exec_t;
@@ -35,8 +33,7 @@ unconfined_run_to(test_notbounded_t, test_notbounded_exec_t)
 
 # A domain to which the unconfined domain is allowed nnp_transition.
 type test_nnptransition_t;
-domain_type(test_nnptransition_t)
-typeattribute test_nnptransition_t testdomain;
+testsuite_domain_type(test_nnptransition_t)
 
 # The entrypoint type for this domain.
 type test_nnptransition_exec_t;
@@ -52,8 +49,7 @@ allow unconfined_t test_nnptransition_t:process2 nnp_transition;
 
 # A domain to which the unconfined domain is allowed nosuid_transition.
 type test_nosuidtransition_t;
-domain_type(test_nosuidtransition_t)
-typeattribute test_nosuidtransition_t testdomain;
+testsuite_domain_type(test_nosuidtransition_t)
 
 # The entrypoint type for this domain.
 type test_nosuidtransition_exec_t;
@@ -69,8 +65,7 @@ allow unconfined_t test_nosuidtransition_t:process2 nosuid_transition;
 
 # A domain to which the unconfined domain is allowed both nosuid_transition and nnp_transition.
 type test_nnpnosuidtransition_t;
-domain_type(test_nnpnosuidtransition_t)
-typeattribute test_nnpnosuidtransition_t testdomain;
+testsuite_domain_type(test_nnpnosuidtransition_t)
 
 # The entrypoint type for this domain.
 type test_nnpnosuidtransition_exec_t;
