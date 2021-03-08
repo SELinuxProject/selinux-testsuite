@@ -67,7 +67,7 @@ ok( $result >> 8 eq 11 );
 
 print "Change keyring context\n";
 $result = system
-"runcon -t test_key_t $basedir/keyctl_relabel $v system_u:system_r:test_newcon_key_t:s0";
+"runcon -t test_key_t $basedir/keyctl_relabel $v system_u:object_r:test_newcon_key_t:s0";
 ok( $result eq 0 );
 
 print "Test permission checks between a keyring created by another process\n";

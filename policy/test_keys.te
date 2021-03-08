@@ -40,10 +40,6 @@ allow test_key_t self:key { create write search read view link setattr };
 
 # Set new context on a keyring:
 type test_newcon_key_t;
-key_domain_type(test_newcon_key_t)
-unconfined_runs_test(test_newcon_key_t)
-typeattribute test_newcon_key_t testdomain;
-typeattribute test_newcon_key_t keydomain;
 
 allow test_key_t test_newcon_key_t:key { create write search view };
 
