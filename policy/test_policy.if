@@ -17,19 +17,6 @@
 ## </desc>
 #
 
-ifdef(`userdom_sysadm_entry_spec_domtrans_to',`', ` dnl
-interface(`userdom_sysadm_entry_spec_domtrans_to',`
-        gen_require(`
-                type sysadm_t;
-	')
-
-        domain_entry_file_spec_domtrans(sysadm_t, $1)
-        allow $1 sysadm_t:fd use;
-        allow $1 sysadm_t:fifo_file rw_file_perms;
-        allow $1 sysadm_t:process sigchld;
-')
-')
-
 interface(`testsuite_domain_type_common',`
 	gen_require(`
 		attribute testsuite_domain;
