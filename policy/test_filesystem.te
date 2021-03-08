@@ -57,7 +57,6 @@ allow test_filesystem_t test_filesystem_filecon_t:file { open read getattr relab
 fs_associate(test_filesystem_filetranscon_t)
 type_transition test_filesystem_t test_filesystem_file_t:file test_filesystem_filetranscon_t;
 allow test_filesystem_t test_filesystem_filetranscon_t:file { create getattr open write relabelfrom };
-dontaudit unconfined_t test_filesystem_filetranscon_t:file { getattr read };
 
 # For NFS
 type_transition test_filesystem_t test_file_t:file test_filesystem_filetranscon_t;
@@ -268,7 +267,6 @@ fs_associate(test_filesystem_inode_setxattr_no_associate_t)
 # Create test file
 allow test_filesystem_inode_setxattr_no_associate_t self:file { create relabelfrom relabelto };
 # neverallow unconfined_t test_filesystem_inode_setxattr_no_associate_t:filesystem { associate };
-dontaudit unconfined_t test_filesystem_filecon_t:file { getattr read };
 allow test_filesystem_inode_setxattr_no_associate_t unconfined_t:dir { add_name write };
 allow test_filesystem_inode_setxattr_no_associate_t unconfined_t:file { create relabelfrom relabelto };
 
