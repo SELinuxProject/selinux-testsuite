@@ -49,7 +49,7 @@ interface(`testsuite_domain_type',`
 
 interface(`testsuite_domain_type_minimal',`
 	gen_require(`
-		type setrans_var_run_t, unconfined_t;
+		type setrans_var_run_t;
 	')
 
 	testsuite_domain_type_common($1)
@@ -62,7 +62,6 @@ interface(`testsuite_domain_type_minimal',`
 	dontaudit $1 security_t:filesystem getattr;
 	dontaudit $1 self:file getattr;
 	dontaudit $1 setrans_var_run_t:dir search;
-	dontaudit unconfined_t $1:process { noatsecure rlimitinh siginh };
 ')
 
 # Workarounds for refpolicy:
