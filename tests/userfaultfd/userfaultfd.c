@@ -19,7 +19,7 @@ int page_size;
 
 void *fault_handler_thread(void *arg)
 {
-	long uffd = (long)arg;
+	int uffd = (int)(intptr_t)arg;
 	struct uffd_msg msg = {0};
 	struct uffdio_copy uffdio_copy = {0};
 	ssize_t nread;
@@ -83,6 +83,16 @@ void *fault_handler_thread(void *arg)
 	}
 }
 
+int syscall_userfaultfd(int flags)
+{
+#ifdef __NR_userfaultfd
+	return (int)syscall(__NR_userfaultfd, flags);
+#else
+	errno = ENOSYS;
+	return -1;
+#endif
+}
+
 int main (int argc, char *argv[])
 {
 	char *addr;
@@ -92,7 +102,7 @@ int main (int argc, char *argv[])
 	pthread_t thr; // ID of thread that handles page faults
 	ssize_t ret;
 
-	long uffd = syscall(__NR_userfaultfd, O_CLOEXEC | O_NONBLOCK);
+	int uffd = syscall_userfaultfd(O_CLOEXEC | O_NONBLOCK);
 	if (uffd < 0) {
 		if (errno == ENOSYS) {
 			return 8;
@@ -159,7 +169,8 @@ int main (int argc, char *argv[])
 	}
 
 	// Create a thread that will process the userfaultfd events
-	ret = pthread_create(&thr, NULL, fault_handler_thread, (void *) uffd);
+	ret = pthread_create(&thr, NULL, fault_handler_thread,
+			     (void *)(intptr_t)uffd);
 	if (ret != 0) {
 		errno = ret;
 		perror("pthread_create");
