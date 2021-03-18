@@ -1,0 +1,52 @@
+#################################
+#
+# Policy for testing vsock/local domain sockets.
+#
+
+attribute vsocksocketdomain;
+
+define(`vsock_server', `
+# Domain for server process.
+type test_vsock_server_$1_t;
+domain_type(test_vsock_server_$1_t)
+unconfined_runs_test(test_vsock_server_$1_t)
+typeattribute test_vsock_server_$1_t testdomain;
+typeattribute test_vsock_server_$1_t vsocksocketdomain;
+
+# Permissions of the server process.
+allow test_vsock_server_$1_t self:vsock_socket { $2 };
+
+# For writing to flag file:
+allow test_vsock_server_$1_t test_file_t:fifo_file rw_file_perms;
+')
+
+define(`vsock_client', `
+# Domain for stream client process.
+type test_vsock_client_$1_t;
+domain_type(test_vsock_client_$1_t)
+unconfined_runs_test(test_vsock_client_$1_t)
+typeattribute test_vsock_client_$1_t testdomain;
+typeattribute test_vsock_client_$1_t vsocksocketdomain;
+
+# client can connect to the server via the socket file or via abstract sockets.
+allow test_vsock_client_$1_t self:vsock_socket { $2 };
+')
+
+vsock_server(all, accept bind create getattr listen read write)
+vsock_server(nobind, accept create getattr listen read write)
+vsock_server(nolisten, accept bind create getattr read write)
+vsock_server(noaccept, bind create getattr listen read write)
+
+vsock_client(all, connect create getattr getopt setopt read shutdown write)
+vsock_client(nocreate, connect getattr getopt setopt read shutdown write)
+vsock_client(noconnect, create getattr getopt setopt read shutdown write)
+vsock_client(nowrite, connect create getattr getopt setopt read shutdown)
+vsock_client(noshutdown, connect create getattr getopt setopt read write)
+vsock_client(noread, connect create getattr getopt setopt shutdown write)
+vsock_client(nogetattr, connect create getopt setopt read shutdown write)
+vsock_client(nogetopt, connect create getattr setopt read shutdown write)
+vsock_client(nosetopt, connect create getattr getopt read shutdown write)
+
+# Allow all of these domains to be entered from the sysadm domain.
+miscfiles_domain_entry_test_files(vsocksocketdomain)
+userdom_sysadm_entry_spec_domtrans_to(vsocksocketdomain)
