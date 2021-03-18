@@ -1,0 +1,118 @@
+#!/usr/bin/perl
+use Test::More;
+
+BEGIN {
+    $basedir = $0;
+    $basedir =~ s|(.*)/[^/]*|$1|;
+
+    # check if vsock and vsock_loopback are available
+    $rc = system("$basedir/check_vsock");
+
+    if ( $rc eq 0 ) {
+        plan tests => 12;
+    }
+    elsif ( $rc eq 2 << 8 ) {
+        plan skip_all => "vsock socket family not supported";
+    }
+    elsif ( $rc eq 3 << 8 ) {
+        plan skip_all => "vsock_loopback transport not supported";
+    }
+    else {
+        plan skip_all => "unexpected error when checking vsock support";
+    }
+}
+
+sub server_start {
+    my ( $runcon_args, $args ) = @_;
+    my $pid;
+
+    system("rm -f $basedir/flag");
+    system("mkfifo $basedir/flag");
+
+    if ( ( $pid = fork() ) == 0 ) {
+        exec "runcon $runcon_args $basedir/server -f $basedir/flag $args";
+    }
+
+    # Wait for it to initialize, read port number.
+    my $port = `read -t 5 <>$basedir/flag; echo \$REPLY`;
+
+    return ( $pid, $port );
+}
+
+sub server_kill {
+    my ($pid) = @_;
+
+    kill KILL, $pid;
+    waitpid $pid, 0;
+    system("rm -f $basedir/flag");
+}
+
+# Start server for client tests.
+( $pid, $port ) = server_start( "-t test_vsock_server_all_t", "" );
+ok( $port =~ /^[0-9]+$/ );
+
+# Verify that client can connect to server.
+$result = system "runcon -t test_vsock_client_all_t $basedir/client 1 $port";
+ok( $result eq 0 );
+
+# Verify that client cannot create vsock_socket without permission.
+$result =
+  system
+  "runcon -t test_vsock_client_nocreate_t 2>/dev/null $basedir/client 1 $port";
+ok( $result eq 2 << 8 );
+
+# Verify that client cannot connect to vsock_socket without permission.
+$result =
+  system
+  "runcon -t test_vsock_client_noconnect_t 2>/dev/null $basedir/client 1 $port";
+ok( $result eq 3 << 8 );
+
+# Verify that client cannot write to vsock_socket without permission.
+$result =
+  system(
+    "runcon -t test_vsock_client_nowrite_t 2>/dev/null $basedir/client 1 $port"
+  );
+ok( $result eq 4 << 8 );
+
+# Verify that client cannot read from vsock_socket without permission.
+$result =
+  system
+  "runcon -t test_vsock_client_noread_t 2>/dev/null $basedir/client 1 $port";
+ok( $result eq 6 << 8 );
+
+# Verify that client cannot getsockname from vsock_socket without permission.
+$result =
+  system
+  "runcon -t test_vsock_client_nogetattr_t 2>/dev/null $basedir/client 1 $port";
+ok( $result eq 7 << 8 );
+
+# Verify that client cannot getsockopt from vsock_socket without permission.
+$result =
+  system
+  "runcon -t test_vsock_client_nogetopt_t 2>/dev/null $basedir/client 1 $port";
+ok( $result eq 8 << 8 );
+
+# Verify that client cannot setsockopt from vsock_socket without permission.
+$result =
+  system
+  "runcon -t test_vsock_client_nosetopt_t 2>/dev/null $basedir/client 1 $port";
+ok( $result eq 9 << 8 );
+
+server_kill($pid);
+
+# Verify that server cannot bind to vsock_socket without permission.
+$result =
+  system "runcon -t test_vsock_server_nobind_t $basedir/server 2>/dev/null";
+ok( $result eq 3 << 8 );
+
+# Verify that server cannot listen on vsock_socket without permission.
+$result =
+  system "runcon -t test_vsock_server_nolisten_t $basedir/server 2>/dev/null";
+ok( $result eq 5 << 8 );
+
+# Verify that server cannot accept a vsock_socket connection without permission.
+$result =
+  system "runcon -t test_vsock_server_noaccept_t $basedir/server 2>/dev/null";
+ok( $result eq 6 << 8 );
+
+exit;
