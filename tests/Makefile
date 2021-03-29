@@ -135,8 +135,10 @@ SUBDIRS += watchkey
 endif
 endif
 
+ifeq ($(shell [ $(MOD_POL_VERS) -ge 18 -a $(MAX_KERNEL_POLICY) -ge 30 ] && echo true),true)
 ifeq ($(shell test -e $(INCLUDEDIR)/linux/userfaultfd.h && echo true),true)
 SUBDIRS += userfaultfd
+endif
 endif
 
 ifeq ($(DISTRO),RHEL4)
