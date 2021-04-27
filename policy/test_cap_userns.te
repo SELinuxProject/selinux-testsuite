@@ -25,3 +25,6 @@ typeattribute test_no_cap_userns_t capusernsdomain;
 # Rules common to both domains.
 miscfiles_domain_entry_test_files(capusernsdomain)
 corecmd_exec_bin(capusernsdomain)
+
+# linux >= v5.12 needs setfcap to map UID 0
+allow capusernsdomain self:capability setfcap;
