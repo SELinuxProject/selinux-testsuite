@@ -15,7 +15,8 @@ jobs:
       matrix:
         env:
           - { version: 33, secnext: 0 }
-          - { version: 33, secnext: 1 }
+          - { version: 34, secnext: 0 }
+          - { version: 34, secnext: 1 }
     env:
       FEDORA_VERSION: ${{ matrix.env.version }}
       KERNEL_SECNEXT: ${{ matrix.env.secnext }}
