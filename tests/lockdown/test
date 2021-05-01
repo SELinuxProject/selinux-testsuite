@@ -3,7 +3,7 @@
 use Test;
 BEGIN { plan tests => 8 }
 
-$integrity_cmd       = "head -c 1 /sys/kernel/debug/sched_features";
+$integrity_cmd       = "head -c 1 /sys/kernel/debug/fault_around_bytes";
 $confidentiality_cmd = "head -c 1 /sys/kernel/debug/tracing/tracing_on";
 
 # everything is allowed
