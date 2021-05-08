@@ -14,12 +14,12 @@ jobs:
     strategy:
       matrix:
         env:
-          - { version: 33, secnext: 0 }
-          - { version: 34, secnext: 0 }
-          - { version: 34, secnext: 1 }
+          - { version: 33, kernel: latest }
+          - { version: 34, kernel: default }
+          - { version: 34, kernel: secnext }
     env:
       FEDORA_VERSION: ${{ matrix.env.version }}
-      KERNEL_SECNEXT: ${{ matrix.env.secnext }}
+      KERNEL_TYPE: ${{ matrix.env.kernel }}
     steps:
       - uses: actions/checkout@v2
       # macOS sometimes allows symlinks to have permissions other than 777,
