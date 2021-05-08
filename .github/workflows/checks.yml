@@ -28,6 +28,8 @@ jobs:
       # perms.
       - name: Fix symlink permissions
         run: find . -type link -exec chmod -h 777 \{\} \;
+      - name: Treat compiler warnings as errors
+        run: sed -i '' 's/-Wall/-Wall -Werror/' tests/Makefile
       - name: Create a Vagrant VM
         run: vagrant up
       - name: Run SELinux testsuite
