@@ -12,7 +12,6 @@
 int main(int argc, char **argv)
 {
 	int sock;
-	int result;
 	struct sockaddr_vm svm;
 
 	sock = socket(AF_VSOCK, SOCK_STREAM, 0);

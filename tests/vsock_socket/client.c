@@ -30,7 +30,7 @@ main(int argc, char **argv)
 	int opt;
 	int result;
 	char byte;
-	int len;
+	socklen_t len;
 	uint64_t bufsize;
 	struct sockaddr_vm svm;
 
