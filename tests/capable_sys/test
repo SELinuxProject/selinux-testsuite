@@ -9,10 +9,11 @@ BEGIN {
     $basedir = $0;
     $basedir =~ s|(.*)/[^/]*|$1|;
 
-    $isnfs = `stat -f --print %T $basedir`;
+    $fs          = `stat -f --print %T $basedir`;
+    $test_fibmap = ( $fs ne "btrfs" and $fs ne "nfs" );
 
     $test_count = 7;
-    if ( $isnfs ne "nfs" ) {
+    if ($test_fibmap) {
         $test_count += 1;
     }
 
@@ -26,7 +27,7 @@ system "rm -f $basedir/temp_file 2>&1";
 # Tests for the good domain.
 #
 
-if ( $isnfs ne "nfs" ) {
+if ($test_fibmap) {
 
     # CAP_SYS_RAWIO
     system "touch $basedir/temp_file 2>&1";
