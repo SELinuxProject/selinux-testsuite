@@ -9,4 +9,4 @@ all: $(TARGETS)
 
 clean:
 	rm -f $(TARGETS)
-	rm -f *.a *.o *.ko *.cmd *.mod *.mod.c .*.cmd Module.symvers modules.order
+	$(MAKE) -C $(KDIR) M=$(PWD) clean
