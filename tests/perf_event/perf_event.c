@@ -20,13 +20,14 @@ enum {
 static void print_usage(char *progname)
 {
 	fprintf(stderr,
-		"usage:  %s [-f|-m] [-v] EVENT_ID\n"
+		"usage:  %s [-f|-m] [-v] CPU EVENT_ID\n"
 		"Where:\n\t"
+		"CPU       target CPU (must be online)\n\n\t"
 		"EVENT_ID  target ftrace event ID\n\n\t"
-		"-f  Read perf_event info using read(2)\n\t"
-		"-m  Read perf_event info using mmap(2)\n\t"
-		"    Default is to use read(2) and mmap(2)\n\t"
-		"-v  Print information\n", progname);
+		"-f        Read perf_event info using read(2)\n\t"
+		"-m        Read perf_event info using mmap(2)\n\t"
+		"          Default is to use read(2) and mmap(2)\n\t"
+		"-v        Print information\n", progname);
 	exit(-1);
 }
 
@@ -39,7 +40,7 @@ static long perf_event_open(struct perf_event_attr *hw_event, pid_t pid,
 
 int main(int argc, char **argv)
 {
-	int opt, result, page_size, mmap_size, fd;
+	int opt, result, page_size, mmap_size, fd, cpu;
 	long long count, event_id;
 	bool verbose = false;
 	char *context;
@@ -65,10 +66,14 @@ int main(int argc, char **argv)
 		}
 	}
 
-	if ((argc - optind) != 1)
+	if ((argc - optind) != 2)
 		print_usage(argv[0]);
 
-	event_id = atoll(argv[optind]);
+	cpu = atoi(argv[optind]);
+	if (cpu < 0)
+		print_usage(argv[0]);
+
+	event_id = atoll(argv[optind + 1]);
 	if (event_id < 0)
 		print_usage(argv[0]);
 
@@ -90,7 +95,7 @@ int main(int argc, char **argv)
 	pe_attr.disabled = 1;
 	pe_attr.exclude_hv = 1;
 
-	fd = perf_event_open(&pe_attr, -1, 0, -1, 0);
+	fd = perf_event_open(&pe_attr, -1, cpu, -1, 0);
 	if (fd < 0) {
 		fprintf(stderr, "Failed perf_event_open(): %s\n",
 			strerror(errno));

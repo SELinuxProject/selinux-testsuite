@@ -48,56 +48,70 @@ BEGIN {
     plan tests => $test_count;
 }
 
+# find some CPU that is online
+for ( $cpu = 0 ; -e "/sys/devices/system/cpu/cpu$cpu" ; $cpu++ ) {
+
+    # if the "online" file doesn't exist, the CPU can't be offline
+    last unless -e "/sys/devices/system/cpu/cpu$cpu/online";
+
+    $online = `cat /sys/devices/system/cpu/cpu$cpu/online`;
+    chomp($online);
+    last if ( $online eq "1" );
+}
+
 $event_id = `cat /sys/kernel/debug/tracing/events/ftrace/function/id`;
 chomp($event_id);
 
 # perf_event { open cpu kernel tracepoint read write };
 print "Test perf_event\n";
-$result = system "runcon -t test_perf_t $basedir/perf_event $v $event_id";
+$result = system "runcon -t test_perf_t $basedir/perf_event $v $cpu $event_id";
 ok( $result eq 0 );
 
 if ($capability) {
 
     # Deny capability { perfmon } - EACCES perf_event_open(2)
     $result = system
-      "runcon -t test_perf_no_cap_t $basedir/perf_event $v $event_id 2>&1";
+      "runcon -t test_perf_no_cap_t $basedir/perf_event $v $cpu $event_id 2>&1";
     ok( $result >> 8 eq 1 );
 }
 
 # Deny perf_event { open } - EACCES perf_event_open(2)
 $result =
-  system "runcon -t test_perf_no_open_t $basedir/perf_event $v $event_id 2>&1";
+  system
+  "runcon -t test_perf_no_open_t $basedir/perf_event $v $cpu $event_id 2>&1";
 ok( $result >> 8 eq 1 );
 
 # Deny perf_event { cpu } - EACCES perf_event_open(2)
 $result =
-  system "runcon -t test_perf_no_cpu_t $basedir/perf_event $v $event_id 2>&1";
+  system
+  "runcon -t test_perf_no_cpu_t $basedir/perf_event $v $cpu $event_id 2>&1";
 ok( $result >> 8 eq 1 );
 
 # Deny perf_event { kernel } - EACCES perf_event_open(2)
 $result = system
-  "runcon -t test_perf_no_kernel_t $basedir/perf_event $v $event_id 2>&1";
+  "runcon -t test_perf_no_kernel_t $basedir/perf_event $v $cpu $event_id 2>&1";
 ok( $result >> 8 eq 1 );
 
 # Deny perf_event { tracepoint } - EACCES perf_event_open(2)
 $result =
   system
-  "runcon -t test_perf_no_tracepoint_t $basedir/perf_event $v $event_id 2>&1";
+"runcon -t test_perf_no_tracepoint_t $basedir/perf_event $v $cpu $event_id 2>&1";
 ok( $result >> 8 eq 1 );
 
 # Deny perf_event { read } - EACCES mmap(2)
 $result = system
-  "runcon -t test_perf_no_read_t $basedir/perf_event -m $v $event_id 2>&1";
+  "runcon -t test_perf_no_read_t $basedir/perf_event -m $v $cpu $event_id 2>&1";
 ok( $result >> 8 eq 6 );
 
 # Deny perf_event { read } - EACCES read(2)
 $result = system
-  "runcon -t test_perf_no_read_t $basedir/perf_event -f $v $event_id 2>&1";
+  "runcon -t test_perf_no_read_t $basedir/perf_event -f $v $cpu $event_id 2>&1";
 ok( $result >> 8 eq 7 );
 
 # Deny perf_event { write } - EACCES ioctl(2) write
 $result =
-  system "runcon -t test_perf_no_write_t $basedir/perf_event $v $event_id 2>&1";
+  system
+  "runcon -t test_perf_no_write_t $basedir/perf_event $v $cpu $event_id 2>&1";
 ok( $result >> 8 eq 2 );
 
 exit;
