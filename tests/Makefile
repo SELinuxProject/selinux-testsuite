@@ -112,10 +112,6 @@ SUBDIRS += perf_event
 endif
 endif
 
-ifeq ($(shell grep -q lockdown $(POLDEV)/include/support/all_perms.spt && echo true),true)
-SUBDIRS += lockdown
-endif
-
 ifeq ($(shell grep -q filesystem $(POLDEV)/include/support/all_perms.spt && echo true),true)
 SUBDIRS += $(addprefix filesystem/,$(FILESYSTEMS))
 ifeq ($(shell grep -q all_filesystem_perms.*watch $(POLDEV)/include/support/all_perms.spt && echo true),true)

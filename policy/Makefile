@@ -143,8 +143,9 @@ TARGETS += test_perf_event.te
 endif
 endif
 
+# Older kernels may still have the legacy lockdown class, so we need to add
+# the appropriate rules when the policy declares it.
 ifeq ($(shell grep -q lockdown $(POLDEV)/include/support/all_perms.spt && echo true),true)
-TARGETS += test_lockdown.te
 export M4PARAM += -Dlockdown_defined
 endif
 

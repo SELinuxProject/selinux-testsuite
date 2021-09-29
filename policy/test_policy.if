@@ -87,20 +87,3 @@ interface(`userdom_search_admin_dir', `
 ifdef(`kernel_request_load_module', `', ` dnl
 interface(`kernel_request_load_module', `')
 ')
-
-# We need to open-code these interfaces, because the system-provided ones will
-# likely grant the lockdown permissions we want to test.
-interface(`testsuite_read_debugfs_nolockdown',`
-	gen_require(`
-		type debugfs_t;
-	')
-
-	read_files_pattern($1, debugfs_t, debugfs_t)
-')
-interface(`testsuite_read_tracefs_nolockdown',`
-	gen_require(`
-		type tracefs_t;
-	')
-
-	read_files_pattern($1, tracefs_t, tracefs_t)
-')
