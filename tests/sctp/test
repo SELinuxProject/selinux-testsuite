@@ -33,7 +33,7 @@ BEGIN {
         plan skip_all => "SCTP not supported";
     }
     else {
-        $test_count = 75;
+        $test_count = 67;
 
         # Set up a GRE tunnel over loopback to ensure we have enough addresses
         # for the ASCONF tests.
@@ -72,6 +72,15 @@ BEGIN {
         if ( $netlabelctl gt "021" && $rc > 0 ) {
             $test_count += 13;
             $test_calipso = 1;
+        }
+
+        # Determine if kernel has legacy iptables support
+        $test_iptables = 0;
+
+        $rc = system("modprobe ip_tables 2>/dev/null");
+        if ( $rc == 0 ) {
+            $test_count += 8;
+            $test_iptables = 1;
         }
 
         # Determine if nftables has secmark support
@@ -903,10 +912,12 @@ sub test_tables {
     server_end($pid);
 }
 
-print "# Testing iptables (IPv4/IPv6).\n";
-system "/bin/sh $basedir/iptables-load";
-test_tables();
-system "/bin/sh $basedir/iptables-flush";
+if ($test_iptables) {
+    print "# Testing iptables (IPv4/IPv6).\n";
+    system "/bin/sh $basedir/iptables-load";
+    test_tables();
+    system "/bin/sh $basedir/iptables-flush";
+}
 
 if ($test_nft) {
     print "# Testing nftables (IPv4/IPv6).\n";

@@ -5,7 +5,7 @@ BEGIN {
     $basedir = $0;
     $basedir =~ s|(.*)/[^/]*|$1|;
 
-    $test_count = 38;
+    $test_count = 30;
 
     $test_ipsec = 0;
     if ( system("ip xfrm policy help 2>&1 | grep -q ctx") eq 0 ) {
@@ -25,6 +25,15 @@ BEGIN {
     if ( $netlabelctl gt "021" and $rc > 0 ) {
         $test_count += 3;
         $test_calipso_stream = 1;
+    }
+
+    # Determine if kernel has legacy iptables support
+    $test_iptables = 0;
+
+    $rc = system("modprobe ip_tables 2>/dev/null");
+    if ( $rc == 0 ) {
+        $test_count += 8;
+        $test_iptables = 1;
     }
 
     # Determine if nftables has secmark support
@@ -415,10 +424,12 @@ sub test_tables {
     server_end($pid);
 }
 
-print "Testing iptables (IPv4/IPv6).\n";
-system "/bin/sh $basedir/iptables-load";
-test_tables();
-system "/bin/sh $basedir/iptables-flush";
+if ($test_iptables) {
+    print "Testing iptables (IPv4/IPv6).\n";
+    system "/bin/sh $basedir/iptables-load";
+    test_tables();
+    system "/bin/sh $basedir/iptables-flush";
+}
 
 if ($test_nft) {
     print "Testing nftables (IPv4/IPv6).\n";
