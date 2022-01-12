@@ -15,6 +15,7 @@
  */
 
 #include "binder_common.h"
+#include <linux/version.h>
 
 bool verbose;
 enum binder_test_fd_t fd_type;
@@ -108,7 +109,13 @@ void print_trans_data(const struct binder_transaction_data *txn_in)
 		obj = (const struct flat_binder_object *)
 		      (((char *)(binder_uintptr_t)txn_in->data.ptr.buffer) + *offs++);
 
-		switch (obj->hdr.type) {
+		unsigned int obj_type =
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4,11,0)
+			obj->hdr.type;
+#else
+			obj->type;
+#endif
+		switch (obj_type) {
 		case BINDER_TYPE_BINDER:
 			printf("\thdr: BINDER_TYPE_BINDER\n");
 			printf("\tbinder: %llx\n", obj->binder);
@@ -122,7 +129,7 @@ void print_trans_data(const struct binder_transaction_data *txn_in)
 			printf("\tfd: %x\n", obj->handle);
 			break;
 		default:
-			printf("Unknown header: %u\n", obj->hdr.type);
+			printf("Unknown header: %u\n", obj_type);
 			return;
 		}
 #if HAVE_BINDERFS
