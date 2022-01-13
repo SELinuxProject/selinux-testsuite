@@ -54,7 +54,9 @@ SUBDIRS += prlimit
 endif
 
 ifeq ($(shell grep -q binder $(POLDEV)/include/support/all_perms.spt && test -e $(INCLUDEDIR)/linux/android/binder.h && echo true),true)
+ifneq ($(shell ./kvercmp $$(uname -r) 4.11),-1)
 SUBDIRS += binder
+endif
 endif
 
 ifeq ($(shell grep -q bpf $(POLDEV)/include/support/all_perms.spt && echo true),true)
