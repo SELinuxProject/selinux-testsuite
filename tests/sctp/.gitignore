@@ -4,5 +4,6 @@ sctp_bind
 sctp_bindx
 sctp_client
 sctp_connectx
+sctp_peeloff_client
 sctp_peeloff_server
 sctp_server
