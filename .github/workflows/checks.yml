@@ -14,9 +14,9 @@ jobs:
     strategy:
       matrix:
         env:
-          - { version: 33, kernel: latest }
           - { version: 34, kernel: default }
-          - { version: 34, kernel: secnext }
+          - { version: 35, kernel: default }
+          - { version: 35, kernel: secnext }
     env:
       FEDORA_VERSION: ${{ matrix.env.version }}
       KERNEL_TYPE: ${{ matrix.env.kernel }}
