@@ -10,7 +10,7 @@ jobs:
       - uses: actions/checkout@v2
       - run: tools/check-syntax -f && git diff --exit-code
   fedora-test:
-    runs-on: macos-latest
+    runs-on: macos-10.15
     strategy:
       matrix:
         env:
