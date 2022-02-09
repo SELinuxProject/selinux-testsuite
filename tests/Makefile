@@ -53,8 +53,10 @@ ifeq ($(shell grep -q getrlimit $(POLDEV)/include/support/all_perms.spt && echo 
 SUBDIRS += prlimit
 endif
 
-ifeq ($(shell grep -q binder $(POLDEV)/include/support/all_perms.spt && test -e $(INCLUDEDIR)/linux/android/binder.h && echo true),true)
+ifeq ($(shell grep -q binder $(POLDEV)/include/support/all_perms.spt && echo true),true)
+ifeq ($(shell grep -qs 'struct binder_fd_object' $(INCLUDEDIR)/linux/android/binder.h && echo true),true)
 SUBDIRS += binder
+endif
 endif
 
 ifeq ($(shell grep -q bpf $(POLDEV)/include/support/all_perms.spt && echo true),true)
