@@ -38,5 +38,7 @@ jobs:
         run: while ! vagrant ssh -- true; do sleep 1; done
       - name: Run SELinux testsuite
         run: vagrant ssh -- sudo make -C /root/testsuite test
+      - name: Check unwanted denials
+        run: vagrant ssh -- '! sudo ausearch -m avc -i </dev/null | grep unconfined_t'
       - name: Check .gitignore coverage
         run: test "$(vagrant ssh -- sudo git -C /root/testsuite ls-files -o --exclude-standard | wc -l)" -eq 0
