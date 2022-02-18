@@ -356,16 +356,12 @@ allow test_filesystem_may_create_no_associate_t nfs_t:filesystem { associate };
 allow test_filesystem_may_create_no_associate_t test_file_t:dir { add_name };
 allow test_filesystem_may_create_no_associate_t test_file_t:file { create write relabelfrom };
 allow test_filesystem_may_create_no_associate_t test_filesystem_file_t:filesystem { mount unmount relabelto };
-allow test_file_t test_filesystem_may_create_no_associate_t:filesystem { associate };
-allow unconfined_t test_filesystem_may_create_no_associate_t:filesystem { getattr mount relabelto unmount };
-# neverallow unconfined_t test_filesystem_may_create_no_associate_t:filesystem { associate };
+# neverallow test_file_t test_filesystem_may_create_no_associate_t:filesystem { associate };
 
 allow test_filesystem_inode_setxattr_no_associate_t nfs_t:filesystem { associate };
 allow test_filesystem_inode_setxattr_no_associate_t test_file_t:dir { add_name };
 allow test_filesystem_inode_setxattr_no_associate_t test_file_t:file { create relabelfrom write };
-allow test_file_t test_filesystem_inode_setxattr_no_associate_t:filesystem { associate };
-allow unconfined_t test_filesystem_inode_setxattr_no_associate_t:filesystem { getattr mount relabelfrom relabelto unmount };
-# neverallow unconfined_t test_filesystem_inode_setxattr_no_associate_t:filesystem { associate };
+# neverallow test_file_t test_filesystem_inode_setxattr_no_associate_t:filesystem { associate };
 
 #
 ############### Rules for NFS mount ##################
