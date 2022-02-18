@@ -213,7 +213,7 @@ corenet_inout_generic_if(sctp_asconf_deny_param_add_client_t)
 ######################### SECMARK-specific policy ############################
 #
 type test_sctp_server_packet_t;
-allow unconfined_t test_sctp_server_packet_t:packet { relabelto };
+testsuite_caller_packet_relabelto(test_sctp_server_packet_t)
 allow test_sctp_server_t test_sctp_server_packet_t:packet { send recv };
 allow test_sctp_client_t test_sctp_server_packet_t:packet { send recv };
 

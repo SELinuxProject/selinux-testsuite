@@ -51,6 +51,22 @@ interface(`testsuite_domain_type_minimal',`
 	dontaudit $1 setrans_var_run_t:dir search;
 ')
 
+interface(`testsuite_caller_association_setcontext',`
+	gen_require(`
+		attribute testsuite_caller_ifconfig_domain;
+	')
+
+	allow testsuite_caller_ifconfig_domain $1:association setcontext;
+')
+
+interface(`testsuite_caller_packet_relabelto',`
+	gen_require(`
+		attribute testsuite_caller_iptables_domain;
+	')
+
+	allow testsuite_caller_iptables_domain $1:packet relabelto;
+')
+
 # Workarounds for refpolicy:
 
 ifdef(`dev_rw_infiniband_dev', `', ` dnl
