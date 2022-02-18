@@ -476,7 +476,7 @@ if ( not $nfs_enabled and not $vfat_enabled ) {
 
     print "Creating test file $basedir/mntpoint/mp1/test_file\n";
     $result = system(
-"runcon -t test_filesystem_may_create_no_associate_t $basedir/create_file_change_context -t unconfined_t -f $basedir/mntpoint/mp1/test_file $v 2>&1"
+"runcon -t test_filesystem_may_create_no_associate_t $basedir/create_file_change_context -t test_file_t -f $basedir/mntpoint/mp1/test_file $v 2>&1"
     );
     ok( $result >> 8 eq 13 );    # EACCES
 
@@ -783,7 +783,7 @@ if ( not $nfs_enabled and not $vfat_enabled ) {
     ok( $result eq 0 );
 
     $result = system(
-"runcon -t test_filesystem_inode_setxattr_no_associate_t $basedir/create_file_change_context -t unconfined_t -f $basedir/mntpoint/mp1/test_file $v 2>&1"
+"runcon -t test_filesystem_inode_setxattr_no_associate_t $basedir/create_file_change_context -t test_file_t -f $basedir/mntpoint/mp1/test_file $v 2>&1"
     );
     ok( $result >> 8 eq 13 );    # EACCES
 

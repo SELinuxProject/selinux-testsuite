@@ -240,7 +240,7 @@ while ( $i < 2 ) {
     ok( $result eq 0, $test_msg );
 
     $result = system(
-"runcon -t test_filesystem_may_create_no_associate_t $filesystem_dir/create_file_change_context $v -t unconfined_t -f $target/tests/nfs_filesystem/mntpoint/mp1/test_file 2>&1"
+"runcon -t test_filesystem_may_create_no_associate_t $filesystem_dir/create_file_change_context $v -t test_file_t -f $target/tests/nfs_filesystem/mntpoint/mp1/test_file 2>&1"
     );
     ok( $result >> 8 eq 13, $test_msg );    # EACCES
 
@@ -264,7 +264,7 @@ while ( $i < 2 ) {
     ok( $result eq 0, $test_msg );
 
     $result = system(
-"runcon -t test_filesystem_inode_setxattr_no_associate_t $filesystem_dir/create_file_change_context $v -t unconfined_t -f $target/tests/nfs_filesystem/mntpoint/mp1/test_file 2>&1"
+"runcon -t test_filesystem_inode_setxattr_no_associate_t $filesystem_dir/create_file_change_context $v -t test_file_t -f $target/tests/nfs_filesystem/mntpoint/mp1/test_file 2>&1"
     );
     ok( $result >> 8 eq 13, $test_msg );    # EACCES
 
