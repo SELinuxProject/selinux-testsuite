@@ -31,31 +31,36 @@ system("chcon -t test_bounded_exec_t $basedir/checkcon");
 # Create nosuid mount.
 system("mkdir -p $basedir/testdir");
 system("mount -t tmpfs -o nosuid none $basedir/testdir");
+system("chcon -t test_file_t $basedir/testdir");
 
 # Set entrypoint type for bounded domain under nosuid.
 system("cp $basedir/checkcon $basedir/testdir");
 system("chcon -t test_bounded_exec_t $basedir/testdir/checkcon");
 
+# Run everything from test_intermediate_t (to simplify the policy)
+$run = "runcon -t test_intermediate_t --";
+
 # Transition under NNP to bounded type via setexec.
 $result = system(
-"$basedir/execnnp -n -- runcon -t test_bounded_t $basedir/checkcon test_bounded_t 2>&1"
+"$run $basedir/execnnp -n -- runcon -t test_bounded_t $basedir/checkcon test_bounded_t 2>&1"
 );
 ok( $result, 0 );    #this should pass
 
 # Transition on nosuid to bounded type via setexec.
 $result = system(
-"$basedir/execnnp -- runcon -t test_bounded_t $basedir/testdir/checkcon test_bounded_t 2>&1"
+"$run $basedir/execnnp -- runcon -t test_bounded_t $basedir/testdir/checkcon test_bounded_t 2>&1"
 );
 ok( $result, 0 );    #this should pass
 
 # Automatic transition under NNP to bounded domain via exec.
 $result =
-  system("$basedir/execnnp -n -- $basedir/checkcon test_bounded_t 2>&1");
+  system("$run $basedir/execnnp -n -- $basedir/checkcon test_bounded_t 2>&1");
 ok( $result, 0 );    #this should pass
 
 # Automatic transition on nosuid to bounded domain via exec.
 $result =
-  system("$basedir/execnnp -- $basedir/testdir/checkcon test_bounded_t 2>&1");
+  system(
+    "$run $basedir/execnnp -- $basedir/testdir/checkcon test_bounded_t 2>&1");
 ok( $result, 0 );    #this should pass
 
 # Use true as an entrypoint program to test ability to exec at all.
@@ -71,25 +76,28 @@ system(
 # Transition under NNP to notbounded domain via setexec.
 $result =
   system(
-    "$basedir/execnnp -n -- runcon -t test_notbounded_t $basedir/true 2>&1");
+    "$run $basedir/execnnp -n -- runcon -t test_notbounded_t $basedir/true 2>&1"
+  );
 ok($result);    #this should fail
 
 # Transition on nosuid to notbounded domain via setexec.
 $result =
   system(
-    "$basedir/execnnp -- runcon -t test_notbounded_t $basedir/testdir/true 2>&1"
+"$run $basedir/execnnp -- runcon -t test_notbounded_t $basedir/testdir/true 2>&1"
   );
 ok($result);    #this should fail
 
 # Automatic transition under NNP to notbounded domain via exec.
 $result =
-  system("$basedir/execnnp -n -- $basedir/checkcon test_notbounded_t 2>&1");
+  system(
+    "$run $basedir/execnnp -n -- $basedir/checkcon test_notbounded_t 2>&1");
 ok($result);    #this should fail
 
 # Automatic transition on nosuid to notbounded domain via exec.
 $result =
   system(
-    "$basedir/execnnp -- $basedir/testdir/checkcon test_notbounded_t 2>&1");
+    "$run $basedir/execnnp -- $basedir/testdir/checkcon test_notbounded_t 2>&1"
+  );
 ok($result);    #this should fail
 
 if ($test_nnp_nosuid_transition) {
@@ -104,27 +112,28 @@ if ($test_nnp_nosuid_transition) {
     # Transition under NNP to nnptransition domain via setexec.
     $result =
       system(
-"$basedir/execnnp -n -- runcon -t test_nnptransition_t $basedir/true 2>&1"
+"$run $basedir/execnnp -n -- runcon -t test_nnptransition_t $basedir/true 2>&1"
       );
     ok( $result, 0 );    #this should succeed
 
     # Transition under NNP+nosuid to nnptransition domain via setexec.
     $result =
       system(
-"$basedir/execnnp -n -- runcon -t test_nnptransition_t $basedir/testdir/true 2>&1"
+"$run $basedir/execnnp -n -- runcon -t test_nnptransition_t $basedir/testdir/true 2>&1"
       );
     ok($result);         #this should fail
 
     # Automatic transition under NNP to nnptransition domain via exec.
     $result =
       system(
-        "$basedir/execnnp -n -- $basedir/checkcon test_nnptransition_t 2>&1");
+"$run $basedir/execnnp -n -- $basedir/checkcon test_nnptransition_t 2>&1"
+      );
     ok( $result, 0 );    #this should succeed
 
     # Automatic transition under NNP+nosuid to nnptransition domain via exec.
     $result =
       system(
-"$basedir/execnnp -n -- $basedir/testdir/checkcon test_nnptransition_t 2>&1"
+"$run $basedir/execnnp -n -- $basedir/testdir/checkcon test_nnptransition_t 2>&1"
       );
     ok($result);         #this should fail
 
@@ -136,28 +145,28 @@ if ($test_nnp_nosuid_transition) {
     # Transition under nosuid to nosuidtransition domain via setexec.
     $result =
       system(
-"$basedir/execnnp -- runcon -t test_nosuidtransition_t $basedir/testdir/true 2>&1"
+"$run $basedir/execnnp -- runcon -t test_nosuidtransition_t $basedir/testdir/true 2>&1"
       );
     ok( $result, 0 );    #this should succeed
 
     # Transition under NNP+nosuid to nosuidtransition domain via setexec.
     $result =
       system(
-"$basedir/execnnp -n -- runcon -t test_nosuidtransition_t $basedir/testdir/true 2>&1"
+"$run $basedir/execnnp -n -- runcon -t test_nosuidtransition_t $basedir/testdir/true 2>&1"
       );
     ok($result);         #this should fail
 
     # Automatic transition under nosuid to nosuidtransition domain via exec.
     $result =
       system(
-"$basedir/execnnp -- $basedir/testdir/checkcon test_nosuidtransition_t 2>&1"
+"$run $basedir/execnnp -- $basedir/testdir/checkcon test_nosuidtransition_t 2>&1"
       );
     ok( $result, 0 );    #this should succeed
 
     # Automatic transition under NNP+nosuid to nosuidtransition domain via exec.
     $result =
       system(
-"$basedir/execnnp -n -- $basedir/testdir/checkcon test_nosuidtransition_t 2>&1"
+"$run $basedir/execnnp -n -- $basedir/testdir/checkcon test_nosuidtransition_t 2>&1"
       );
     ok($result);         #this should fail
 
@@ -169,14 +178,14 @@ if ($test_nnp_nosuid_transition) {
     # Transition under NNP+nosuid to nnpnosuidtransition domain via setexec.
     $result =
       system(
-"$basedir/execnnp -n -- runcon -t test_nnpnosuidtransition_t $basedir/testdir/true 2>&1"
+"$run $basedir/execnnp -n -- runcon -t test_nnpnosuidtransition_t $basedir/testdir/true 2>&1"
       );
     ok( $result, 0 );    #this should succeed
 
  # Automatic transition under NNP+nosuid to nnpnosuidtransition domain via exec.
     $result =
       system(
-"$basedir/execnnp -n -- $basedir/testdir/checkcon test_nnpnosuidtransition_t 2>&1"
+"$run $basedir/execnnp -n -- $basedir/testdir/checkcon test_nnpnosuidtransition_t 2>&1"
       );
     ok( $result, 0 );    #this should succeed
 }
