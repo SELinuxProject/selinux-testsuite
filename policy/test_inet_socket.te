@@ -130,12 +130,8 @@ corenet_inout_generic_node(test_inet_no_name_connect_t)
 #
 
 # For ipsec-load/ipsec-flush.
-gen_require(`
-	type unconfined_t;
-')
 type test_spd_t;
-allow unconfined_t inetsocketdomain:association setcontext;
-allow unconfined_t test_spd_t:association setcontext;
+testsuite_caller_association_setcontext({ inetsocketdomain test_spd_t })
 
 # Each of the test client domains must match against the SPD entry
 # in order to use labeled IPSEC.
@@ -147,7 +143,7 @@ allow test_inet_bad_client_t test_spd_t:association polmatch;
 #
 
 type test_server_packet_t;
-allow unconfined_t test_server_packet_t:packet relabelto;
+testsuite_caller_packet_relabelto(test_server_packet_t)
 allow test_inet_server_t test_server_packet_t:packet { send recv };
 allow test_inet_client_t test_server_packet_t:packet { send recv };
 

@@ -7,12 +7,19 @@ policy_module(test_policy,1.0.0)
 #
 
 attribute testsuite_domain;
+attribute testsuite_caller_domain;
+attribute testsuite_caller_ifconfig_domain;
+attribute testsuite_caller_iptables_domain;
 
 optional_policy(`
 	gen_require(`
 		type unconfined_t;
 		role unconfined_r;
 	')
+
+	typeattribute unconfined_t testsuite_caller_domain;
+	typeattribute unconfined_t testsuite_caller_ifconfig_domain;
+	typeattribute unconfined_t testsuite_caller_iptables_domain;
 
 	# Transition from the caller to the test domain.
 	allow unconfined_t testsuite_domain:process transition;
@@ -27,7 +34,24 @@ optional_policy(`
 
 optional_policy(`
 	gen_require(`
+		type sysadm_t;
 		role sysadm_r;
+	')
+
+	typeattribute sysadm_t testsuite_caller_domain;
+	typeattribute sysadm_t testsuite_caller_ifconfig_domain;
+	typeattribute sysadm_t testsuite_caller_iptables_domain;
+	optional_policy(`
+		gen_require(`
+			type ifconfig_t;
+		')
+		typeattribute ifconfig_t testsuite_caller_ifconfig_domain;
+	')
+	optional_policy(`
+		gen_require(`
+			type iptables_t;
+		')
+		typeattribute iptables_t testsuite_caller_iptables_domain;
 	')
 
 	# Authorize sysadm_r for the test domains.
