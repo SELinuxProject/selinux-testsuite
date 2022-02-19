@@ -1,14 +1,14 @@
 #include "binder_common.h"
 
-static char *expected_ctx;
+static char *expected_type;
 static int binder_parse(int fd, binder_uintptr_t ptr, binder_size_t size);
 
 static void usage(char *progname)
 {
 	fprintf(stderr,
-		"usage:  %s -e expected_ctx] [-f file] [-n] [-m|-p|-t] [-v]\n"
+		"usage:  %s [-e expected_type] [-f file] [-n] [-m|-p|-t] [-v]\n"
 		"Where:\n\t"
-		"-e  Expected security context.\n\t"
+		"-e  Expected security type.\n\t"
 		"-f  Write a line to the file when listening starts.\n\t"
 		"-n  Use the /dev/binderfs name service.\n\t"
 		"-m  Use BPF map fd for transfer.\n\t"
@@ -162,23 +162,30 @@ static int binder_parse(int fd, binder_uintptr_t ptr, binder_size_t size)
 		case BR_TRANSACTION_SEC_CTX: {
 			struct binder_transaction_data_secctx *txn_ctx =
 				(struct binder_transaction_data_secctx *)ptr;
-
 			if (verbose) {
 				printf("\tclient context:\n\t\t%s\n",
 				       (char *)txn_ctx->secctx);
 				print_trans_data(&txn_ctx->transaction_data);
 			}
 
-			if (expected_ctx) {
-				int result = strcmp(expected_ctx,
-						    (char *)txn_ctx->secctx);
-				if (result) {
+			if (expected_type) {
+				context_t ctx = context_new((const char *)txn_ctx->secctx);
+
+				if (!ctx) {
+					fprintf(stderr,
+						"Service Provider context_new: %s\n",
+						strerror(errno));
+					exit(82);
+				}
+
+				if (strcmp(expected_type, context_type_get(ctx))) {
 					fprintf(stderr, "Service Provider received incorrect context:\n");
 					fprintf(stderr, "Expected: %s\nReceived: %s\n",
-						expected_ctx,
-						(char *)txn_ctx->secctx);
+						expected_type,
+						context_type_get(ctx));
 					exit(80);
 				}
+				context_free(ctx);
 			}
 
 			if (txn_ctx->transaction_data.code == TEST_SERVICE_SEND_FD)
@@ -240,14 +247,14 @@ int main(int argc, char **argv)
 	} __attribute__((packed)) writebuf;
 	unsigned int readbuf[32];
 
-	expected_ctx = NULL;
+	expected_type = NULL;
 	fd_type = BINDER_FD;
 	fd_type_str = "SP";
 
 	while ((opt = getopt(argc, argv, "e:f:nvmpt")) != -1) {
 		switch (opt) {
 		case 'e':
-			expected_ctx = optarg;
+			expected_type = optarg;
 			break;
 		case 'f':
 			flag_file = optarg;

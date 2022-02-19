@@ -14,6 +14,7 @@
 #include <sys/mman.h>
 #include <sys/ioctl.h>
 #include <selinux/selinux.h>
+#include <selinux/context.h>
 #include <linux/android/binder.h>
 #if HAVE_BINDERFS
 #include <linux/android/binderfs.h>
