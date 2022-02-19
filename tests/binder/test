@@ -163,7 +163,7 @@ if ($test_binder_ctx) {
     $sp_pid = service_start(
         "service_provider",
         "-t test_binder_provider_t",
-        "$n $v -e unconfined_u:unconfined_r:test_binder_client_t:s0-s0:c0.c1023"
+        "$n $v -e test_binder_client_t"
     );
 
 # 8 Verify that authorized client and service provider can communicate with the binder service manager.
