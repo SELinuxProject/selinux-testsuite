@@ -5,6 +5,10 @@ BEGIN {
     $basedir = $0;
     $basedir =~ s|(.*)/[^/]*|$1|;
 
+    $seuser = `id -Z`;
+    chop($seuser);
+    $seuser =~ s|^(\w+):.*$|$1|;
+
     $isnfs = `stat -f --print %T $basedir`;
 
     # check if kernel supports overlayfs and SELinux labeling
@@ -92,7 +96,7 @@ sub test_4_0 {
     $output = getfilecon("$basedir/container1/upper/writefile");
 
     # Newly created writefile should have s0 MCS Label since it was copied up
-    ok( $output eq "unconfined_u:object_r:test_overlay_files_rwx_t:s0" );
+    ok( $output eq "$seuser:object_r:test_overlay_files_rwx_t:s0" );
 }
 
 sub test_4_0_ctx {
@@ -100,8 +104,7 @@ sub test_4_0_ctx {
     $output = getfilecon("$basedir/container1/upper/writefile");
 
     # Newly created writefile should have s0 MCS Label since it was copied up
-    ok( $output eq
-          "unconfined_u:object_r:test_overlay_files_rwx_t:s0:c10,c20" );
+    ok( $output eq "$seuser:object_r:test_overlay_files_rwx_t:s0:c10,c20" );
 }
 
 sub test_5 {
@@ -127,8 +130,7 @@ sub test_5_1 {
     $output = getfilecon("$basedir/container1/upper/newdir");
 
     # Newly created writedir should have s0:c10,c20 since it was created new
-    ok( $output eq
-          "unconfined_u:object_r:test_overlay_files_rwx_t:s0:c10,c20" );
+    ok( $output eq "$seuser:object_r:test_overlay_files_rwx_t:s0:c10,c20" );
 }
 
 sub test_5_2 {
@@ -146,8 +148,7 @@ sub test_5_3 {
     $output = getfilecon("$basedir/container1/upper/newdir/touchlink");
 
     # Newly created writelink should have s0:c10,c20 since it was created new
-    ok( $output eq
-          "unconfined_u:object_r:test_overlay_files_rwx_t:s0:c10,c20" );
+    ok( $output eq "$seuser:object_r:test_overlay_files_rwx_t:s0:c10,c20" );
 }
 
 sub test_6 {
@@ -173,7 +174,7 @@ sub test_7_0 {
     $output = getfilecon("$basedir/container1/upper/writedir/bar");
 
     # Newly created bar should have s0:c10,c20 since it was created new
-    ok( $output eq "unconfined_u:object_r:test_overlay_files_rwx_t:s0" );
+    ok( $output eq "$seuser:object_r:test_overlay_files_rwx_t:s0" );
 }
 
 sub test_7_0_ctx {
@@ -181,8 +182,7 @@ sub test_7_0_ctx {
     $output = getfilecon("$basedir/container1/upper/writedir/bar");
 
     # Newly created bar should have s0:c10,c20 since it was created new
-    ok( $output eq
-          "unconfined_u:object_r:test_overlay_files_rwx_t:s0:c10,c20" );
+    ok( $output eq "$seuser:object_r:test_overlay_files_rwx_t:s0:c10,c20" );
 }
 
 sub test_7_1 {
@@ -200,7 +200,7 @@ sub test_7_1_0 {
     $output = getfilecon("$basedir/container1/upper/writedir/writelink");
 
     # Newly created writelink should have s0:c10,c20 since it was created new
-    ok( $output eq "unconfined_u:object_r:test_overlay_files_rwx_t:s0" );
+    ok( $output eq "$seuser:object_r:test_overlay_files_rwx_t:s0" );
 }
 
 sub test_7_1_0_ctx {
@@ -208,8 +208,7 @@ sub test_7_1_0_ctx {
     $output = getfilecon("$basedir/container1/upper/writedir/writelink");
 
     # Newly created writelink should have s0:c10,c20 since it was created new
-    ok( $output eq
-          "unconfined_u:object_r:test_overlay_files_rwx_t:s0:c10,c20" );
+    ok( $output eq "$seuser:object_r:test_overlay_files_rwx_t:s0:c10,c20" );
 }
 
 sub test_7_2 {
@@ -445,7 +444,7 @@ sub test_42 {
 
     # Newly created writeout should have s0:c10,c20 since it was created new
     ok( $output eq
-          "unconfined_u:object_r:test_overlay_transition_files_t:s0:c10,c20" );
+          "$seuser:object_r:test_overlay_transition_files_t:s0:c10,c20" );
 }
 
 sub test_42_ctx {
@@ -453,8 +452,7 @@ sub test_42_ctx {
     $output = getfilecon("$basedir/container1/upper/transition");
 
     # Newly created writeout should have s0:c10,c20 since it was created new
-    ok( $output eq
-          "unconfined_u:object_r:test_overlay_files_rwx_t:s0:c10,c20" );
+    ok( $output eq "$seuser:object_r:test_overlay_files_rwx_t:s0:c10,c20" );
 }
 
 sub test_43 {
@@ -822,7 +820,7 @@ sub nocontext_test {
 sub context_test {
 
     cleanup();
-    $context = "unconfined_u:object_r:test_overlay_files_rwx_t:s0:c10,c20";
+    $context = "$seuser:object_r:test_overlay_files_rwx_t:s0:c10,c20";
     print "\n\n=====================================================\n";
     print "Testing mounting overlayfs with context switch\n";
     print "context=$context\n";
@@ -943,7 +941,7 @@ sub context_test {
 sub context_rot_t_test {
 
     cleanup();
-    $context = "unconfined_u:object_r:test_overlay_files_ro_t:s0:c10,c20";
+    $context = "$seuser:object_r:test_overlay_files_ro_t:s0:c10,c20";
     print "\n\n=====================================================\n";
     print "Testing mounting overlayfs with context switch\n";
     print "context=$context\n";

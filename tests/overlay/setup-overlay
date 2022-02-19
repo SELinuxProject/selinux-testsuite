@@ -41,7 +41,7 @@ setup () {
 
     # Create upper, work, and overlay directories per container.
     mkdir -p $BASEDIR/container1/upper $BASEDIR/container1/work $BASEDIR/container1/merged
-    chcon -R unconfined_u:object_r:test_overlay_files_ro_t:s0:c10,c20 $BASEDIR/container1
+    chcon -R -t test_overlay_files_ro_t -l s0:c10,c20 $BASEDIR/container1
 
     # Label the container directories to match the container context.
     # This is simply to ensure correct label inheritance on new file
