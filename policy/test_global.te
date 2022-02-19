@@ -66,6 +66,9 @@ optional_policy(`
 # Needed for domains outside domain_type()
 dontaudit testsuite_caller_domain testsuite_domain:process { noatsecure rlimitinh siginh };
 
+# keys test may trigger search AVCs for root's keys
+dontaudit testsuite_domain testsuite_caller_domain:key { search };
+
 # Allow the test domains to access the sysadm terminal.
 # This allows read and write sysadm ttys and ptys.
 term_use_all_terms(testsuite_domain)
