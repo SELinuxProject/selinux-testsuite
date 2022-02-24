@@ -51,9 +51,9 @@ int main(int argc, char **argv)
 	}
 
 	/* This one should hit the FILE__IOCTL test and fail. */
-	rc = ioctl(fd, FIOCLEX);
+	rc = ioctl(fd, FIOQSIZE, &val);
 	if( rc == 0 ) {
-		printf("test_noioctl:FIOCLEX");
+		printf("test_noioctl:FIOQSIZE");
 		exit(1);
 	}
 

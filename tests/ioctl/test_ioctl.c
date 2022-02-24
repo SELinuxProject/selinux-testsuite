@@ -35,9 +35,9 @@ int main(int argc, char **argv)
 	}
 
 	/* This one should hit the FILE__IOCTL test */
-	rc = ioctl(fd, FIOCLEX);
+	rc = ioctl(fd, FIOQSIZE, &val);
 	if( rc < 0 ) {
-		perror("test_ioctl:FIOCLEX");
+		perror("test_ioctl:FIOQSIZE");
 		exit(1);
 	}
 
