@@ -1,0 +1,39 @@
+#!/usr/bin/perl
+
+use Test::More;
+
+BEGIN {
+    $basedir = $0;
+    $basedir =~ s|(.*)/[^/]*|$1|;
+
+    $result =
+      system "runcon -t test_nocreate_secretmem_t $basedir/secretmem check";
+    if ( $result ne 0 ) {
+        plan skip_all => "memfd_secret(2) not available";
+    }
+    else {
+        plan tests => 6;
+    }
+}
+
+$result = system "runcon -t test_nocreate_secretmem_t $basedir/secretmem";
+ok( $result >> 8 eq 1 );
+
+$result = system "runcon -t test_create_secretmem_t $basedir/secretmem";
+ok( $result eq 0 );
+
+$result = system "runcon -t test_create_secretmem_t $basedir/secretmem wx";
+ok( $result >> 8 eq 1 );
+
+$result = system "runcon -t test_create_wx_secretmem_t $basedir/secretmem wx";
+ok( $result >> 8 eq 1 );
+
+$result =
+  system "runcon -t test_nocreate_transition_secretmem_t $basedir/secretmem";
+ok( $result >> 8 eq 1 );
+
+$result =
+  system "runcon -t test_create_transition_secretmem_t $basedir/secretmem";
+ok( $result eq 0 );
+
+exit;

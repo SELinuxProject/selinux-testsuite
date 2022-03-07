@@ -37,15 +37,12 @@ Vagrant.configure("2") do |config|
   when 'default'
     dnf_opts = ''
     kernel_pkgs = 'kernel-devel-"$(uname -r)" kernel-modules-"$(uname -r)"'
-    reboot_cmd = ''
   when 'latest'
     dnf_opts = ''
     kernel_pkgs = 'kernel-devel kernel-modules'
-    reboot_cmd = 'reboot'
   when 'secnext'
     dnf_opts = '--nogpgcheck --releasever rawhide --repofrompath kernel-secnext,https://repo.paul-moore.com/rawhide/x86_64'
     kernel_pkgs = 'kernel-devel kernel-modules'
-    reboot_cmd = 'reboot'
   else
     print("Invalid KERNEL_TYPE '#{ENV['KERNEL_TYPE']}'")
     abort
@@ -93,7 +90,12 @@ EOF
       jfsutils \
       dosfstools \
       #{kernel_pkgs}
+
     #{extra_commands}
-    #{reboot_cmd}
+
+    # for secretmem test
+    grubby --update-kernel=ALL --args=secretmem.enable=1
+
+    reboot
 SCRIPT
 end

@@ -147,6 +147,13 @@ SUBDIRS += vsock_socket
 endif
 endif
 
+# memfd_secret(2) is available since 5.14, but only confined since 6.0
+ifneq ($(shell ./kvercmp $$(uname -r) 6.0),-1)
+ifeq ($(shell grep -q anon_inode $(POLDEV)/include/support/all_perms.spt && echo true),true)
+SUBDIRS += secretmem
+endif
+endif
+
 ifeq ($(DISTRO),RHEL4)
     SUBDIRS:=$(filter-out bounds dyntrace dyntrans inet_socket mmap nnp_nosuid overlay unix_socket, $(SUBDIRS))
 endif
