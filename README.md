@@ -134,11 +134,10 @@ command:
 		e2fsprogs \
 		jfsutils \
 		dosfstools \
-		nftables
+		nftables \
+		netlabel-tools
 
-On Debian, you need to build and install netlabel_tools manually since
-it is not yet packaged for Debian
-(https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=959806):
+On Debian prior to version 11 (bullseye) you need to build and install netlabel_tools manually:
 
     # git clone https://github.com/netlabel/netlabel_tools
     # cd netlabel_tools
