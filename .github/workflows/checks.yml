@@ -38,6 +38,10 @@ jobs:
         run: vagrant up
       - name: Wait for the machine to come up if rebooting
         run: while ! vagrant ssh -- true; do sleep 1; done
+      - name: Show Vagrant VM details
+        run: |
+          vagrant ssh -- uname -a
+          vagrant ssh -- cat /proc/cmdline
       - name: Run SELinux testsuite
         run: vagrant ssh -- sudo make -C /root/testsuite test
       - name: Check unwanted denials
