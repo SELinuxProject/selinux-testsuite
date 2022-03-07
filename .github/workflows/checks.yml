@@ -35,3 +35,5 @@ jobs:
         run: vagrant up
       - name: Run SELinux testsuite
         run: vagrant ssh -- sudo make -C /root/testsuite test
+      - name: Check .gitignore coverage
+        run: test "$(vagrant ssh -- sudo git -C /root/testsuite ls-files -o --exclude-standard | wc -l)" -eq 0

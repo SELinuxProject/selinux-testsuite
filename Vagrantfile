@@ -57,6 +57,7 @@ Vagrant.configure("2") do |config|
     dnf install -y #{dnf_opts} \
       --allowerasing \
       --skip-broken \
+      git-core \
       make \
       perl-Test \
       perl-Test-Harness \
