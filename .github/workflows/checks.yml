@@ -12,6 +12,7 @@ jobs:
   fedora-test:
     runs-on: macos-10.15
     strategy:
+      fail-fast: false
       matrix:
         env:
           - { version: 34, kernel: default }
