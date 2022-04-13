@@ -1,7 +1,18 @@
 #!/usr/bin/perl
 
 use Test;
-BEGIN { plan tests => 16 }
+
+BEGIN {
+    $test_count     = 14;
+    $test_bluetooth = 0;
+
+    # check if Bluetooth is supported (commonly disabled e.g. on s390x)
+    if ( system("modprobe bluetooth 2>/dev/null") eq 0 ) {
+        $test_count += 2;
+        $test_bluetooth = 1;
+    }
+    plan tests => $test_count;
+}
 
 $basedir = $0;
 $basedir =~ s|(.*)/[^/]*|$1|;
@@ -83,17 +94,20 @@ $result = system(
 );
 ok($result);
 
-# Verify that test_bluetooth_socket_t can create a Bluetooth socket.
-$result = system(
-"runcon -t test_bluetooth_socket_t -- $basedir/sockcreate bluetooth stream default 2>&1"
-);
-ok( $result, 0 );
+if ($test_bluetooth) {
 
-# Verify that test_no_bluetooth_socket_t cannot create a Bluetooth socket.
-$result = system(
+    # Verify that test_bluetooth_socket_t can create a Bluetooth socket.
+    $result = system(
+"runcon -t test_bluetooth_socket_t -- $basedir/sockcreate bluetooth stream default 2>&1"
+    );
+    ok( $result, 0 );
+
+    # Verify that test_no_bluetooth_socket_t cannot create a Bluetooth socket.
+    $result = system(
 "runcon -t test_no_bluetooth_socket_t -- $basedir/sockcreate bluetooth stream default 2>&1"
-);
-ok($result);
+    );
+    ok($result);
+}
 
 # Verify that test_alg_socket_t can create a Crypto API socket.
 $result = system(
