@@ -28,8 +28,8 @@ BEGIN {
         $v = " ";
     }
 
-    # check if sctp enabled
-    if ( system("checksctp 2> /dev/null") != 0 ) {
+    # check if SCTP is enabled
+    if ( system("modprobe sctp 2>/dev/null && checksctp 2>/dev/null") != 0 ) {
         plan skip_all => "SCTP not supported";
     }
     else {
