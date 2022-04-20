@@ -18,7 +18,7 @@ int main(int argc, char **argv)
 
 	int fd;
 	int rc;
-	int val = 0;
+	long long int val = 0;
 
 	fd = open(argv[1], O_RDONLY, 0);
 
