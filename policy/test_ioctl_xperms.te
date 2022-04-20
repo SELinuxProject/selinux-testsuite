@@ -1,4 +1,5 @@
-define(`FIOQSIZE', `{ 0x00005460 }')
+# include FIOQSIZE ioctl numbers through all arches
+define(`FIOQSIZE', `{ 0x545e 0x5460 0x667f 0x6680 }')
 
 # Domain for process that is allowed the required ioctl xperms.
 type test_ioctl_xperm_t;
