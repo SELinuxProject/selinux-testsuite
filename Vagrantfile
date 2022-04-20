@@ -52,8 +52,6 @@ Vagrant.configure("2") do |config|
   end
 
   config.vm.provision :shell, inline: <<SCRIPT
-    # work around https://bugzilla.redhat.com/show_bug.cgi?id=2004853
-    dnf install -y 'libmodulemd >= 2.11.0'
     dnf install -y #{dnf_opts} \
       --allowerasing \
       --skip-broken \
