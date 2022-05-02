@@ -49,12 +49,12 @@ sub udisks2_stop {
     $status = 0;
 
     if ( -e "/usr/bin/systemctl" ) {
-        $u_status_cmd = "/usr/bin/systemctl status udisks2 >& /dev/null";
-        $u_stop_cmd   = "/usr/bin/systemctl stop udisks2 >& /dev/null";
+        $u_status_cmd = "/usr/bin/systemctl status udisks2 > /dev/null 2>&1";
+        $u_stop_cmd   = "/usr/bin/systemctl stop udisks2 > /dev/null 2>&1";
     }
     elsif ( -e "/usr/sbin/service" ) {
-        $u_status_cmd = "/usr/sbin/service udisks2 status >& /dev/null";
-        $u_stop_cmd   = "/usr/sbin/service udisks2 stop >& /dev/null";
+        $u_status_cmd = "/usr/sbin/service udisks2 status > /dev/null 2>&1";
+        $u_stop_cmd   = "/usr/sbin/service udisks2 stop > /dev/null 2>&1";
     }
 
     if ($u_status_cmd) {
@@ -78,10 +78,10 @@ sub udisks2_restart {
     if ( $status eq 3 ) {
         print "Restarting udisks2 service.\n";
         if ( -e "/usr/bin/systemctl" ) {
-            system("/usr/bin/systemctl start udisks2 >& /dev/null");
+            system("/usr/bin/systemctl start udisks2 > /dev/null 2>&1");
         }
         elsif ( -e "/usr/sbin/service" ) {
-            system("/usr/sbin/service udisks2 start >& /dev/null");
+            system("/usr/sbin/service udisks2 start > /dev/null 2>&1");
         }
     }
 }
@@ -133,7 +133,7 @@ sub make_fs {
     attach_dev( $mk_dev, $mk_dir );
 
     print "Make $mk_type filesystem on $mk_dev\n";
-    $result = system("yes | mkfs.$mk_type $mk_dev >& /dev/null");
+    $result = system("yes | mkfs.$mk_type $mk_dev > /dev/null 2>&1");
     if ( $result != 0 ) {
         system("losetup -d $mk_dev 2>/dev/null");
         print "mkfs.$mk_type failed to create filesystem on $mk_dev\n";

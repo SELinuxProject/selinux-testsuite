@@ -147,13 +147,6 @@ On Debian prior to version 11 (bullseye) you need to build and install netlabel_
     # make
     # sudo make install
 
-Debian further requires reconfiguring the default /bin/sh to be bash
-to support bashisms employed in the testsuite Makefiles and scripts:
-
-    # dpkg-reconfigure dash
-
-Select "No" when asked if you want to use dash as the default system shell.
-
 #### Other Distributions
 
 The testsuite requires a pre-existing base policy configuration of SELinux,
