@@ -382,7 +382,7 @@ allow test_filesystem_fscontext_t test_filesystem_context_file_t:file { create g
 
 # For testing rootcontext= Set mountpoint to unlabeled first
 allow test_filesystem_context_t test_file_t:dir { relabelfrom };
-allow test_filesystem_context_t unlabeled_t:dir { mounton relabelto };
+allow test_filesystem_context_t unlabeled_t:dir { getattr mounton relabelto };
 
 #
 ####################### Rules for nfs_filesystem/test ###################
