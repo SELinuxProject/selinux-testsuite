@@ -16,7 +16,16 @@ BEGIN {
         $v = " ";
     }
 
-    plan tests => 2;
+    $result = system "runcon -t test_watchkey_t $basedir/watchkey $v -c";
+
+    # check if O_NOTIFICATION_PIPE is supported - ENOPKG
+    if ( $result >> 8 eq 65 ) {
+        plan skip_all =>
+"pipe2(2) does not support O_NOTIFICATION_PIPE; CONFIG_WATCH_QUEUE probably not set";
+    }
+    else {
+        plan tests => 2;
+    }
 }
 
 $result = system "runcon -t test_watchkey_t $basedir/watchkey $v";

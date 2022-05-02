@@ -27,8 +27,9 @@ static long keyctl_watch_key(int key, int watch_fd, int watch_id)
 static void print_usage(char *progname)
 {
 	fprintf(stderr,
-		"usage:  %s [-v]\n"
+		"usage:  %s [-cv]\n"
 		"Where:\n\t"
+		"-c  Check for availability.\n"
 		"-v  Print information.\n", progname);
 	exit(-1);
 }
@@ -37,10 +38,14 @@ int main(int argc, char **argv)
 {
 	int opt, fd, pipefd[2], result, save_errno;
 	char *context;
+	bool check = false;
 	bool verbose = false;
 
-	while ((opt = getopt(argc, argv, "v")) != -1) {
+	while ((opt = getopt(argc, argv, "cv")) != -1) {
 		switch (opt) {
+		case 'c':
+			check = true;
+			break;
 		case 'v':
 			verbose = true;
 			break;
@@ -58,6 +63,13 @@ int main(int argc, char **argv)
 
 		printf("Process context:\n\t%s\n", context);
 		free(context);
+	}
+
+	if (check) {
+		result = pipe2(pipefd, O_NOTIFICATION_PIPE);
+		if (!result || errno != ENOPKG)
+			exit(0);
+		exit(ENOPKG);
 	}
 
 	result = pipe2(pipefd, O_NOTIFICATION_PIPE);
