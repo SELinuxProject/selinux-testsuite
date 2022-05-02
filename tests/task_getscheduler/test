@@ -10,7 +10,7 @@ $basedir =~ s|(.*)/[^/]*|$1|;
 system("mkfifo $basedir/flag");
 if ( ( $pid = fork() ) == 0 ) {
     exec
-"runcon -t test_getsched_target_t sh -c 'echo >$basedir/flag; while :; do :; done'";
+"exec runcon -t test_getsched_target_t sh -c 'echo >$basedir/flag; while :; do :; done'";
 }
 
 # Wait for it to start.
