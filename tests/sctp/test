@@ -57,8 +57,11 @@ BEGIN {
         }
 
         if ( $ipaddress[1] ne 0 and $ipaddress[0] ne $ipaddress[1] ) {
-            $test_count += 3;
-            $test_asconf = 1;
+
+# Disable ASCONF tests for now due to a known issue:
+# https://lore.kernel.org/selinux/CAFqZXNsO0HSqP2n3W_Su07LPggUm5_M1tGJBuJDW_VL-pWHOWw@mail.gmail.com/T/
+#$test_count += 3;
+#$test_asconf = 1;
         }
 
         # SCTP client peeloff has been fixed in kernel 5.18+
