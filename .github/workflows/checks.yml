@@ -8,6 +8,7 @@ jobs:
     steps:
       - run: sudo dnf install -y astyle perltidy findutils git-core
       - uses: actions/checkout@v2
+      - run: sudo chown $(id -u):$(id -g) .
       - run: tools/check-syntax -f && git diff --exit-code
   fedora-test:
     runs-on: macos-10.15
