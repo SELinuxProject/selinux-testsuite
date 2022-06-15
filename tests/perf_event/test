@@ -32,12 +32,18 @@ BEGIN {
             print "\tNot paranoid\n";
         }
         elsif ( $level eq 0 ) {
-            print "\tDisallow raw tracepoint/ftrace without CAP_SYS_ADMIN\n";
+            print
+"\tDisallow raw tracepoint/ftrace without CAP_PERFMON or CAP_SYS_ADMIN\n";
         }
         elsif ( $level eq 1 ) {
-            print "\tDisallow CPU event access without CAP_SYS_ADMIN\n";
+            print
+"\tDisallow CPU event access without CAP_PERFMON or CAP_SYS_ADMIN\n";
         }
         elsif ( $level eq 2 ) {
+            print
+"\tDisallow kernel profiling without CAP_PERFMON or CAP_SYS_ADMIN\n";
+        }
+        elsif ( $level eq 3 ) {
             print "\tDisallow kernel profiling without CAP_SYS_ADMIN\n";
         }
         else {
@@ -46,6 +52,11 @@ BEGIN {
     }
 
     plan tests => $test_count;
+}
+
+# Downgrade to only require CAP_PERFMON for operations
+if ( $level eq 3 ) {
+    system("echo 2 > /proc/sys/kernel/perf_event_paranoid 2> /dev/null");
 }
 
 # find some CPU that is online
@@ -113,5 +124,10 @@ $result =
   system
   "runcon -t test_perf_no_write_t $basedir/perf_event $v $cpu $event_id 2>&1";
 ok( $result >> 8 eq 2 );
+
+# Reset if downgraded
+if ( $level eq 3 ) {
+    system("echo 3 > /proc/sys/kernel/perf_event_paranoid 2> /dev/null");
+}
 
 exit;
