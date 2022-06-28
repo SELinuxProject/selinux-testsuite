@@ -16,9 +16,9 @@ jobs:
       fail-fast: false
       matrix:
         env:
-          - { version: 34, kernel: default }
           - { version: 35, kernel: default }
-          - { version: 35, kernel: secnext }
+          - { version: 36, kernel: default }
+          - { version: 36, kernel: secnext }
     env:
       FEDORA_VERSION: ${{ matrix.env.version }}
       KERNEL_TYPE: ${{ matrix.env.kernel }}
