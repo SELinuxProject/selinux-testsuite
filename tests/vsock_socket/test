@@ -34,7 +34,12 @@ sub server_start {
     }
 
     # Wait for it to initialize, read port number.
-    my $port = `read -t 5 <>$basedir/flag; echo \$REPLY`;
+    open( my $f, "<", "$basedir/flag" );
+    my $rin = '';
+    vec( $rin, fileno($f), 1 ) = 1;
+    select( $rin, undef, undef, 5 );
+    my $port = <$f>;
+    close($f);
 
     return ( $pid, $port );
 }

@@ -15,7 +15,11 @@ if ( ( $pid = fork() ) == 0 ) {
 }
 
 # Wait for it to start.
-system("read -t 5 <>$basedir/flag");
+open( my $f, "<", "$basedir/flag" );
+my $rin = '';
+vec( $rin, fileno($f), 1 ) = 1;
+select( $rin, undef, undef, 5 );
+close($f);
 
 # Verify that the nottracer domain cannot attach to the process.
 # Should fail on the ptrace permission check.
