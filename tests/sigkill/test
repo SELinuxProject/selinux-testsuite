@@ -13,7 +13,11 @@ if ( ( $pid = fork() ) == 0 ) {
 }
 
 # Wait for it to initialize.
-system("read -t 5 <>$basedir/flag");
+open( my $f, "<", "$basedir/flag" );
+my $rin = '';
+vec( $rin, fileno($f), 1 ) = 1;
+select( $rin, undef, undef, 5 );
+close($f);
 
 # Verify that test_kill_signal_t cannot send CHLD, STOP, or KILL to the server.
 $result = system "runcon -t test_kill_signal_t -- kill -s CHLD $pid 2>&1";

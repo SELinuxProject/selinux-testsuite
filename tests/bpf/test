@@ -106,7 +106,11 @@ if ( ( $pid = fork() ) == 0 ) {
 }
 
 # Wait for it to initialize.
-system("read -t 5 <>$basedir/flag");
+open( my $f, "<", "$basedir/flag" );
+my $rin = '';
+vec( $rin, fileno($f), 1 ) = 1;
+select( $rin, undef, undef, 5 );
+close($f);
 
 # Test BPF map & prog fd on transfer:
 $result = system
@@ -149,7 +153,11 @@ sub service_start {
     }
 
     # Wait for it to initialize.
-    system("read -t 5 <>$basedir/$flag");
+    open( my $f, "<", "$basedir/$flag" );
+    my $rin = '';
+    vec( $rin, fileno($f), 1 ) = 1;
+    select( $rin, undef, undef, 5 );
+    close($f);
     return $pid;
 }
 
