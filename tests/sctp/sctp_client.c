@@ -22,21 +22,19 @@ static void usage(char *progname)
 int main(int argc, char **argv)
 {
 	int opt, sock, result, save_errno;
-	socklen_t opt_len;
 	struct addrinfo hints, *serverinfo;
 	char byte = 0x41, label[1024], *expected = NULL;
 	bool verbose = false, connectx = false, no_connects = false;
-	bool ipv4 = false, expect_ipopt = false;
+	bool ipv4 = false;
+	bool expected_flg = false;
 	char *context;
 	struct timeval tm;
 
-	while ((opt = getopt(argc, argv, "e:vxmni")) != -1) {
+	while ((opt = getopt(argc, argv, "e:vxmn")) != -1) {
 		switch (opt) {
 		case 'e':
+			expected_flg = true;
 			expected = optarg;
-			break;
-		case 'i':
-			expect_ipopt = true;
 			break;
 		case 'v':
 			verbose = true;
@@ -165,8 +163,6 @@ int main(int argc, char **argv)
 			print_context(sock, "Client STREAM read");
 			print_ip_option(sock, ipv4, "Client STREAM read");
 		}
-		if (expect_ipopt)
-			expected = get_ip_option(sock, ipv4, &opt_len);
 
 	} else { /* hints.ai_socktype == SOCK_SEQPACKET */
 
@@ -193,14 +189,12 @@ int main(int argc, char **argv)
 			close(sock);
 			exit(13);
 		}
-		if (expect_ipopt)
-			expected = get_ip_option(sock, ipv4, &opt_len);
 	}
 
 	label[result] = 0;
 	close(sock);
 
-	if (!expected && !expect_ipopt) {
+	if (!expected) {
 		result = getcon(&expected);
 		if (result < 0) {
 			perror("Client getcon");
@@ -208,7 +202,11 @@ int main(int argc, char **argv)
 		}
 	}
 
-	if (strcmp(expected, label)) {
+	if (!expected_flg && cmp_context_mls(expected, label)) {
+		fprintf(stderr, "Client expected %s, got %s\n",
+			expected, label);
+		exit(15);
+	} else if (expected_flg && cmp_context_type_mls(expected, label)) {
 		fprintf(stderr, "Client expected %s, got %s\n",
 			expected, label);
 		exit(15);

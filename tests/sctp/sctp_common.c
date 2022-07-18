@@ -3,6 +3,48 @@
 #define member_size(type, member) sizeof(((type *)0)->member)
 #define sizeof_up_to(type, member) (offsetof(type, member) + member_size(type, member))
 
+static int __cmp_context(int skip_fields, const char *a, const char *b)
+{
+	int i;
+	const char *aptr = a;
+	const char *bptr = b;
+
+	/* we only support skipping at most the user:role:type */
+	if (skip_fields > 3)
+		goto malformed;
+
+	/* skip past the specified number of fields */
+	for (i = 0; i < skip_fields; i++) {
+		aptr = strchr(aptr, ':');
+		if (!aptr)
+			goto malformed;
+		if (*(++aptr) == '\0')
+			goto malformed;
+		bptr = strchr(bptr, ':');
+		if (!bptr)
+			goto malformed;
+		if (*(++bptr) == '\0')
+			goto malformed;
+	}
+
+	return strcmp(aptr, bptr);
+
+malformed:
+	return strcmp(a, b);
+}
+
+int cmp_context_mls(const char *a, const char *b)
+{
+	/* skip user:role:type */
+	return __cmp_context(3, a, b);
+}
+
+int cmp_context_type_mls(const char *a, const char *b)
+{
+	/* skip user:role */
+	return __cmp_context(2, a, b);
+}
+
 void print_context(int fd, char *text)
 {
 	char *context;

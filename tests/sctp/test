@@ -409,34 +409,34 @@ system "/bin/sh $basedir/fb-deny-label-flush";
 #
 ############################## CIPSO/IPv4 TAG 1 ###############################
 #
-print "# Testing CIPSO/IPv4 - TAG 1 using socket ip_option data\n";
+print "# Testing CIPSO/IPv4 - TAG 1\n";
 system "/bin/sh $basedir/cipso-load-t1";
 
 # Start the stream server for IPv4 only.
 $pid = server_start(
     "-t test_sctp_server_t -l s0:c182.c192",
     "sctp_server",
-    "$v -4 -i stream 1035"
+    "$v -4 stream 1035"
 );
 
 # Verify that authorized client can communicate with the server STREAM->STREAM with client using sctp_connectx(3).
 $result = system
-"runcon -t test_sctp_client_t -l s0:c182.c192 $basedir/sctp_client $v -x -i stream 127.0.0.1 1035";
+"runcon -t test_sctp_client_t -l s0:c182.c192 $basedir/sctp_client $v -x stream 127.0.0.1 1035";
 ok( $result eq 0 );
 
 # Verify that authorized client can communicate with the server STREAM->STREAM with client using connect(2).
 $result = system
-"runcon -t test_sctp_client_t -l s0:c182.c192 $basedir/sctp_client $v -i stream 127.0.0.1 1035";
+"runcon -t test_sctp_client_t -l s0:c182.c192 $basedir/sctp_client $v stream 127.0.0.1 1035";
 ok( $result eq 0 );
 
 # Verify that authorized client can communicate with the server using different valid level STREAM->STREAM.
 $result = system
-"runcon -t test_sctp_client_t -l s0:c182,c187,c190 $basedir/sctp_client $v -i stream 127.0.0.1 1035";
+"runcon -t test_sctp_client_t -l s0:c182,c187,c190 $basedir/sctp_client $v stream 127.0.0.1 1035";
 ok( $result eq 0 );
 
 # Verify that authorized client can communicate with the server using different valid level SEQ->STREAM
 $result = system
-"runcon -t test_sctp_client_t -l s0:c189,c192 $basedir/sctp_client $v -i seq 127.0.0.1 1035";
+"runcon -t test_sctp_client_t -l s0:c189,c192 $basedir/sctp_client $v seq 127.0.0.1 1035";
 ok( $result eq 0 );
 
 # Verify that authorized client cannot communicate with the server using invalid level STREAM->STREAM.
@@ -449,17 +449,17 @@ if ($test_clpeeloff) {
 
 # Verify that authorized client can communicate with the server peeloff->SEQ->STREAM with client using connect(2).
     $result = system
-"runcon -t test_sctp_client_t -l s0:c182.c192 $basedir/sctp_peeloff_client $v -i 127.0.0.1 1035";
+"runcon -t test_sctp_client_t -l s0:c182.c192 $basedir/sctp_peeloff_client $v 127.0.0.1 1035";
     ok( $result eq 0 );
 
 # Verify that authorized client can communicate with the server peeloff->SEQ->STREAM with client using sctp_connectx(3).
     $result = system
-"runcon -t test_sctp_client_t -l s0:c182.c192 $basedir/sctp_peeloff_client $v -x -i 127.0.0.1 1035";
+"runcon -t test_sctp_client_t -l s0:c182.c192 $basedir/sctp_peeloff_client $v -x 127.0.0.1 1035";
     ok( $result eq 0 );
 
 # Verify that authorized client can communicate with the server peeloff->SEQ->STREAM with no client connect(2).
     $result = system
-"runcon -t test_sctp_client_t -l s0:c182.c192 $basedir/sctp_peeloff_client $v -n -i 127.0.0.1 1035";
+"runcon -t test_sctp_client_t -l s0:c182.c192 $basedir/sctp_peeloff_client $v -n 127.0.0.1 1035";
     ok( $result eq 0 );
 }
 
@@ -467,80 +467,108 @@ if ($test_clpeeloff) {
 server_end($pid);
 
 # Start the seq server.
-$pid = server_start(
-    "-t test_sctp_server_t -l s0:c20.c300",
-    "sctp_server",
-    "$v -4 -i seq 1035"
-);
+$pid = server_start( "-t test_sctp_server_t -l s0:c20.c300",
+    "sctp_server", "$v -4 seq 1035" );
 
 # Verify that authorized client can communicate with the server. SEQ->SEQ
 $result = system
-"runcon -t test_sctp_client_t -l s0:c27.c28 $basedir/sctp_client $v -i seq 127.0.0.1 1035";
+"runcon -t test_sctp_client_t -l s0:c27,c28 $basedir/sctp_client $v seq 127.0.0.1 1035";
 ok( $result eq 0 );
 
 # Verify that authorized client can communicate with the server using STREAM->SEQ.
 $result = system
-"runcon -t test_sctp_client_t -l s0:c20.c30 $basedir/sctp_client $v -i stream 127.0.0.1 1035";
+"runcon -t test_sctp_client_t -l s0:c27,c28 $basedir/sctp_client $v stream 127.0.0.1 1035";
 ok( $result eq 0 );
+
+# Restart the seq server to reset the SCTP state and labels
+server_end($pid);
+$pid = server_start( "-t test_sctp_server_t -l s0:c20.c300",
+    "sctp_server", "$v -4 seq 1035" );
 
 # Verify that authorized client can communicate with the server using SEQ->SEQ with diff valid level.
 $result = system
-"runcon -t test_sctp_client_t -l s0:c20.c24,c26,c27.c29 $basedir/sctp_client $v -i seq 127.0.0.1 1035";
+"runcon -t test_sctp_client_t -l s0:c20.c24,c26.c29 $basedir/sctp_client $v seq 127.0.0.1 1035";
 ok( $result eq 0 );
+
+# Restart the seq server to reset the SCTP state and labels
+server_end($pid);
+$pid = server_start( "-t test_sctp_server_t -l s0:c20.c300",
+    "sctp_server", "$v -4 seq 1035" );
 
 # Verify that client cannot communicate with the server using SEQ->SEQ with invalid level.
 $result = system
-"runcon -t test_sctp_client_t -l s0:c19.c100 -- $basedir/sctp_client $v -i seq 127.0.0.1 1035 2>&1";
+"runcon -t test_sctp_client_t -l s0:c19.c100 -- $basedir/sctp_client $v seq 127.0.0.1 1035 2>&1";
 ok( $result >> 8 eq 6 );
 
-# TAG 1 allows categories 0 to 239 to be sent, if greater then ENOSPC (No space left on device)
+# Restart the seq server to reset the SCTP state and labels
+server_end($pid);
+$pid = server_start( "-t test_sctp_server_t -l s0:c20.c300",
+    "sctp_server", "$v -4 seq 1035" );
+
+# TAG 1 allows categories 0 to 239 to be sent
 $result = system
-"runcon -t test_sctp_client_t -l s0:c20.c300 -- $basedir/sctp_client $v -i seq 127.0.0.1 1035 2>&1";
+"runcon -t test_sctp_client_t -l s0:c20.c300 -- $basedir/sctp_client $v seq 127.0.0.1 1035 2>&1";
 ok( $result >> 8 eq 7 );
 
 if ($test_clpeeloff) {
 
+    # Restart the seq server to reset the SCTP state and labels
+    server_end($pid);
+    $pid = server_start(
+        "-t test_sctp_server_t -l s0:c20.c300",
+        "sctp_server",
+        "$v -4 seq 1035"
+    );
+
 # Verify that authorized client can communicate with the server peeloff->SEQ->SEQ with client using connect(2).
     $result = system
-"runcon -t test_sctp_client_t -l s0:c20.c30 $basedir/sctp_peeloff_client $v -i 127.0.0.1 1035";
+"runcon -t test_sctp_client_t -l s0:c20.c30 $basedir/sctp_peeloff_client $v 127.0.0.1 1035";
     ok( $result eq 0 );
 
 # Verify that authorized client can communicate with the server peeloff->SEQ->SEQ with client using sctp_connectx(3).
     $result = system
-"runcon -t test_sctp_client_t -l s0:c20.c30 $basedir/sctp_peeloff_client $v -x -i 127.0.0.1 1035";
+"runcon -t test_sctp_client_t -l s0:c20.c30 $basedir/sctp_peeloff_client $v -x 127.0.0.1 1035";
     ok( $result eq 0 );
 
 # Verify that authorized client can communicate with the server peeloff->SEQ->SEQ with no client connect(2).
     $result = system
-"runcon -t test_sctp_client_t -l s0:c20.c30 $basedir/sctp_peeloff_client $v -n -i 127.0.0.1 1035";
+"runcon -t test_sctp_client_t -l s0:c20.c30 $basedir/sctp_peeloff_client $v -n 127.0.0.1 1035";
     ok( $result eq 0 );
 }
 
 # Kill server.
 server_end($pid);
 
-print "# Testing CIPSO/IPv4 - TAG 1 PEELOFF using socket ip_option data\n";
+print "# Testing CIPSO/IPv4 - TAG 1 PEELOFF\n";
 
 # Test sctp_peeloff(3) server using 1 to Many SOCK_SEQPACKET
 $pid = server_start(
     "-t test_sctp_server_t -l s0:c0.c10",
     "sctp_peeloff_server",
-    "$v -4 -i 1035"
+    "$v -4 1035"
 );
 
 # Verify that authorized client can communicate with the server using SEQ->SEQ->Peeloff with same level.
 $result = system
-"runcon -t test_sctp_client_t -l s0:c0.c10 $basedir/sctp_client $v -i seq 127.0.0.1 1035";
+"runcon -t test_sctp_client_t -l s0:c0.c10 $basedir/sctp_client $v seq 127.0.0.1 1035";
 ok( $result eq 0 );
 
 # Verify that authorized client can communicate with the server using STREAM->SEQ->peeloff with same level.
 $result = system
-"runcon -t test_sctp_client_t -l s0:c0.c10 $basedir/sctp_client $v -x -i stream 127.0.0.1 1035";
+"runcon -t test_sctp_client_t -l s0:c0.c10 $basedir/sctp_client $v -x stream 127.0.0.1 1035";
 ok( $result eq 0 );
+
+# Restart the seq server to reset the SCTP state and labels
+server_end($pid);
+$pid = server_start(
+    "-t test_sctp_server_t -l s0:c0.c10",
+    "sctp_peeloff_server",
+    "$v -4 1035"
+);
 
 # Verify that client cannot communicate with the server using STREAM->SEQ->peeloff with invalid level.
 $result = system
-"runcon -t test_sctp_client_t -l s0:c0.c11 -- $basedir/sctp_client $v -x -i stream 127.0.0.1 1035 2>&1";
+"runcon -t test_sctp_client_t -l s0:c0.c11 -- $basedir/sctp_client $v -x stream 127.0.0.1 1035 2>&1";
 ok( $result >> 8 eq 6 );
 
 # Kill the seq server.
@@ -551,32 +579,32 @@ system "/bin/sh $basedir/cipso-flush";
 #
 ############################## CIPSO/IPv4 TAG 2 ###############################
 #
-print "# Testing CIPSO/IPv4 - TAG 2 using socket ip_option data\n";
+print "# Testing CIPSO/IPv4 - TAG 2\n";
 system "/bin/sh $basedir/cipso-load-t2";
 
 # Start the stream server for IPv4 only.
 $pid = server_start(
     "-t test_sctp_server_t -l s0:c782,c714,c769,c788,c803,c842,c864",
-    "sctp_server", "$v -4 -i stream 1035" );
+    "sctp_server", "$v -4 stream 1035" );
 
 # Verify that authorized client can communicate with the server STREAM->STREAM with client using sctp_connectx(3).
 $result = system
-"runcon -t test_sctp_client_t -l s0:c782,c714,c769,c788,c803,c842,c864 $basedir/sctp_client $v -x -i stream 127.0.0.1 1035";
+"runcon -t test_sctp_client_t -l s0:c782,c714,c769,c788,c803,c842,c864 $basedir/sctp_client $v -x stream 127.0.0.1 1035";
 ok( $result eq 0 );
 
 # Verify that authorized client can communicate with the server STREAM->STREAM with client using connect(2).
 $result = system
-"runcon -t test_sctp_client_t -l s0:c782,c714,c769,c788,c803,c842,c864 $basedir/sctp_client $v -i stream 127.0.0.1 1035";
+"runcon -t test_sctp_client_t -l s0:c782,c714,c769,c788,c803,c842,c864 $basedir/sctp_client $v stream 127.0.0.1 1035";
 ok( $result eq 0 );
 
 # Verify that authorized client can communicate with the server using different valid level STREAM->STREAM.
 $result = system
-"runcon -t test_sctp_client_t -l s0:c769,c788,c803,c842,c864 $basedir/sctp_client $v -i stream 127.0.0.1 1035";
+"runcon -t test_sctp_client_t -l s0:c769,c788,c803,c842,c864 $basedir/sctp_client $v stream 127.0.0.1 1035";
 ok( $result eq 0 );
 
 # Verify that authorized client can communicate with the server using different valid level SEQ->STREAM
 $result = system
-"runcon -t test_sctp_client_t -l s0:c769,c788,c803 $basedir/sctp_client $v -i seq 127.0.0.1 1035";
+"runcon -t test_sctp_client_t -l s0:c769,c788,c803 $basedir/sctp_client $v seq 127.0.0.1 1035";
 ok( $result eq 0 );
 
 # Verify that authorized client cannot communicate with the server using invalid level STREAM->STREAM.
@@ -588,17 +616,17 @@ if ($test_clpeeloff) {
 
 # Verify that authorized client can communicate with the server peeloff->SEQ->STREAM with client using connect(2).
     $result = system
-"runcon -t test_sctp_client_t -l s0:c782,c714,c769,c788,c803,c842,c864 $basedir/sctp_peeloff_client $v -i 127.0.0.1 1035";
+"runcon -t test_sctp_client_t -l s0:c782,c714,c769,c788,c803,c842,c864 $basedir/sctp_peeloff_client $v 127.0.0.1 1035";
     ok( $result eq 0 );
 
 # Verify that authorized client can communicate with the server peeloff->SEQ->STREAM with client using sctp_connectx(3).
     $result = system
-"runcon -t test_sctp_client_t -l s0:c782,c714,c769,c788,c803,c842,c864 $basedir/sctp_peeloff_client $v -x -i 127.0.0.1 1035";
+"runcon -t test_sctp_client_t -l s0:c782,c714,c769,c788,c803,c842,c864 $basedir/sctp_peeloff_client $v -x 127.0.0.1 1035";
     ok( $result eq 0 );
 
 # Verify that authorized client can communicate with the server peeloff->SEQ->STREAM with no client connect(2).
     $result = system
-"runcon -t test_sctp_client_t -l s0:c782,c714,c769,c788,c803,c842,c864 $basedir/sctp_peeloff_client $v -n -i 127.0.0.1 1035";
+"runcon -t test_sctp_client_t -l s0:c782,c714,c769,c788,c803,c842,c864 $basedir/sctp_peeloff_client $v -n 127.0.0.1 1035";
     ok( $result eq 0 );
 }
 
@@ -606,80 +634,108 @@ if ($test_clpeeloff) {
 server_end($pid);
 
 # Start the seq server.
-$pid = server_start(
-    "-t test_sctp_server_t -l s0:c20.c335",
-    "sctp_server",
-    "$v -4 -i seq 1035"
-);
+$pid = server_start( "-t test_sctp_server_t -l s0:c20.c335",
+    "sctp_server", "$v -4 seq 1035" );
 
 # Verify that authorized client can communicate with the server. SEQ->SEQ
 $result = system
-"runcon -t test_sctp_client_t -l s0:c328.c333 $basedir/sctp_client $v -i seq 127.0.0.1 1035";
+"runcon -t test_sctp_client_t -l s0:c328.c333 $basedir/sctp_client $v seq 127.0.0.1 1035";
 ok( $result eq 0 );
 
 # Verify that authorized client can communicate with the server using STREAM->SEQ.
 $result = system
-"runcon -t test_sctp_client_t -l s0:c20.c34 $basedir/sctp_client $v -i stream 127.0.0.1 1035";
+"runcon -t test_sctp_client_t -l s0:c328.c333 $basedir/sctp_client $v stream 127.0.0.1 1035";
 ok( $result eq 0 );
+
+# Restart the seq server to reset the SCTP state and labels
+server_end($pid);
+$pid = server_start( "-t test_sctp_server_t -l s0:c20.c335",
+    "sctp_server", "$v -4 seq 1035" );
 
 # Verify that authorized client can communicate with the server using SEQ->SEQ with diff valid level.
 $result = system
-"runcon -t test_sctp_client_t -l s0:c20.c30,c31,c335 $basedir/sctp_client $v -i seq 127.0.0.1 1035";
+"runcon -t test_sctp_client_t -l s0:c20.c30,c31,c335 $basedir/sctp_client $v seq 127.0.0.1 1035";
 ok( $result eq 0 );
+
+# Restart the seq server to reset the SCTP state and labels
+server_end($pid);
+$pid = server_start( "-t test_sctp_server_t -l s0:c20.c335",
+    "sctp_server", "$v -4 seq 1035" );
 
 # Verify that client cannot communicate with the server using SEQ->SEQ with invalid level.
 $result = system
-"runcon -t test_sctp_client_t -l s0:c19.c30 -- $basedir/sctp_client $v -i seq 127.0.0.1 1035 2>&1";
+"runcon -t test_sctp_client_t -l s0:c19.c30 -- $basedir/sctp_client $v seq 127.0.0.1 1035 2>&1";
 ok( $result >> 8 eq 6 );
 
-# TAG 2 allows a maximum of 15 categories in exchange, if greater then ENOSPC (No space left on device)
+# Restart the seq server to reset the SCTP state and labels
+server_end($pid);
+$pid = server_start( "-t test_sctp_server_t -l s0:c20.c335",
+    "sctp_server", "$v -4 seq 1035" );
+
+# TAG 2 allows a maximum of 15 categories in exchange
 $result = system
-"runcon -t test_sctp_client_t -l s0:c200.c216 -- $basedir/sctp_client $v -i seq 127.0.0.1 1035 2>&1";
+"runcon -t test_sctp_client_t -l s0:c200.c216 -- $basedir/sctp_client $v seq 127.0.0.1 1035 2>&1";
 ok( $result >> 8 eq 7 );
 
 if ($test_clpeeloff) {
 
+    # Restart the seq server to reset the SCTP state and labels
+    server_end($pid);
+    $pid = server_start(
+        "-t test_sctp_server_t -l s0:c20.c335",
+        "sctp_server",
+        "$v -4 seq 1035"
+    );
+
 # Verify that authorized client can communicate with the server peeloff->SEQ->SEQ with client using connect(2).
     $result = system
-"runcon -t test_sctp_client_t -l s0:c20.c30 $basedir/sctp_peeloff_client $v -i 127.0.0.1 1035";
+"runcon -t test_sctp_client_t -l s0:c20.c30 $basedir/sctp_peeloff_client $v 127.0.0.1 1035";
     ok( $result eq 0 );
 
 # Verify that authorized client can communicate with the server peeloff->SEQ->SEQ with client using sctp_connectx(3).
     $result = system
-"runcon -t test_sctp_client_t -l s0:c20.c30 $basedir/sctp_peeloff_client $v -x -i 127.0.0.1 1035";
+"runcon -t test_sctp_client_t -l s0:c20.c30 $basedir/sctp_peeloff_client $v -x 127.0.0.1 1035";
     ok( $result eq 0 );
 
 # Verify that authorized client can communicate with the server peeloff->SEQ->SEQ with no client connect(2).
     $result = system
-"runcon -t test_sctp_client_t -l s0:c20.c30 $basedir/sctp_peeloff_client $v -n -i 127.0.0.1 1035";
+"runcon -t test_sctp_client_t -l s0:c20.c30 $basedir/sctp_peeloff_client $v -n 127.0.0.1 1035";
     ok( $result eq 0 );
 }
 
 # Kill server.
 server_end($pid);
 
-print "# Testing CIPSO/IPv4 - TAG 2 PEELOFF using socket ip_option data\n";
+print "# Testing CIPSO/IPv4 - TAG 2 PEELOFF\n";
 
 # Test sctp_peeloff(3) server using 1 to Many SOCK_SEQPACKET
 $pid = server_start(
     "-t test_sctp_server_t -l s0:c0.c10",
     "sctp_peeloff_server",
-    "$v -4 -i 1035"
+    "$v -4 1035"
 );
 
 # Verify that authorized client can communicate with the server using SEQ->SEQ->Peeloff with same level.
 $result = system
-"runcon -t test_sctp_client_t -l s0:c0.c10 $basedir/sctp_client $v -i seq 127.0.0.1 1035";
+"runcon -t test_sctp_client_t -l s0:c0.c10 $basedir/sctp_client $v seq 127.0.0.1 1035";
 ok( $result eq 0 );
 
 # Verify that authorized client can communicate with the server using STREAM->SEQ->peeloff with same level.
 $result = system
-"runcon -t test_sctp_client_t -l s0:c0.c10 $basedir/sctp_client $v -x -i stream 127.0.0.1 1035";
+"runcon -t test_sctp_client_t -l s0:c0.c10 $basedir/sctp_client $v -x stream 127.0.0.1 1035";
 ok( $result eq 0 );
+
+# Restart the seq server to reset the SCTP state and labels
+server_end($pid);
+$pid = server_start(
+    "-t test_sctp_server_t -l s0:c0.c10",
+    "sctp_peeloff_server",
+    "$v -4 1035"
+);
 
 # Verify that client cannot communicate with the server using STREAM->SEQ->peeloff with invalid level.
 $result = system
-"runcon -t test_sctp_client_t -l s0:c0.c11 -- $basedir/sctp_client $v -x -i stream 127.0.0.1 1035 2>&1";
+"runcon -t test_sctp_client_t -l s0:c0.c11 -- $basedir/sctp_client $v -x stream 127.0.0.1 1035 2>&1";
 ok( $result >> 8 eq 6 );
 
 # Kill the seq server.
@@ -690,32 +746,32 @@ system "/bin/sh $basedir/cipso-flush";
 #
 ############################## CIPSO/IPv4 TAG 5 ###############################
 #
-print "# Testing CIPSO/IPv4 - TAG 5 using socket ip_option data\n";
+print "# Testing CIPSO/IPv4 - TAG 5\n";
 system "/bin/sh $basedir/cipso-load-t5";
 
 # Start the stream server for IPv4 only.
 $pid = server_start(
     "-t test_sctp_server_t -l s0:c782,c714,c769,c788,c803,c842,c864",
-    "sctp_server", "$v -4 -i stream 1035" );
+    "sctp_server", "$v -4 stream 1035" );
 
 # Verify that authorized client can communicate with the server STREAM->STREAM with client using sctp_connectx(3).
 $result = system
-"runcon -t test_sctp_client_t -l s0:c782,c714,c769,c788,c803,c842,c864 $basedir/sctp_client $v -x -i stream 127.0.0.1 1035";
+"runcon -t test_sctp_client_t -l s0:c782,c714,c769,c788,c803,c842,c864 $basedir/sctp_client $v -x stream 127.0.0.1 1035";
 ok( $result eq 0 );
 
 # Verify that authorized client can communicate with the server STREAM->STREAM with client using connect(2).
 $result = system
-"runcon -t test_sctp_client_t -l s0:c782,c714,c769,c788,c803,c842,c864 $basedir/sctp_client $v -i stream 127.0.0.1 1035";
+"runcon -t test_sctp_client_t -l s0:c782,c714,c769,c788,c803,c842,c864 $basedir/sctp_client $v stream 127.0.0.1 1035";
 ok( $result eq 0 );
 
 # Verify that authorized client can communicate with the server using different valid level STREAM->STREAM.
 $result = system
-"runcon -t test_sctp_client_t -l s0:c769,c788,c803,c842,c864 $basedir/sctp_client $v -i stream 127.0.0.1 1035";
+"runcon -t test_sctp_client_t -l s0:c769,c788,c803,c842,c864 $basedir/sctp_client $v stream 127.0.0.1 1035";
 ok( $result eq 0 );
 
 # Verify that authorized client can communicate with the server using different valid level SEQ->STREAM
 $result = system
-"runcon -t test_sctp_client_t -l s0:c769,c788,c803 $basedir/sctp_client $v -i seq 127.0.0.1 1035";
+"runcon -t test_sctp_client_t -l s0:c769,c788,c803 $basedir/sctp_client $v seq 127.0.0.1 1035";
 ok( $result eq 0 );
 
 # Verify that authorized client cannot communicate with the server using invalid level STREAM->STREAM.
@@ -727,17 +783,17 @@ if ($test_clpeeloff) {
 
 # Verify that authorized client can communicate with the server peeloff->SEQ->STREAM with client using connect(2).
     $result = system
-"runcon -t test_sctp_client_t -l s0:c782,c714,c769,c788,c803,c842,c864 $basedir/sctp_peeloff_client $v -i 127.0.0.1 1035";
+"runcon -t test_sctp_client_t -l s0:c782,c714,c769,c788,c803,c842,c864 $basedir/sctp_peeloff_client $v 127.0.0.1 1035";
     ok( $result eq 0 );
 
 # Verify that authorized client can communicate with the server peeloff->SEQ->STREAM with client using sctp_connectx(3).
     $result = system
-"runcon -t test_sctp_client_t -l s0:c782,c714,c769,c788,c803,c842,c864 $basedir/sctp_peeloff_client $v -x -i 127.0.0.1 1035";
+"runcon -t test_sctp_client_t -l s0:c782,c714,c769,c788,c803,c842,c864 $basedir/sctp_peeloff_client $v -x 127.0.0.1 1035";
     ok( $result eq 0 );
 
 # Verify that authorized client can communicate with the server peeloff->SEQ->STREAM with no client connect(2).
     $result = system
-"runcon -t test_sctp_client_t -l s0:c782,c714,c769,c788,c803,c842,c864 $basedir/sctp_peeloff_client $v -n -i 127.0.0.1 1035";
+"runcon -t test_sctp_client_t -l s0:c782,c714,c769,c788,c803,c842,c864 $basedir/sctp_peeloff_client $v -n 127.0.0.1 1035";
     ok( $result eq 0 );
 }
 
@@ -745,80 +801,108 @@ if ($test_clpeeloff) {
 server_end($pid);
 
 # Start the seq server.
-$pid = server_start(
-    "-t test_sctp_server_t -l s0:c20.c50",
-    "sctp_server",
-    "$v -4 -i seq 1035"
-);
+$pid = server_start( "-t test_sctp_server_t -l s0:c20.c50",
+    "sctp_server", "$v -4 seq 1035" );
 
 # Verify that authorized client can communicate with the server. SEQ->SEQ
 $result = system
-"runcon -t test_sctp_client_t -l s0:c28.c48 $basedir/sctp_client $v -i seq 127.0.0.1 1035";
+"runcon -t test_sctp_client_t -l s0:c28.c48 $basedir/sctp_client $v seq 127.0.0.1 1035";
 ok( $result eq 0 );
 
 # Verify that authorized client can communicate with the server using STREAM->SEQ.
 $result = system
-"runcon -t test_sctp_client_t -l s0:c20.c50 $basedir/sctp_client $v -i stream 127.0.0.1 1035";
+"runcon -t test_sctp_client_t -l s0:c28.c48 $basedir/sctp_client $v stream 127.0.0.1 1035";
 ok( $result eq 0 );
+
+# Restart the seq server to reset the SCTP state and labels
+server_end($pid);
+$pid = server_start( "-t test_sctp_server_t -l s0:c20.c50",
+    "sctp_server", "$v -4 seq 1035" );
 
 # Verify that authorized client can communicate with the server using SEQ->SEQ with diff valid level.
 $result = system
-"runcon -t test_sctp_client_t -l s0:c20.c30,c31,c35,c40.c45 $basedir/sctp_client $v -i seq 127.0.0.1 1035";
+"runcon -t test_sctp_client_t -l s0:c20.c30,c31,c35,c40.c45 $basedir/sctp_client $v seq 127.0.0.1 1035";
 ok( $result eq 0 );
+
+# Restart the seq server to reset the SCTP state and labels
+server_end($pid);
+$pid = server_start( "-t test_sctp_server_t -l s0:c20.c50",
+    "sctp_server", "$v -4 seq 1035" );
 
 # Verify that client cannot communicate with the server using SEQ->SEQ with invalid level.
 $result = system
-"runcon -t test_sctp_client_t -l s0:c20.c51 -- $basedir/sctp_client $v -i seq 127.0.0.1 1035 2>&1";
+"runcon -t test_sctp_client_t -l s0:c20.c51 -- $basedir/sctp_client $v seq 127.0.0.1 1035 2>&1";
 ok( $result >> 8 eq 6 );
 
-# TAG 2 allows a maximum of 7 ranges in exchange, if greater then ENOSPC (No space left on device)
+# Restart the seq server to reset the SCTP state and labels
+server_end($pid);
+$pid = server_start( "-t test_sctp_server_t -l s0:c20.c50",
+    "sctp_server", "$v -4 seq 1035" );
+
+# TAG 2 allows a maximum of 7 ranges in exchange
 $result = system
-"runcon -t test_sctp_client_t -l s0:c20,c22,c24,c30.c33,c38,c42.c45,c48,c50 -- $basedir/sctp_client $v -i seq 127.0.0.1 1035 2>&1";
+"runcon -t test_sctp_client_t -l s0:c20,c22,c24,c30.c33,c38,c42.c45,c48,c50 -- $basedir/sctp_client $v seq 127.0.0.1 1035 2>&1";
 ok( $result >> 8 eq 7 );
 
 if ($test_clpeeloff) {
 
+    # Restart the seq server to reset the SCTP state and labels
+    server_end($pid);
+    $pid = server_start(
+        "-t test_sctp_server_t -l s0:c20.c50",
+        "sctp_server",
+        "$v -4 seq 1035"
+    );
+
 # Verify that authorized client can communicate with the server peeloff->SEQ->SEQ with client using connect(2).
     $result = system
-"runcon -t test_sctp_client_t -l s0:c20.c50 $basedir/sctp_peeloff_client $v -i 127.0.0.1 1035";
+"runcon -t test_sctp_client_t -l s0:c20.c50 $basedir/sctp_peeloff_client $v 127.0.0.1 1035";
     ok( $result eq 0 );
 
 # Verify that authorized client can communicate with the server peeloff->SEQ->SEQ with client using sctp_connectx(3).
     $result = system
-"runcon -t test_sctp_client_t -l s0:c20.c50 $basedir/sctp_peeloff_client $v -x -i 127.0.0.1 1035";
+"runcon -t test_sctp_client_t -l s0:c20.c50 $basedir/sctp_peeloff_client $v -x 127.0.0.1 1035";
     ok( $result eq 0 );
 
 # Verify that authorized client can communicate with the server peeloff->SEQ->SEQ with no client connect(2).
     $result = system
-"runcon -t test_sctp_client_t -l s0:c20.c50 $basedir/sctp_peeloff_client $v -n -i 127.0.0.1 1035";
+"runcon -t test_sctp_client_t -l s0:c20.c50 $basedir/sctp_peeloff_client $v -n 127.0.0.1 1035";
     ok( $result eq 0 );
 }
 
 # Kill server.
 server_end($pid);
 
-print "# Testing CIPSO/IPv4 - TAG 5 PEELOFF using socket ip_option data\n";
+print "# Testing CIPSO/IPv4 - TAG 5 PEELOFF\n";
 
 # Test sctp_peeloff(3) server using 1 to Many SOCK_SEQPACKET
 $pid = server_start(
     "-t test_sctp_server_t -l s0:c0.c10",
     "sctp_peeloff_server",
-    "$v -4 -i 1035"
+    "$v -4 1035"
 );
 
 # Verify that authorized client can communicate with the server using SEQ->SEQ->Peeloff with same level.
 $result = system
-"runcon -t test_sctp_client_t -l s0:c0.c10 $basedir/sctp_client $v -i seq 127.0.0.1 1035";
+"runcon -t test_sctp_client_t -l s0:c0.c10 $basedir/sctp_client $v seq 127.0.0.1 1035";
 ok( $result eq 0 );
 
 # Verify that authorized client can communicate with the server using STREAM->SEQ->peeloff with same level.
 $result = system
-"runcon -t test_sctp_client_t -l s0:c0.c10 $basedir/sctp_client $v -x -i stream 127.0.0.1 1035";
+"runcon -t test_sctp_client_t -l s0:c0.c10 $basedir/sctp_client $v -x stream 127.0.0.1 1035";
 ok( $result eq 0 );
+
+# Restart the seq server to reset the SCTP state and labels
+server_end($pid);
+$pid = server_start(
+    "-t test_sctp_server_t -l s0:c0.c10",
+    "sctp_peeloff_server",
+    "$v -4 1035"
+);
 
 # Verify that client cannot communicate with the server using STREAM->SEQ->peeloff with invalid level.
 $result = system
-"runcon -t test_sctp_client_t -l s0:c0.c11 -- $basedir/sctp_client $v -x -i stream 127.0.0.1 1035 2>&1";
+"runcon -t test_sctp_client_t -l s0:c0.c11 -- $basedir/sctp_client $v -x stream 127.0.0.1 1035 2>&1";
 ok( $result >> 8 eq 6 );
 
 # Kill the seq server.
@@ -874,56 +958,56 @@ system "/bin/sh $basedir/cipso-fl-flush";
 #
 
 if ($test_calipso) {
-    print "# Testing CALIPSO/IPv6 using socket ip_option data\n";
+    print "# Testing CALIPSO/IPv6\n";
     system "/bin/sh $basedir/calipso-load";
 
     # Start the stream server.
     $pid = server_start(
 "-t test_sctp_server_t -l  s0:c0,c12,c24,c36,c28,c610,c712,c414,c516,c318,c820,c622,c924,c726,c128,c330,c832,c534,c936,c138,c740,c42,c44,c246,c648,c950,c152,c354,c856,c158,c960,c662,c634,c686,c368,c570,c782,c714,c769,c788,c803,c842,c864,c986,c788,c290,c392,c594,c896,c698,c1023",
         "sctp_server",
-        "$v -i stream 1035"
+        "$v stream 1035"
     );
 
 # Verify that authorized client can communicate with the server STREAM->STREAM with client using sctp_connectx(3).
     $result = system
-"runcon -t test_sctp_client_t -l s0:c0,c12,c24,c36,c28,c610,c712,c414,c516,c318,c820,c622,c924,c726,c128,c330,c832,c534,c936,c138,c740,c42,c44,c246,c648,c950,c152,c354,c856,c158,c960,c662,c634,c686,c368,c570,c782,c714,c769,c788,c803,c842,c864,c986,c788,c290,c392,c594,c896,c698,c1023  $basedir/sctp_client $v -x -i stream ::1 1035";
+"runcon -t test_sctp_client_t -l s0:c0,c12,c24,c36,c28,c610,c712,c414,c516,c318,c820,c622,c924,c726,c128,c330,c832,c534,c936,c138,c740,c42,c44,c246,c648,c950,c152,c354,c856,c158,c960,c662,c634,c686,c368,c570,c782,c714,c769,c788,c803,c842,c864,c986,c788,c290,c392,c594,c896,c698,c1023  $basedir/sctp_client $v -x stream ::1 1035";
     ok( $result eq 0 );
 
 # Verify that authorized client can communicate with the server STREAM->STREAM with client using connect(2).
     $result = system
-"runcon -t test_sctp_client_t -l s0:c0,c12,c24,c36,c28,c610,c712,c414,c516,c318,c820,c622,c924,c726,c128,c330,c832,c534,c936,c138,c740,c42,c44,c246,c648,c950,c152,c354,c856,c158,c960,c662,c634,c686,c368,c570,c782,c714,c769,c788,c803,c842,c864,c986,c788,c290,c392,c594,c896,c698,c1023  $basedir/sctp_client $v -i stream ::1 1035";
+"runcon -t test_sctp_client_t -l s0:c0,c12,c24,c36,c28,c610,c712,c414,c516,c318,c820,c622,c924,c726,c128,c330,c832,c534,c936,c138,c740,c42,c44,c246,c648,c950,c152,c354,c856,c158,c960,c662,c634,c686,c368,c570,c782,c714,c769,c788,c803,c842,c864,c986,c788,c290,c392,c594,c896,c698,c1023  $basedir/sctp_client $v stream ::1 1035";
     ok( $result eq 0 );
 
 # Verify that authorized client can communicate with the server using different valid level STREAM->STREAM.
     $result = system
-"runcon -t test_sctp_client_t -l s0:c924,c726,c128,c330,c832,c534,c936,c138,c740,c42 $basedir/sctp_client $v -i stream ::1 1035";
+"runcon -t test_sctp_client_t -l s0:c924,c726,c128,c330,c832,c534,c936,c138,c740,c42 $basedir/sctp_client $v stream ::1 1035";
     ok( $result eq 0 );
 
 # Verify that authorized client can communicate with the server using different valid level SEQ->STREAM
     $result = system
-"runcon -t test_sctp_client_t -l s0:c924,c726,c128,c330,c832,c534,c936,c138,c740,c42 $basedir/sctp_client $v -i seq ::1 1035";
+"runcon -t test_sctp_client_t -l s0:c924,c726,c128,c330,c832,c534,c936,c138,c740,c42 $basedir/sctp_client $v seq ::1 1035";
     ok( $result eq 0 );
 
 # Verify that authorized client cannot communicate with the server using invalid level STREAM->STREAM.
     $result = system
-"runcon -t test_sctp_client_t -l s0:c8.c12 -- $basedir/sctp_client $v -i stream ::1 1035 2>&1";
+"runcon -t test_sctp_client_t -l s0:c8.c12 -- $basedir/sctp_client $v stream ::1 1035 2>&1";
     ok( $result >> 8 eq 6 );
 
     if ($test_clpeeloff) {
 
 # Verify that authorized client can communicate with the server peeloff->SEQ->STREAM with client using connect(2).
         $result = system
-"runcon -t test_sctp_client_t -l s0:c0,c12,c24,c36,c28,c610,c712,c414,c516,c318,c820,c622,c924,c726,c128,c330,c832,c534,c936,c138,c740,c42,c44,c246,c648,c950,c152,c354,c856,c158,c960,c662,c634,c686,c368,c570,c782,c714,c769,c788,c803,c842,c864,c986,c788,c290,c392,c594,c896,c698,c1023 $basedir/sctp_peeloff_client $v -i ::1 1035";
+"runcon -t test_sctp_client_t -l s0:c0,c12,c24,c36,c28,c610,c712,c414,c516,c318,c820,c622,c924,c726,c128,c330,c832,c534,c936,c138,c740,c42,c44,c246,c648,c950,c152,c354,c856,c158,c960,c662,c634,c686,c368,c570,c782,c714,c769,c788,c803,c842,c864,c986,c788,c290,c392,c594,c896,c698,c1023 $basedir/sctp_peeloff_client $v ::1 1035";
         ok( $result eq 0 );
 
 # Verify that authorized client can communicate with the server peeloff->SEQ->STREAM with client using sctp_connectx(3).
         $result = system
-"runcon -t test_sctp_client_t -l s0:c0,c12,c24,c36,c28,c610,c712,c414,c516,c318,c820,c622,c924,c726,c128,c330,c832,c534,c936,c138,c740,c42,c44,c246,c648,c950,c152,c354,c856,c158,c960,c662,c634,c686,c368,c570,c782,c714,c769,c788,c803,c842,c864,c986,c788,c290,c392,c594,c896,c698,c1023 $basedir/sctp_peeloff_client $v -x -i ::1 1035";
+"runcon -t test_sctp_client_t -l s0:c0,c12,c24,c36,c28,c610,c712,c414,c516,c318,c820,c622,c924,c726,c128,c330,c832,c534,c936,c138,c740,c42,c44,c246,c648,c950,c152,c354,c856,c158,c960,c662,c634,c686,c368,c570,c782,c714,c769,c788,c803,c842,c864,c986,c788,c290,c392,c594,c896,c698,c1023 $basedir/sctp_peeloff_client $v -x ::1 1035";
         ok( $result eq 0 );
 
 # Verify that authorized client can communicate with the server peeloff->SEQ->STREAM with no client connect(2).
         $result = system
-"runcon -t test_sctp_client_t -l s0:c0,c12,c24,c36,c28,c610,c712,c414,c516,c318,c820,c622,c924,c726,c128,c330,c832,c534,c936,c138,c740,c42,c44,c246,c648,c950,c152,c354,c856,c158,c960,c662,c634,c686,c368,c570,c782,c714,c769,c788,c803,c842,c864,c986,c788,c290,c392,c594,c896,c698,c1023 $basedir/sctp_peeloff_client $v -n -i ::1 1035";
+"runcon -t test_sctp_client_t -l s0:c0,c12,c24,c36,c28,c610,c712,c414,c516,c318,c820,c622,c924,c726,c128,c330,c832,c534,c936,c138,c740,c42,c44,c246,c648,c950,c152,c354,c856,c158,c960,c662,c634,c686,c368,c570,c782,c714,c769,c788,c803,c842,c864,c986,c788,c290,c392,c594,c896,c698,c1023 $basedir/sctp_peeloff_client $v -n ::1 1035";
         ok( $result eq 0 );
     }
 
@@ -931,80 +1015,105 @@ if ($test_calipso) {
     server_end($pid);
 
     # Start the seq server.
-    $pid = server_start(
-        "-t test_sctp_server_t -l s0:c20.c50",
-        "sctp_server",
-        "$v -i seq 1035"
-    );
+    $pid = server_start( "-t test_sctp_server_t -l s0:c20.c50",
+        "sctp_server", "$v seq 1035" );
 
     # Verify that authorized client can communicate with the server. SEQ->SEQ
     $result = system
-"runcon -t test_sctp_client_t -l s0:c28.c48 $basedir/sctp_client $v -i seq ::1 1035";
+"runcon -t test_sctp_client_t -l s0:c28.c48 $basedir/sctp_client $v seq ::1 1035";
     ok( $result eq 0 );
 
 # Verify that authorized client can communicate with the server using STREAM->SEQ.
     $result = system
-"runcon -t test_sctp_client_t -l s0:c20.c50 $basedir/sctp_client $v -i stream ::1 1035";
+"runcon -t test_sctp_client_t -l s0:c28.c48 $basedir/sctp_client $v stream ::1 1035";
     ok( $result eq 0 );
+
+    # Restart the seq server to reset the SCTP state and labels
+    server_end($pid);
+    $pid = server_start( "-t test_sctp_server_t -l s0:c20.c50",
+        "sctp_server", "$v seq 1035" );
 
 # Verify that authorized client can communicate with the server using SEQ->SEQ with diff valid level.
     $result = system
-"runcon -t test_sctp_client_t -l s0:c20.c30,c31,c35,c40.c45 $basedir/sctp_client $v -i seq ::1 1035";
+"runcon -t test_sctp_client_t -l s0:c20.c30,c31,c35,c40.c45 $basedir/sctp_client $v seq ::1 1035";
     ok( $result eq 0 );
 
-# Verify that client cannot communicate with the server using SEQ->SEQ with invalid level.
-    $result = system
-"runcon -t test_sctp_client_t -l s0:c20.c51 $basedir/sctp_client $v -i seq ::1 1035 2>&1";
-    ok( $result >> 8 eq 6 );
+    # Restart the seq server to reset the SCTP state and labels
+    server_end($pid);
+    $pid = server_start( "-t test_sctp_server_t -l s0:c20.c50",
+        "sctp_server", "$v seq 1035" );
 
 # Verify that client cannot communicate with the server using SEQ->SEQ with invalid level.
     $result = system
-"runcon -t test_sctp_client_t -l s0:c19.c50 -- $basedir/sctp_client $v -i seq ::1 1035 2>&1";
+"runcon -t test_sctp_client_t -l s0:c20.c51 $basedir/sctp_client $v seq ::1 1035 2>&1";
+    ok( $result >> 8 eq 6 );
+
+    # Restart the seq server to reset the SCTP state and labels
+    server_end($pid);
+    $pid = server_start( "-t test_sctp_server_t -l s0:c20.c50",
+        "sctp_server", "$v seq 1035" );
+
+# Verify that client cannot communicate with the server using SEQ->SEQ with invalid level.
+    $result = system
+"runcon -t test_sctp_client_t -l s0:c19.c50 -- $basedir/sctp_client $v seq ::1 1035 2>&1";
     ok( $result >> 8 eq 6 );
 
     if ($test_clpeeloff) {
 
+        # Restart the seq server to reset the SCTP state and labels
+        server_end($pid);
+        $pid = server_start( "-t test_sctp_server_t -l s0:c20.c50",
+            "sctp_server", "$v seq 1035" );
+
 # Verify that authorized client can communicate with the server peeloff->SEQ->SEQ with client using connect(2).
         $result = system
-"runcon -t test_sctp_client_t -l s0:c20.c50 $basedir/sctp_peeloff_client $v -i ::1 1035";
+"runcon -t test_sctp_client_t -l s0:c20.c50 $basedir/sctp_peeloff_client $v ::1 1035";
         ok( $result eq 0 );
 
 # Verify that authorized client can communicate with the server peeloff->SEQ->SEQ with client using sctp_connectx(3).
         $result = system
-"runcon -t test_sctp_client_t -l s0:c20.c50 $basedir/sctp_peeloff_client $v -x -i ::1 1035";
+"runcon -t test_sctp_client_t -l s0:c20.c50 $basedir/sctp_peeloff_client $v -x ::1 1035";
         ok( $result eq 0 );
 
 # Verify that authorized client can communicate with the server peeloff->SEQ->SEQ with no client connect(2).
         $result = system
-"runcon -t test_sctp_client_t -l s0:c20.c50 $basedir/sctp_peeloff_client $v -n -i ::1 1035";
+"runcon -t test_sctp_client_t -l s0:c20.c50 $basedir/sctp_peeloff_client $v -n ::1 1035";
         ok( $result eq 0 );
     }
 
     # Kill server.
     server_end($pid);
 
-    print "# Testing CALIPSO/IPv6 PEELOFF using socket ip_option data\n";
+    print "# Testing CALIPSO/IPv6 PEELOFF\n";
 
     # Test sctp_peeloff(3) server using 1 to Many SOCK_SEQPACKET
     $pid = server_start(
         "-t test_sctp_server_t -l s0:c0.c10",
         "sctp_peeloff_server",
-        "$v -i 1035"
+        "$v 1035"
     );
 
 # Verify that authorized client can communicate with the server using SEQ->SEQ->Peeloff with same level.
     $result = system
-"runcon -t test_sctp_client_t -l s0:c0.c10 $basedir/sctp_client $v -i seq ::1 1035";
+"runcon -t test_sctp_client_t -l s0:c0.c10 $basedir/sctp_client $v seq ::1 1035";
     ok( $result eq 0 );
 
 # Verify that authorized client can communicate with the server using STREAM->SEQ->peeloff with same level.
     $result = system
-"runcon -t test_sctp_client_t -l s0:c0.c10 $basedir/sctp_client $v -x -i stream ::1 1035";
+"runcon -t test_sctp_client_t -l s0:c0.c10 $basedir/sctp_client $v -x stream ::1 1035";
     ok( $result eq 0 );
+
+    # Restart the seq server to reset the SCTP state and labels
+    server_end($pid);
+    $pid = server_start(
+        "-t test_sctp_server_t -l s0:c0.c10",
+        "sctp_peeloff_server",
+        "$v 1035"
+    );
 
 # Verify that client cannot communicate with the server using STREAM->SEQ->peeloff with invalid level.
     $result = system
-"runcon -t test_sctp_client_t -l s0:c0.c11 -- $basedir/sctp_client $v -x -i stream ::1 1035 2>&1";
+"runcon -t test_sctp_client_t -l s0:c0.c11 -- $basedir/sctp_client $v -x stream ::1 1035 2>&1";
     ok( $result >> 8 eq 6 );
 
     # Kill the seq server.

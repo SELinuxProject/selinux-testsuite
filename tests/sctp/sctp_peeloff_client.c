@@ -22,22 +22,21 @@ int main(int argc, char **argv)
 	int opt, sock, result, save_errno, peeloff_sk = 0, flags;
 	int on = 1, off = 0;
 	sctp_assoc_t assoc_id = 0;
-	socklen_t sinlen, opt_len;
+	socklen_t sinlen;
 	struct sockaddr_storage sin;
 	struct addrinfo hints, *serverinfo;
 	char byte = 0x41, label[1024], *expected = NULL;
 	bool verbose = false, connectx = false, no_connects = false;
-	bool ipv4 = false, expect_ipopt = false;
+	bool ipv4 = false;
+	bool expected_flg = false;
 	char *context;
 	struct timeval tm;
 
-	while ((opt = getopt(argc, argv, "e:vxmni")) != -1) {
+	while ((opt = getopt(argc, argv, "e:vxmn")) != -1) {
 		switch (opt) {
 		case 'e':
+			expected_flg = true;
 			expected = optarg;
-			break;
-		case 'i':
-			expect_ipopt = true;
 			break;
 		case 'v':
 			verbose = true;
@@ -227,14 +226,12 @@ int main(int argc, char **argv)
 		close(sock);
 		exit(13);
 	}
-	if (expect_ipopt)
-		expected = get_ip_option(peeloff_sk, ipv4, &opt_len);
 
 	label[result] = 0;
 	close(peeloff_sk);
 	close(sock);
 
-	if (!expected && !expect_ipopt) {
+	if (!expected) {
 		result = getcon(&expected);
 		if (result < 0) {
 			perror("Client getcon");
@@ -242,7 +239,11 @@ int main(int argc, char **argv)
 		}
 	}
 
-	if (strcmp(expected, label)) {
+	if (!expected_flg && cmp_context_mls(expected, label)) {
+		fprintf(stderr, "Client expected %s, got %s\n",
+			expected, label);
+		exit(15);
+	} else if (expected_flg && cmp_context_type_mls(expected, label)) {
 		fprintf(stderr, "Client expected %s, got %s\n",
 			expected, label);
 		exit(15);

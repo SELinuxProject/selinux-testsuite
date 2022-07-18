@@ -27,6 +27,8 @@ enum event_ret {
 	EVENT_NO_AUTH
 };
 
+int cmp_context_mls(const char *a, const char *b);
+int cmp_context_type_mls(const char *a, const char *b);
 void print_context(int fd, char *text);
 void print_addr_info(struct sockaddr *sin, char *text);
 char *get_ip_option(int fd, bool ipv4, socklen_t *opt_len);

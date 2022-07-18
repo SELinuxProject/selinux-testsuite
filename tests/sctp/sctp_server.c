@@ -3,7 +3,7 @@
 static void usage(char *progname)
 {
 	fprintf(stderr,
-		"usage:  %s [-4] [-b ipv4_addr] [-f file] [-h addr] [-i] [-n] [-v] stream|seq port\n"
+		"usage:  %s [-4] [-b ipv4_addr] [-f file] [-h addr] [-n] [-v] stream|seq port\n"
 		"\nWhere:\n\t"
 		"-4      Listen on IPv4 addresses only (used for CIPSO tests).\n\t"
 		"-b      Call sctp_bindx(3) with the supplied IPv4 address.\n\t"
@@ -11,7 +11,6 @@ static void usage(char *progname)
 		"-h      IPv4 or IPv6 listen address. If IPv6 link-local address,\n\t"
 		"        then requires the %%<if_name> to obtain scopeid. e.g.\n\t"
 		"            fe80::7629:afff:fe0f:8e5d%%wlp6s0\n\t"
-		"-i      Send IP Options as msg (default is peer label).\n\t"
 		"-n      No peer label or IP option will be available therefore\n\t"
 		"        send \"nopeer\" message to client.\n\t"
 		"-v      Print context and ip options information.\n\t"
@@ -24,19 +23,19 @@ static void usage(char *progname)
 int main(int argc, char **argv)
 {
 	int opt, sock, newsock, result, if_index = 0, on = 1, off = 0;
-	socklen_t sinlen, opt_len;
+	socklen_t sinlen;
 	struct sockaddr_storage sin;
 	struct addrinfo hints, *res;
 	struct sctp_sndrcvinfo sinfo;
 	struct pollfd poll_fd;
 	char getsockopt_peerlabel[1024];
 	char byte, *peerlabel, msglabel[1024], if_name[30];
-	bool nopeer = false,  verbose = false,  ipv4 = false, snd_opt = false;
+	bool nopeer = false,  verbose = false,  ipv4 = false;
 	char *context, *host_addr = NULL, *bindx_addr = NULL, *flag_file = NULL;
 	struct sockaddr_in ipv4_addr;
 	unsigned short port;
 
-	while ((opt = getopt(argc, argv, "4b:f:h:inv")) != -1) {
+	while ((opt = getopt(argc, argv, "4b:f:h:nv")) != -1) {
 		switch (opt) {
 		case '4':
 			ipv4 = true;
@@ -49,9 +48,6 @@ int main(int argc, char **argv)
 			break;
 		case 'h':
 			host_addr = optarg;
-			break;
-		case 'i':
-			snd_opt = true;
 			break;
 		case 'n':
 			nopeer = true;
@@ -212,11 +208,6 @@ int main(int argc, char **argv)
 
 			if (nopeer) {
 				peerlabel = strdup("nopeer");
-			} else if (snd_opt) {
-				peerlabel = get_ip_option(newsock, ipv4,
-							  &opt_len);
-				if (!peerlabel)
-					peerlabel = strdup("no_ip_options");
 			} else {
 				result = getpeercon(newsock, &peerlabel);
 				if (result < 0) {
@@ -241,8 +232,7 @@ int main(int argc, char **argv)
 					printf("Server STREAM SO_PEERSEC peer label: %s\n",
 					       getsockopt_peerlabel);
 			}
-			printf("Server STREAM %s: %s\n",
-			       snd_opt ? "sock_opt" : "peer label", peerlabel);
+			printf("Server STREAM peer label: %s\n", peerlabel);
 
 			result = read(newsock, &byte, 1);
 			if (result < 0) {
@@ -307,11 +297,6 @@ int main(int argc, char **argv)
 
 			if (nopeer) {
 				peerlabel = strdup("nopeer");
-			} else if (snd_opt) {
-				peerlabel = get_ip_option(sock, ipv4, &opt_len);
-
-				if (!peerlabel)
-					peerlabel = strdup("no_ip_options");
 			} else {
 				result = getpeercon(sock, &peerlabel);
 				if (result < 0) {
@@ -320,8 +305,7 @@ int main(int argc, char **argv)
 					exit(1);
 				}
 			}
-			printf("Server SEQPACKET %s: %s\n",
-			       snd_opt ? "sock_opt" : "peer label", peerlabel);
+			printf("Server SEQPACKET peer label: %s\n", peerlabel);
 
 			if (sin.ss_family == AF_INET6 && host_addr)
 				((struct sockaddr_in6 *)&sin)->sin6_scope_id = if_index;

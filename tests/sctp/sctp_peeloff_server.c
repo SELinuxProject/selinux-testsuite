@@ -3,11 +3,10 @@
 static void usage(char *progname)
 {
 	fprintf(stderr,
-		"usage:  %s [-4] [-f file] [-i] [-n] [-v] port\n"
+		"usage:  %s [-4] [-f file] [-n] [-v] port\n"
 		"\nWhere:\n\t"
 		"-4      Listen on IPv4 addresses only.\n\t"
 		"-f      Write a line to the file when listening starts.\n\t"
-		"-i      Send IP Options as msg (default is peer label).\n\t"
 		"-n      No peer context will be available therefore send\n\t"
 		"        \"nopeer\" message to client, otherwise the peer context\n\t"
 		"        will be retrieved and sent to client.\n\t"
@@ -20,23 +19,20 @@ int main(int argc, char **argv)
 {
 	int opt, sock, result, peeloff_sk = 0, flags, on = 1, off = 0;
 	sctp_assoc_t assoc_id = 0;
-	socklen_t sinlen, opt_len;
+	socklen_t sinlen;
 	struct sockaddr_storage sin;
 	struct addrinfo hints, *res;
 	char *peerlabel, *context, *flag_file = NULL, msglabel[256];
-	bool nopeer = false,  verbose = false, ipv4 = false, snd_opt = false;
+	bool nopeer = false,  verbose = false, ipv4 = false;
 	unsigned short port;
 
-	while ((opt = getopt(argc, argv, "4f:inv")) != -1) {
+	while ((opt = getopt(argc, argv, "4f:nv")) != -1) {
 		switch (opt) {
 		case '4':
 			ipv4 = true;
 			break;
 		case 'f':
 			flag_file = optarg;
-			break;
-		case 'i':
-			snd_opt = true;
 			break;
 		case 'n':
 			nopeer = true;
@@ -201,11 +197,6 @@ int main(int argc, char **argv)
 
 		if (nopeer) {
 			peerlabel = strdup("nopeer");
-		} else if (snd_opt) {
-			peerlabel = get_ip_option(sock, ipv4, &opt_len);
-
-			if (!peerlabel)
-				peerlabel = strdup("no_ip_options");
 		} else {
 			result = getpeercon(peeloff_sk, &peerlabel);
 			if (result < 0) {
@@ -216,8 +207,7 @@ int main(int argc, char **argv)
 			}
 		}
 
-		printf("Server PEELOFF %s: %s\n",
-		       snd_opt ? "sock_opt" : "peer label", peerlabel);
+		printf("Server PEELOFF peer label: %s\n", peerlabel);
 
 		result = sctp_sendmsg(peeloff_sk, peerlabel,
 				      strlen(peerlabel),
