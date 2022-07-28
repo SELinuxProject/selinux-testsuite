@@ -51,6 +51,20 @@ Vagrant.configure("2") do |config|
     abort
   end
 
+  extra_commands = ''
+  case ENV['ROOT_DOMAIN']
+  when 'unconfined_t'
+  when 'sysadm_t'
+    extra_commands = <<EOF
+      semanage boolean --modify --on ssh_sysadm_login
+      semanage login --modify -s sysadm_u root
+      semanage login --add -s sysadm_u -r s0-s0:c0.c1023 vagrant
+EOF
+  else
+    print("Invalid ROOT_DOMAIN '#{ENV['ROOT_DOMAIN']}'")
+    abort
+  end
+
   config.vm.provision :shell, inline: <<SCRIPT
     dnf install -y #{dnf_opts} \
       --allowerasing \
@@ -79,6 +93,7 @@ Vagrant.configure("2") do |config|
       jfsutils \
       dosfstools \
       #{kernel_pkgs}
+    #{extra_commands}
     #{reboot_cmd}
 SCRIPT
 end
