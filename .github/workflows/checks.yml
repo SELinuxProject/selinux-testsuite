@@ -15,6 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        domain: [unconfined_t, sysadm_t]
         env:
           - { version: 35, kernel: default }
           - { version: 36, kernel: default }
@@ -22,6 +23,7 @@ jobs:
     env:
       FEDORA_VERSION: ${{ matrix.env.version }}
       KERNEL_TYPE: ${{ matrix.env.kernel }}
+      ROOT_DOMAIN: ${{ matrix.domain }}
     steps:
       - uses: actions/checkout@v2
       # macOS sometimes allows symlinks to have permissions other than 777,
@@ -39,6 +41,6 @@ jobs:
       - name: Run SELinux testsuite
         run: vagrant ssh -- sudo make -C /root/testsuite test
       - name: Check unwanted denials
-        run: vagrant ssh -- '! sudo ausearch -m avc -i </dev/null | grep unconfined_t'
+        run: vagrant ssh -- '! sudo ausearch -m avc -i </dev/null | grep ${{ matrix.domain }}'
       - name: Check .gitignore coverage
         run: test "$(vagrant ssh -- sudo git -C /root/testsuite ls-files -o --exclude-standard | wc -l)" -eq 0
