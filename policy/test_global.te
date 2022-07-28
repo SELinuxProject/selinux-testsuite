@@ -28,8 +28,6 @@ optional_policy(`
 	allow testsuite_domain unconfined_t:fd use;
 	allow testsuite_domain unconfined_t:fifo_file { read write ioctl getattr };
 	allow testsuite_domain unconfined_t:process { sigchld };
-	# needed for domains outside domain_type()
-	dontaudit unconfined_t testsuite_domain:process { noatsecure rlimitinh siginh };
 ')
 
 optional_policy(`
@@ -64,6 +62,9 @@ optional_policy(`
 	#allow sysadm_t self:process setexec;
 	#selinux_get_fs_mount(sysadm_t)
 ')
+
+# Needed for domains outside domain_type()
+dontaudit testsuite_caller_domain testsuite_domain:process { noatsecure rlimitinh siginh };
 
 # Allow the test domains to access the sysadm terminal.
 # This allows read and write sysadm ttys and ptys.
