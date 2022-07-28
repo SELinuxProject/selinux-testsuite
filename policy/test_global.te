@@ -58,6 +58,10 @@ optional_policy(`
 	# Allow the test domain to be entered from sysadm_t
 	sysadm_entry_spec_domtrans_to(testsuite_domain)
 
+	# Needed for quotacheck(8) in the filesystem test to succeed
+	fs_remount_xattr_fs(sysadm_t)
+	storage_raw_read_fixed_disk(sysadm_t)
+
 	# Let sysadm_t use runcon to run the test programs in various domains.
 	#allow sysadm_t self:process setexec;
 	#selinux_get_fs_mount(sysadm_t)
