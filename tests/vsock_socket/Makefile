@@ -1,4 +1,4 @@
-TARGETS=client server check_vsock
+TARGETS=client server
 
 LDLIBS+= -lselinux
 

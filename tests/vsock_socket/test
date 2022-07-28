@@ -6,19 +6,14 @@ BEGIN {
     $basedir =~ s|(.*)/[^/]*|$1|;
 
     # check if vsock and vsock_loopback are available
-    $rc = system("$basedir/check_vsock");
-
-    if ( $rc eq 0 ) {
-        plan tests => 12;
-    }
-    elsif ( $rc eq 2 << 8 ) {
+    if ( system("modprobe vsock 2>/dev/null") ne 0 ) {
         plan skip_all => "vsock socket family not supported";
     }
-    elsif ( $rc eq 3 << 8 ) {
+    elsif ( system("modprobe vsock_loopback 2>/dev/null") ne 0 ) {
         plan skip_all => "vsock_loopback transport not supported";
     }
     else {
-        plan skip_all => "unexpected error when checking vsock support";
+        plan tests => 12;
     }
 }
 
