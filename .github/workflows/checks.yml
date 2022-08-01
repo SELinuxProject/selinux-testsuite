@@ -35,7 +35,7 @@ jobs:
       - name: Create a Vagrant VM
         run: vagrant up
       - name: Wait for the machine to come up if rebooting
-        run: while ! vagrant ssh -- true; do sleep 1s; done
+        run: while ! vagrant ssh -- true; do sleep 1; done
       - name: Run SELinux testsuite
         run: vagrant ssh -- sudo make -C /root/testsuite test
       - name: Check .gitignore coverage
