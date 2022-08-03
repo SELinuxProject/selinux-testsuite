@@ -15,9 +15,6 @@ type test_nosysctl_t;
 testsuite_domain_type(test_nosysctl_t)
 typeattribute test_nosysctl_t sysctldomain;
 
-# Allow all of these domains to be entered via /sbin/sysctl.
-corecmd_bin_entry_type(sysctldomain)
-
 # Allow the first domain to perform sysctl operations.
 kernel_rw_all_sysctls(test_sysctl_t)
 

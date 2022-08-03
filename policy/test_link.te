@@ -60,7 +60,3 @@ testsuite_domain_type(test_nounlink2_t)
 typeattribute test_nounlink2_t test_link_domain;
 allow test_nounlink2_t test_link_dir_t:dir { search getattr write };
 allow test_nounlink2_t test_link_file_t:file { getattr unlink };
-
-# Allow entering test domains via bin_t.
-corecmd_bin_entry_type(test_link_domain)
-

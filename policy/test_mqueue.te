@@ -54,8 +54,6 @@ files_type(mqop_mqwrite_t)
 type mqop_mqrw_t;
 files_type(mqop_mqrw_t)
 
-corecmd_bin_entry_type(mqopdomain)
-
 allow mqopdomain device_t:dir search_dir_perms;
 allow mqopdomain tmpfs_t:dir search_dir_perms;
 

@@ -44,6 +44,3 @@ allow mac_admintestdomain unlabeled_t:file { getattr relabelto };
 allow mac_admintestdomain test_file_t:dir { search write add_name };
 allow mac_admintestdomain test_file_t:dir { getattr create };
 allow mac_admintestdomain unlabeled_t:dir { getattr create };
-
-# Entry into the test domains via the test program.
-corecmd_bin_entry_type(mac_admintestdomain)

@@ -19,7 +19,5 @@ testsuite_domain_type(test_no_cap_userns_t)
 typeattribute test_no_cap_userns_t capusernsdomain;
 
 # Rules common to both domains.
-corecmd_exec_bin(capusernsdomain)
-
 # linux >= v5.12 needs setfcap to map UID 0
 allow capusernsdomain self:capability setfcap;

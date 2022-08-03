@@ -37,7 +37,3 @@ testsuite_domain_type(test_kill_signal_t)
 typeattribute test_kill_signal_t killdomain;
 
 allow test_kill_signal_t test_kill_server_t:process signal;
-
-# Allow all of these domains to be entered via kill
-corecmd_bin_entry_type(killdomain)
-

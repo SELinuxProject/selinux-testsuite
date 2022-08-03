@@ -5,7 +5,6 @@
 
 attribute test_bounds_domain;
 attribute test_bounds_child_domain;
-corecmd_bin_entry_type(test_bounds_domain)
 
 # Type for test files
 type test_bounds_file_red_t;

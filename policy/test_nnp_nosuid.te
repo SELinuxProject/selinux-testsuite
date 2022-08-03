@@ -6,8 +6,6 @@
 # An intermediate domain to avoid referencing the caller domain.
 type test_intermediate_t;
 testsuite_domain_type(test_intermediate_t)
-# executes runcon
-corecmd_exec_bin(test_intermediate_t)
 
 # A domain bounded by the unconfined domain.
 type test_bounded_t;

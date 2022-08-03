@@ -45,9 +45,6 @@ kernel_search_proc(test_overlay_mounter_t)
 fs_relabelfrom_xattr_fs(test_overlay_mounter_t)
 fs_mount_xattr_fs(test_overlay_mounter_t)
 
-corecmd_shell_entry_type(test_overlay_mounter_t)
-corecmd_exec_bin(test_overlay_mounter_t)
-
 userdom_search_admin_dir(test_overlay_mounter_t)
 userdom_search_user_home_content(test_overlay_mounter_t)
 userdom_read_user_tmp_files(test_overlay_mounter_t)
@@ -112,10 +109,6 @@ allow test_overlay_client_t self:dir list_dir_perms;
 allow test_overlay_client_t self:file read_file_perms;
 
 mcs_constrained(test_overlay_client_t)
-
-corecmd_shell_entry_type(test_overlay_client_t)
-corecmd_bin_entry_type(test_overlay_client_t)
-corecmd_exec_bin(test_overlay_client_t)
 
 kernel_read_system_state(test_overlay_client_t)
 kernel_read_proc_symlinks(test_overlay_client_t)

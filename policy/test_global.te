@@ -91,6 +91,12 @@ miscfiles_read_test_files(testsuite_domain)
 miscfiles_domain_entry_test_files(testsuite_domain)
 miscfiles_exec_test_files(testsuite_domain)
 
+# Let all test domains read and execute core system binaries and use
+# them as entry points.
+corecmd_bin_entry_type(testsuite_domain)
+corecmd_shell_entry_type(testsuite_domain)
+corecmd_exec_bin(testsuite_domain)
+
 # Let the test domains set their current, exec and fscreate contexts.
 allow testsuite_domain self:process setcurrent;
 #domain_dyntrans_type(testsuite_domain)
