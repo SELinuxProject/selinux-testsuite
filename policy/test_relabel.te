@@ -34,7 +34,3 @@ domain_obj_id_change_exemption(test_norelabelto_t)
 typeattribute test_norelabelto_t test_relabel_domain;
 allow test_norelabelto_t test_relabel_oldtype_t:file { getattr relabelfrom };
 allow test_norelabelto_t test_relabel_newtype_t:file { getattr };
-
-# Allow entering test domains via bin_t.
-corecmd_bin_entry_type(test_relabel_domain)
-

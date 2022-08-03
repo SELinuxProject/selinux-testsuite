@@ -50,6 +50,3 @@ domain_obj_id_change_exemption(test_nocreate_t)
 allow test_nocreate_t self:process { setfscreate };
 allow test_nocreate_t test_mkdir_dir_t:dir { search getattr write add_name };
 allow test_nocreate_t test_create_dir_t:dir { search getattr };
-
-# Allow entering test domains via bin_t.
-corecmd_bin_entry_type(test_mkdir_domain)

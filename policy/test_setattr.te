@@ -22,7 +22,3 @@ testsuite_domain_type(test_nosetattr_t)
 typeattribute test_nosetattr_t test_setattr_domain;
 allow test_nosetattr_t self:capability chown;
 allow test_nosetattr_t test_setattr_file_t:file { getattr write };
-
-# Allow entering test domains via bin_t.
-corecmd_bin_entry_type(test_setattr_domain)
-

@@ -21,7 +21,6 @@ testsuite_domain_type(test_transition_todomain_t)
 typeattribute test_transition_todomain_t transitiondomain;
 
 # Allow the fromdomain to transition to the new domain.
-corecmd_bin_entry_type(transitiondomain)
 domain_transition_pattern(test_transition_fromdomain_t,bin_t,test_transition_todomain_t)
 allow test_transition_fromdomain_t test_transition_todomain_t:fd use;
 allow test_transition_todomain_t test_transition_fromdomain_t:fd use;

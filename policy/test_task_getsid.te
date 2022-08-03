@@ -8,7 +8,6 @@ attribute test_getsid_d;
 # Domain for the target process
 type test_getsid_target_t;
 testsuite_domain_type(test_getsid_target_t)
-corecmd_shell_entry_type(test_getsid_target_t)
 typeattribute test_getsid_target_t test_getsid_d;
 
 # For writing to flag file:

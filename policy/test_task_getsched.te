@@ -8,7 +8,6 @@ attribute test_getsched_d;
 # Domain for the target process
 type test_getsched_target_t;
 testsuite_domain_type(test_getsched_target_t)
-corecmd_shell_entry_type(test_getsched_target_t)
 typeattribute test_getsched_target_t test_getsched_d;
 
 # For writing to flag file:

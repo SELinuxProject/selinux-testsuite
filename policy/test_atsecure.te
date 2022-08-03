@@ -22,9 +22,6 @@ testsuite_domain_type(test_atsecure_newdomain_t)
 typeattribute test_atsecure_newdomain_t atsecuredomain;
 
 # Allow the domain entrypoints and transitions.
-corecmd_bin_entry_type(atsecuredomain)
-corecmd_shell_entry_type(atsecuredomain)
-corecmd_exec_bin(atsecuredomain)
 domain_entry_file(test_atsecure_newdomain_t, test_file_t)
 domain_transition_pattern(test_atsecure_denied_t, test_file_t, test_atsecure_newdomain_t)
 domain_transition_pattern(test_atsecure_allowed_t, test_file_t, test_atsecure_newdomain_t)

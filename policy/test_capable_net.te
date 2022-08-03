@@ -40,9 +40,6 @@ require {
 }
 allow capabledomain hi_reserved_port_t:tcp_socket name_bind;
 
-# Allow sbin_t to be entered from admin via certain utils.
-corecmd_bin_entry_type(capabledomain)
-
 require {
 	type ifconfig_exec_t;
 }

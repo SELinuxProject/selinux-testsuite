@@ -20,7 +20,6 @@ allow test_ptrace_nottracer_t self:capability sys_ptrace;
 # Domain for process that is to be traced.
 type test_ptrace_traced_t;
 testsuite_domain_type(test_ptrace_traced_t)
-corecmd_shell_entry_type(test_ptrace_traced_t)
 typeattribute test_ptrace_traced_t ptracedomain;
 
 # For writing to flag file:
@@ -34,7 +33,6 @@ userdom_search_user_home_dirs(test_ptrace_traced_t)
 allow test_ptrace_traced_t test_ptrace_tracer_t:process sigchld;
 
 # Allow execution of helper programs.
-corecmd_exec_bin(ptracedomain)
 domain_exec_all_entry_files(ptracedomain)
 files_exec_etc_files(ptracedomain)
 libs_use_ld_so(ptracedomain)

@@ -21,7 +21,6 @@ testsuite_domain_type(test_setnice_change_t)
 typeattribute test_setnice_change_t setnicedomain;
 
 # Allow execution of helper programs.
-corecmd_exec_bin(setnicedomain)
 domain_exec_all_entry_files(setnicedomain)
 files_exec_etc_files(setnicedomain)
 libs_use_ld_so(setnicedomain)

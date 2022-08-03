@@ -18,8 +18,6 @@ corenet_ib_endport(test_ibendport_t)
 dev_rw_infiniband_dev(test_ibendport_manage_subnet_t)
 dev_rw_sysfs(test_ibendport_manage_subnet_t)
 
-corecmd_bin_entry_type(test_ibendport_manage_subnet_t)
-
 ifdef(`dev_rw_infiniband_mgmt_dev', `
 dev_rw_infiniband_mgmt_dev(test_ibendport_manage_subnet_t)
 ')

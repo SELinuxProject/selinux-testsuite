@@ -9,8 +9,6 @@ attribute test_setsched_d;
 # Domain for the target process
 type test_setsched_target_t;
 testsuite_domain_type(test_setsched_target_t)
-corecmd_shell_entry_type(test_setsched_target_t)
-corecmd_exec_bin(test_setsched_target_t)
 typeattribute test_setsched_target_t test_setsched_d;
 
 # For writing to flag file:
@@ -25,9 +23,6 @@ typeattribute test_setsched_yes_t test_setsched_d;
 type test_setsched_no_t;
 testsuite_domain_type(test_setsched_no_t)
 typeattribute test_setsched_no_t test_setsched_d;
-
-# Allow these domains to execute renice.
-corecmd_bin_entry_type(test_setsched_d)
 
 # Give these domains the capability needed to change the target.
 allow test_setsched_d self:capability sys_nice;
