@@ -31,11 +31,3 @@ userdom_search_user_home_dirs(test_ptrace_traced_t)
 
 # Let the tracer wait on the traced domain.
 allow test_ptrace_traced_t test_ptrace_tracer_t:process sigchld;
-
-# Allow execution of helper programs.
-domain_exec_all_entry_files(ptracedomain)
-files_exec_etc_files(ptracedomain)
-libs_use_ld_so(ptracedomain)
-libs_use_shared_libs(ptracedomain)
-libs_exec_ld_so(ptracedomain)
-libs_exec_lib_files(ptracedomain)
