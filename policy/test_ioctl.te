@@ -19,14 +19,6 @@ typeattribute test_noioctl_t ioctldomain;
 type test_ioctl_file_t;
 files_type(test_ioctl_file_t)
 
-# Allow execution of helper programs.
-domain_exec_all_entry_files(ioctldomain)
-files_exec_etc_files(ioctldomain)
-libs_use_ld_so(ioctldomain)
-libs_use_shared_libs(ioctldomain)
-libs_exec_ld_so(ioctldomain)
-libs_exec_lib_files(ioctldomain)
-
 # Allow the test domains some access to the temp file
 allow test_ioctl_t test_ioctl_file_t:file { open read write ioctl getattr setattr };
 allow test_noioctl_t test_ioctl_file_t:file { open read };

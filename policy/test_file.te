@@ -45,13 +45,6 @@ files_type(nofileop_rw_file_t)
 type nofileop_ra_file_t;
 files_type(nofileop_ra_file_t)
 
-# Allow execution of helper programs.
-domain_exec_all_entry_files(fileopdomain)
-libs_use_ld_so(fileopdomain)
-libs_use_shared_libs(fileopdomain)
-libs_exec_ld_so(fileopdomain)
-libs_exec_lib_files(fileopdomain)
-
 domain_entry_file(fileop_t, fileop_exec_t)
 domain_auto_transition_pattern(test_fileop_t, fileop_exec_t, fileop_t)
 allow test_fileop_t fileop_t:fd use;
