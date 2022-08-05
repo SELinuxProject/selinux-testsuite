@@ -7,41 +7,81 @@ attribute test_uffd_domain;
 
 type uffd_t;
 
-define(`userfaultfd_domain_type',`
-	type $1;
-	testsuite_domain_type($1)
-	typeattribute $1 test_uffd_domain;
-')
-
 # Domain for confirming that without transition rule the userfaultfd
 # gets process' context
-userfaultfd_domain_type(test_notransition_uffd_t)
+type test_notransition_uffd_t;
+testsuite_domain_type(test_notransition_uffd_t)
+typeattribute test_notransition_uffd_t test_uffd_domain;
+
+allow test_notransition_uffd_t self:anon_inode { create getattr ioctl read };
 
 # Domain for process that has all the permissions to use userfaultfd
-userfaultfd_domain_type(test_uffd_t)
+type test_uffd_t;
+testsuite_domain_type(test_uffd_t)
+typeattribute test_uffd_t test_uffd_domain;
+
+type_transition test_uffd_t test_uffd_t:anon_inode uffd_t "[userfaultfd]";
+allow test_uffd_t uffd_t:anon_inode { create getattr ioctl read };
 
 # Domain for process that cannot create userfaultfd
-userfaultfd_domain_type(test_nocreate_uffd_t)
+type test_nocreate_uffd_t;
+testsuite_domain_type(test_nocreate_uffd_t)
+typeattribute test_nocreate_uffd_t test_uffd_domain;
+
+type_transition test_nocreate_uffd_t test_nocreate_uffd_t:anon_inode uffd_t "[userfaultfd]";
 
 # Domain for process that cannot get attributed of userfaultfd
-userfaultfd_domain_type(test_nogetattr_uffd_t)
+type test_nogetattr_uffd_t;
+testsuite_domain_type(test_nogetattr_uffd_t)
+typeattribute test_nogetattr_uffd_t test_uffd_domain;
+
+type_transition test_nogetattr_uffd_t test_nogetattr_uffd_t:anon_inode uffd_t "[userfaultfd]";
+allow test_nogetattr_uffd_t uffd_t:anon_inode { create };
 
 # Domain for process which can only use UFFDIO_API ioctl on userfaultfd
-userfaultfd_domain_type(test_api_ioctl_uffd_t)
+type test_api_ioctl_uffd_t;
+testsuite_domain_type(test_api_ioctl_uffd_t)
+typeattribute test_api_ioctl_uffd_t test_uffd_domain;
+
+type_transition test_api_ioctl_uffd_t test_api_ioctl_uffd_t:anon_inode uffd_t "[userfaultfd]";
+allow test_api_ioctl_uffd_t uffd_t:anon_inode { create getattr ioctl read };
+allowxperm test_api_ioctl_uffd_t uffd_t:anon_inode ioctl { 0xaa3f };
 
 # Domain for process which can use UFFDIO_API and UFFDIO_REGISTER ioctls
 # on userfaultfd
-userfaultfd_domain_type(test_register_ioctl_uffd_t)
+type test_register_ioctl_uffd_t;
+testsuite_domain_type(test_register_ioctl_uffd_t)
+typeattribute test_register_ioctl_uffd_t test_uffd_domain;
+
+type_transition test_register_ioctl_uffd_t test_register_ioctl_uffd_t:anon_inode uffd_t "[userfaultfd]";
+allow test_register_ioctl_uffd_t uffd_t:anon_inode { create getattr ioctl read };
+allowxperm test_register_ioctl_uffd_t uffd_t:anon_inode ioctl { 0xaa3f 0xaa00 };
 
 # Domain for process which can use UFFDIO_API, UFFDIO_REGISTER and
 # UFFDIO_COPY ioctls on userfaultfd
-userfaultfd_domain_type(test_copy_ioctl_uffd_t)
+type test_copy_ioctl_uffd_t;
+testsuite_domain_type(test_copy_ioctl_uffd_t)
+typeattribute test_copy_ioctl_uffd_t test_uffd_domain;
 
-# Domain for proces that cannot perform any ioctl operations on userfaultfd
-userfaultfd_domain_type(test_noioctl_uffd_t)
+type_transition test_copy_ioctl_uffd_t test_copy_ioctl_uffd_t:anon_inode uffd_t "[userfaultfd]";
+allow test_copy_ioctl_uffd_t uffd_t:anon_inode { create getattr ioctl read };
+allowxperm test_copy_ioctl_uffd_t uffd_t:anon_inode ioctl { 0xaa3f 0xaa00 0xaa03 };
+
+# Domain for process that cannot perform any ioctl operations on userfaultfd
+type test_noioctl_uffd_t;
+testsuite_domain_type(test_noioctl_uffd_t)
+typeattribute test_noioctl_uffd_t test_uffd_domain;
+
+type_transition test_noioctl_uffd_t test_noioctl_uffd_t:anon_inode uffd_t "[userfaultfd]";
+allow test_noioctl_uffd_t uffd_t:anon_inode { create getattr };
 
 # Domain for process that cannot read from userfaultfd
-userfaultfd_domain_type(test_noread_uffd_t)
+type test_noread_uffd_t;
+testsuite_domain_type(test_noread_uffd_t)
+typeattribute test_noread_uffd_t test_uffd_domain;
+
+type_transition test_noread_uffd_t test_noread_uffd_t:anon_inode uffd_t "[userfaultfd]";
+allow test_noread_uffd_t uffd_t:anon_inode { create getattr ioctl };
 
 # userfaultfd(2) requires CAP_SYS_PTRACE
 allow test_uffd_domain self:capability { sys_ptrace };

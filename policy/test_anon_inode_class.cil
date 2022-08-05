@@ -1,4 +1,0 @@
-; Define new class anon_inode
-(class anon_inode ())
-(classcommon anon_inode file)
-(classorder (unordered anon_inode))

@@ -37,14 +37,6 @@ endif
 
 ifeq ($(SUPPORTS_CIL),y)
 CIL_TARGETS = test_mlsconstrain.cil test_overlay_defaultrange.cil
-# userfaultfd test policy uses also xperms
-ifeq ($(shell [ $(MOD_POL_VERS) -ge 18 -a $(MAX_KERNEL_POLICY) -ge 30 ] && echo true),true)
-ifneq ($(shell grep -q anon_inode $(POLDEV)/include/support/all_perms.spt && echo true),true)
-CIL_TARGETS += test_anon_inode_class.cil
-endif
-CIL_TARGETS += test_userfaultfd.cil
-TARGETS += test_userfaultfd.te
-endif
 ifeq ($(shell [ $(MAX_KERNEL_POLICY) -ge 32 ] && echo true),true)
 ifeq ($(shell [ $(POL_VERS) -ge 32 ] && echo true),true)
 # If other MLS tests get written this can be moved outside of the glblub test
@@ -156,6 +148,13 @@ TARGETS += test_filesystem_name_trans.te
 ifeq ($(shell grep -q all_file_perms.*watch $(POLDEV)/include/support/all_perms.spt && echo true),true)
 TARGETS+= test_filesystem_notify.te
 endif
+endif
+endif
+
+# userfaultfd test policy uses also xperms
+ifeq ($(shell [ $(MOD_POL_VERS) -ge 18 -a $(MAX_KERNEL_POLICY) -ge 30 ] && echo true),true)
+ifeq ($(shell grep -q anon_inode $(POLDEV)/include/support/all_perms.spt && echo true),true)
+TARGETS += test_userfaultfd.te
 endif
 endif
 
