@@ -10,14 +10,14 @@ type uffd_t;
 # Domain for confirming that without transition rule the userfaultfd
 # gets process' context
 type test_notransition_uffd_t;
-testsuite_domain_type(test_notransition_uffd_t)
+testsuite_domain_type_minimal(test_notransition_uffd_t)
 typeattribute test_notransition_uffd_t test_uffd_domain;
 
 allow test_notransition_uffd_t self:anon_inode { create getattr ioctl read };
 
 # Domain for process that has all the permissions to use userfaultfd
 type test_uffd_t;
-testsuite_domain_type(test_uffd_t)
+testsuite_domain_type_minimal(test_uffd_t)
 typeattribute test_uffd_t test_uffd_domain;
 
 type_transition test_uffd_t test_uffd_t:anon_inode uffd_t "[userfaultfd]";
@@ -25,14 +25,14 @@ allow test_uffd_t uffd_t:anon_inode { create getattr ioctl read };
 
 # Domain for process that cannot create userfaultfd
 type test_nocreate_uffd_t;
-testsuite_domain_type(test_nocreate_uffd_t)
+testsuite_domain_type_minimal(test_nocreate_uffd_t)
 typeattribute test_nocreate_uffd_t test_uffd_domain;
 
 type_transition test_nocreate_uffd_t test_nocreate_uffd_t:anon_inode uffd_t "[userfaultfd]";
 
 # Domain for process that cannot get attributed of userfaultfd
 type test_nogetattr_uffd_t;
-testsuite_domain_type(test_nogetattr_uffd_t)
+testsuite_domain_type_minimal(test_nogetattr_uffd_t)
 typeattribute test_nogetattr_uffd_t test_uffd_domain;
 
 type_transition test_nogetattr_uffd_t test_nogetattr_uffd_t:anon_inode uffd_t "[userfaultfd]";
@@ -40,7 +40,7 @@ allow test_nogetattr_uffd_t uffd_t:anon_inode { create };
 
 # Domain for process which can only use UFFDIO_API ioctl on userfaultfd
 type test_api_ioctl_uffd_t;
-testsuite_domain_type(test_api_ioctl_uffd_t)
+testsuite_domain_type_minimal(test_api_ioctl_uffd_t)
 typeattribute test_api_ioctl_uffd_t test_uffd_domain;
 
 type_transition test_api_ioctl_uffd_t test_api_ioctl_uffd_t:anon_inode uffd_t "[userfaultfd]";
@@ -50,7 +50,7 @@ allowxperm test_api_ioctl_uffd_t uffd_t:anon_inode ioctl { 0xaa3f };
 # Domain for process which can use UFFDIO_API and UFFDIO_REGISTER ioctls
 # on userfaultfd
 type test_register_ioctl_uffd_t;
-testsuite_domain_type(test_register_ioctl_uffd_t)
+testsuite_domain_type_minimal(test_register_ioctl_uffd_t)
 typeattribute test_register_ioctl_uffd_t test_uffd_domain;
 
 type_transition test_register_ioctl_uffd_t test_register_ioctl_uffd_t:anon_inode uffd_t "[userfaultfd]";
@@ -60,7 +60,7 @@ allowxperm test_register_ioctl_uffd_t uffd_t:anon_inode ioctl { 0xaa3f 0xaa00 };
 # Domain for process which can use UFFDIO_API, UFFDIO_REGISTER and
 # UFFDIO_COPY ioctls on userfaultfd
 type test_copy_ioctl_uffd_t;
-testsuite_domain_type(test_copy_ioctl_uffd_t)
+testsuite_domain_type_minimal(test_copy_ioctl_uffd_t)
 typeattribute test_copy_ioctl_uffd_t test_uffd_domain;
 
 type_transition test_copy_ioctl_uffd_t test_copy_ioctl_uffd_t:anon_inode uffd_t "[userfaultfd]";
@@ -69,7 +69,7 @@ allowxperm test_copy_ioctl_uffd_t uffd_t:anon_inode ioctl { 0xaa3f 0xaa00 0xaa03
 
 # Domain for process that cannot perform any ioctl operations on userfaultfd
 type test_noioctl_uffd_t;
-testsuite_domain_type(test_noioctl_uffd_t)
+testsuite_domain_type_minimal(test_noioctl_uffd_t)
 typeattribute test_noioctl_uffd_t test_uffd_domain;
 
 type_transition test_noioctl_uffd_t test_noioctl_uffd_t:anon_inode uffd_t "[userfaultfd]";
@@ -77,11 +77,13 @@ allow test_noioctl_uffd_t uffd_t:anon_inode { create getattr };
 
 # Domain for process that cannot read from userfaultfd
 type test_noread_uffd_t;
-testsuite_domain_type(test_noread_uffd_t)
+testsuite_domain_type_minimal(test_noread_uffd_t)
 typeattribute test_noread_uffd_t test_uffd_domain;
 
 type_transition test_noread_uffd_t test_noread_uffd_t:anon_inode uffd_t "[userfaultfd]";
 allow test_noread_uffd_t uffd_t:anon_inode { create getattr ioctl };
 
+# testsuite_domain_type_minimal() doesn't allow fork by default
+allow test_uffd_domain self:process { fork };
 # userfaultfd(2) requires CAP_SYS_PTRACE
 allow test_uffd_domain self:capability { sys_ptrace };
