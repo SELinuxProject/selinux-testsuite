@@ -508,7 +508,7 @@ $pid = server_start( "-t test_sctp_server_t -l s0:c20.c300",
 # TAG 1 allows categories 0 to 239 to be sent
 $result = system
 "runcon -t test_sctp_client_t -l s0:c20.c300 -- $basedir/sctp_client $v seq 127.0.0.1 1035 2>&1";
-ok( $result >> 8 eq 7 );
+ok( ( $result >> 8 eq 7 ) || ( $result >> 8 eq 6 ) );
 
 if ($test_clpeeloff) {
 
@@ -675,7 +675,7 @@ $pid = server_start( "-t test_sctp_server_t -l s0:c20.c335",
 # TAG 2 allows a maximum of 15 categories in exchange
 $result = system
 "runcon -t test_sctp_client_t -l s0:c200.c216 -- $basedir/sctp_client $v seq 127.0.0.1 1035 2>&1";
-ok( $result >> 8 eq 7 );
+ok( ( $result >> 8 eq 7 ) || ( $result >> 8 eq 6 ) );
 
 if ($test_clpeeloff) {
 
@@ -842,7 +842,7 @@ $pid = server_start( "-t test_sctp_server_t -l s0:c20.c50",
 # TAG 2 allows a maximum of 7 ranges in exchange
 $result = system
 "runcon -t test_sctp_client_t -l s0:c20,c22,c24,c30.c33,c38,c42.c45,c48,c50 -- $basedir/sctp_client $v seq 127.0.0.1 1035 2>&1";
-ok( $result >> 8 eq 7 );
+ok( ( $result >> 8 eq 7 ) || ( $result >> 8 eq 6 ) );
 
 if ($test_clpeeloff) {
 
