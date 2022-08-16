@@ -18,6 +18,6 @@ endif
 all: $(TARGETS)
 
 clean:
-	rm -f $(TARGETS)
+	rm -f $(TARGETS) manager_flag service_provider_flag
 
 $(TARGETS): $(DEPS)
