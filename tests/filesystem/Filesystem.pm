@@ -122,10 +122,14 @@ sub attach_dev {
 
 sub make_fs {
     my ( $mk_type, $mk_dev, $mk_dir ) = @_;
+    my $mk_size = 16;
+    if ( $mk_type eq "xfs" ) {
+        $mk_size = 300;
+    }
     print "Create $mk_dir/fstest with dd\n";
     $result =
       system(
-        "dd if=/dev/zero of=$mk_dir/fstest bs=4096 count=4096 2>/dev/null");
+        "dd if=/dev/zero of=$mk_dir/fstest bs=1M count=$mk_size 2>/dev/null");
     if ( $result != 0 ) {
         print "dd failed to create $mk_dir/fstest\n";
     }
