@@ -5,4 +5,4 @@ LDLIBS += -lpthread
 all: $(TARGETS)
 
 clean:
-	rm -f $(TARGETS)
+	rm -f $(TARGETS) temp_file

@@ -4,4 +4,4 @@ LDLIBS+= -lselinux
 
 all: $(TARGETS)
 clean:
-	rm -f $(TARGETS)
+	rm -f $(TARGETS) flag test_client_sock test_server_sock

@@ -7,7 +7,9 @@ $basedir = $0;
 $basedir =~ s|(.*)/[^/]*|$1|;
 
 # Remove any leftover test file from prior failed runs.
-system("rm -rf $basedir/test_file $basedir/test_file2 $basedir/test_sock");
+system(
+"rm -rf $basedir/test_file $basedir/test_file2 $basedir/test_sock $basedir/flag"
+);
 
 # Create and label the test files.
 system("touch $basedir/test_file $basedir/test_file2");

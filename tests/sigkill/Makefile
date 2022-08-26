@@ -1,3 +1,3 @@
 all: server
 clean:
-	rm -f server
+	rm -f server flag

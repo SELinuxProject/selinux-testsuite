@@ -8,6 +8,6 @@ endif
 all: $(TARGETS)
 
 clean:
-	rm -f $(TARGETS)
+	rm -f $(TARGETS) test_file test_file2 test_sock flag
 
 client: $(DEPS)

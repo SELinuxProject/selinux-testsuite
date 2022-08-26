@@ -11,7 +11,7 @@ all: $(TARGETS)
 	@set -e; for i in $(BPF_ENABLED); do $(MAKE) -C $$i all ; done
 
 clean:
-	rm -f $(TARGETS)
+	rm -f $(TARGETS) test_sock flag *_flag
 	@set -e; for i in $(BPF_ENABLED); do $(MAKE) -C $$i clean ; done
 
 $(TARGETS): $(DEPS)

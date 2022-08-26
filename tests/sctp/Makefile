@@ -10,6 +10,6 @@ LDLIBS += -lselinux -lsctp
 all: $(TARGETS)
 
 clean:
-	rm -f $(TARGETS)
+	rm -f $(TARGETS) flag
 
 $(TARGETS): $(DEPS)

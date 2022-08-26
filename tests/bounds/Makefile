@@ -4,4 +4,4 @@ LDLIBS += -lselinux -lpthread
 
 all: $(TARGETS)
 clean:
-	rm -f $(TARGETS)
+	rm -f $(TARGETS) bounds_file*

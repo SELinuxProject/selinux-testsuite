@@ -1,3 +1,3 @@
 all: source
 clean:
-	rm -f source
+	rm -f source flag

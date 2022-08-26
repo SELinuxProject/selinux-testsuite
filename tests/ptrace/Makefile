@@ -1,3 +1,3 @@
 all: ptrace
 clean:
-	rm -f ptrace
+	rm -f ptrace flag
