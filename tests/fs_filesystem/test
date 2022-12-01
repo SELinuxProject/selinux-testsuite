@@ -3,7 +3,7 @@ use Test::More;
 
 # Load common subroutines.
 use File::Basename qw(dirname basename);
-use Cwd qw(abs_path);
+use Cwd            qw(abs_path);
 
 BEGIN {
     $basedir = dirname($0);
