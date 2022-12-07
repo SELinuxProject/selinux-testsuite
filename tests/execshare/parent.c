@@ -76,14 +76,7 @@ int main(int argc, char **argv)
 		exit(-1);
 	}
 
-#if defined(__hppa__)
-	pid = clone(clone_fn, page, cloneflags | SIGCHLD, argv);
-#elif defined(__ia64__)
-	pid = __clone2(clone_fn, page, pagesize, cloneflags | SIGCHLD, argv, NULL, NULL,
-		       NULL);
-#else
 	pid = clone(clone_fn, clone_stack, cloneflags | SIGCHLD, argv);
-#endif
 	if (pid < 0) {
 		perror("clone");
 		exit(-1);
