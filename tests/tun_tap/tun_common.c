@@ -71,7 +71,7 @@ int tunsetqueue(int fd, int op, char *name, bool verbose)
 	return 0;
 }
 
-int switch_context(char *newcon, bool verbose)
+int switch_context(const char *newcon, bool verbose)
 {
 	int result;
 
@@ -84,8 +84,6 @@ int switch_context(char *newcon, bool verbose)
 
 	if (verbose)
 		printf("New process context:\n\t%s\n", newcon);
-
-	free(newcon);
 
 	return 0;
 }

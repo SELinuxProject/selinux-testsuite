@@ -23,7 +23,8 @@ static void print_usage(char *progname)
 int main(int argc, char **argv)
 {
 	int opt, result, fd, save_err;
-	char *newfcon = NULL, *orgfcon = NULL, *type = NULL, *file = NULL;
+	const char *newfcon;
+	char *orgfcon, *type = NULL, *file = NULL;
 	char *context;
 	bool verbose = false;
 	context_t con_t;
@@ -62,7 +63,7 @@ int main(int argc, char **argv)
 	fd = creat(file, O_RDWR);
 	save_err = errno;
 	if (fd < 0) {
-		fprintf(stderr, "creat(2) Failed: %s\n", strerror(errno));
+		fprintf(stderr, "creat(2) Failed: %s\n", strerror(save_err));
 		return save_err;
 	}
 	if (verbose)
@@ -80,25 +81,26 @@ int main(int argc, char **argv)
 
 	/* Build new file context */
 	con_t = context_new(orgfcon);
+	freecon(orgfcon);
 	if (!con_t) {
 		fprintf(stderr, "Unable to create context structure\n");
-		result = -1;
-		goto err;
+		close(fd);
+		return -1;
 	}
 
 	if (context_type_set(con_t, type)) {
 		fprintf(stderr, "Unable to set new type\n");
-		free(con_t);
-		result = -1;
-		goto err;
+		context_free(con_t);
+		close(fd);
+		return -1;
 	}
 
 	newfcon = context_str(con_t);
-	free(con_t);
 	if (!newfcon) {
 		fprintf(stderr, "Unable to obtain new context string\n");
-		result = -1;
-		goto err;
+		context_free(con_t);
+		close(fd);
+		return -1;
 	}
 
 	/* hooks.c selinux_inode_setxattr() FILESYSTEM__ASSOCIATE */
@@ -107,27 +109,30 @@ int main(int argc, char **argv)
 	close(fd);
 	if (result < 0) {
 		fprintf(stderr, "fsetfilecon(3) Failed: %s\n",
-			strerror(errno));
-		result = save_err;
-		goto err1;
+			strerror(save_err));
+		context_free(con_t);
+		return save_err;
 	}
 
 	fd = open(file, O_RDWR);
 	if (fd < 0) {
 		fprintf(stderr, "open(2) Failed: %s\n", strerror(errno));
-		result = -1;
-		goto err1;
+		context_free(con_t);
+		return -1;
 	}
 
 	result = fgetfilecon(fd, &context);
 	if (result < 0) {
 		fprintf(stderr, "fgetfilecon(3) Failed: %s\n",
 			strerror(errno));
-		result = -1;
-		goto err1;
+		close(fd);
+		context_free(con_t);
+		return -1;
 	}
 	if (verbose)
 		printf("New file context is: %s\n", context);
+
+	close(fd);
 
 	result = 0;
 	if (strcmp(newfcon, context)) {
@@ -136,11 +141,6 @@ int main(int argc, char **argv)
 		result = -1;
 	}
 
-err:
-	free(orgfcon);
-err1:
-	free(newfcon);
-	close(fd);
-
+	context_free(con_t);
 	return result;
 }

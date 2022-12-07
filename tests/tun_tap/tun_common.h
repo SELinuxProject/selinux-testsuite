@@ -18,5 +18,5 @@ extern int setiff(int fd, struct ifreq *ifr, bool verbose);
 extern int persist(int fd, int op, char *name, bool verbose);
 /* Queue state 'op': 0 = IFF_DETACH_QUEUE, 1 = IFF_ATTACH_QUEUE */
 extern int tunsetqueue(int fd, int op, char *name, bool verbose);
-extern int switch_context(char *newcon, bool verbose);
+extern int switch_context(const char *newcon, bool verbose);
 extern void del_tuntap_name(int fd, char *context, char *name, bool verbose);

@@ -15,7 +15,8 @@ int main(int argc, char **argv)
 {
 	int opt, pid, result, status;
 	bool verbose;
-	char *context_s, *request_keys_argv[4] = { NULL };
+	const char *context_s;
+	char *context_tmp, *request_keys_argv[4] = { NULL };
 	context_t context;
 	key_serial_t private, prime, base, newring;
 
@@ -38,30 +39,30 @@ int main(int argc, char **argv)
 	if (verbose)
 		printf("%s process information:\n", argv[0]);
 
-	result = getcon(&context_s);
+	result = getcon(&context_tmp);
 	if (result < 0) {
 		fprintf(stderr, "Failed to obtain process context\n");
 		exit(1);
 	}
 	if (verbose)
-		printf("\tProcess context:\n\t\t%s\n", context_s);
+		printf("\tProcess context:\n\t\t%s\n", context_tmp);
 
 	/* Set context requires process { setkeycreate } and key { create } */
-	result = setkeycreatecon(context_s);
+	result = setkeycreatecon(context_tmp);
 	if (result < 0) {
 		fprintf(stderr, "Failed setkeycreatecon(): %s\n",
 			strerror(errno));
 		exit(3);
 	}
 	if (verbose)
-		printf("\tSet keycreate context:\n\t\t%s\n", context_s);
+		printf("\tSet keycreate context:\n\t\t%s\n", context_tmp);
 
-	context = context_new(context_s);
+	context = context_new(context_tmp);
 	if (!context) {
 		fprintf(stderr, "Unable to create context structure\n");
 		exit(2);
 	}
-	free(context_s);
+	freecon(context_tmp);
 
 	if (context_type_set(context, argv[optind])) {
 		fprintf(stderr, "Unable to set new type\n");

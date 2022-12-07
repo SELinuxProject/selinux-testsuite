@@ -22,7 +22,8 @@ int main(int argc, char **argv)
 	int pagesize;
 	void *clone_stack, *page;
 	int pid, rc, status, cloneflags;
-	char *context_s;
+	const char *context_s;
+	char *context_tmp;
 	context_t context;
 
 	if (argc != 4) {
@@ -44,14 +45,14 @@ int main(int argc, char **argv)
 	}
 	clone_stack = page + pagesize;
 
-	rc = getcon(&context_s);
+	rc = getcon(&context_tmp);
 	if (rc < 0) {
 		fprintf(stderr, "%s:  unable to get my context\n", argv[0]);
 		exit(-1);
 
 	}
 
-	context = context_new(context_s);
+	context = context_new(context_tmp);
 	if (!context) {
 		fprintf(stderr, "%s:  unable to create context structure\n", argv[0]);
 		exit(-1);
@@ -62,7 +63,7 @@ int main(int argc, char **argv)
 		exit(-1);
 	}
 
-	freecon(context_s);
+	freecon(context_tmp);
 	context_s = context_str(context);
 	if (!context_s) {
 		fprintf(stderr, "%s:  unable to obtain new context string\n", argv[0]);

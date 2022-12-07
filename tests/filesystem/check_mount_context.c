@@ -24,7 +24,8 @@ static void print_usage(char *progname)
 int main(int argc, char **argv)
 {
 	int opt, result;
-	char *context = NULL, *expected = NULL, *mount = NULL, *newcon = NULL;
+	const char *newcon;
+	char *context = NULL, *expected = NULL, *mount = NULL;
 	bool verbose = false, reset = false;
 	const char *type = "unlabeled_t";
 	context_t con_t;
@@ -74,21 +75,21 @@ int main(int argc, char **argv)
 
 		if (context_type_set(con_t, type)) {
 			fprintf(stderr, "Unable to set new type\n");
-			free(con_t);
+			context_free(con_t);
 			result = -1;
 			goto err;
 		}
 
 		newcon = context_str(con_t);
-		free(con_t);
 		if (!newcon) {
 			fprintf(stderr, "Unable to obtain new context string\n");
 			result = -1;
+			context_free(con_t);
 			goto err;
 		}
 
 		result = setfilecon(mount, newcon);
-		free(newcon);
+		context_free(con_t);
 		if (result < 0) {
 			fprintf(stderr, "setfilecon(3) Failed: %s\n",
 				strerror(errno));
@@ -96,7 +97,7 @@ int main(int argc, char **argv)
 			goto err;
 		}
 
-		free(context);
+		freecon(context);
 
 		result = getfilecon(mount, &context);
 		if (result < 0) {
@@ -122,6 +123,6 @@ int main(int argc, char **argv)
 	}
 
 err:
-	free(context);
+	freecon(context);
 	return result;
 }

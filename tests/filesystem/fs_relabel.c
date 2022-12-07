@@ -26,7 +26,8 @@ static void print_usage(char *progname)
 int main(int argc, char **argv)
 {
 	int opt, result, save_err;
-	char *context, *fs_con = NULL, *newcon = NULL, *base_dir, *type;
+	const char *newcon;
+	char *context, *fs_con = NULL, *base_dir, *type;
 	char fs_mount[PATH_MAX];
 	bool verbose = false;
 	context_t con_t;
@@ -57,7 +58,7 @@ int main(int argc, char **argv)
 			exit(-1);
 		}
 		printf("Process context:\n\t%s\n", context);
-		free(context);
+		freecon(context);
 	}
 
 	result = getfilecon(base_dir, &context);
@@ -130,9 +131,8 @@ int main(int argc, char **argv)
 		result = -1;
 	}
 err:
-	free(context);
-	free(newcon);
-	free(fs_con);
+	freecon(context);
+	freecon(fs_con);
 
 	return result;
 }

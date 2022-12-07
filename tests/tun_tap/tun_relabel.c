@@ -13,7 +13,8 @@ static void print_usage(char *progname)
 
 int main(int argc, char *argv[])
 {
-	char *origcon, *newcon, *test_str;
+	const char *newcon;
+	char *origcon, *test_str;
 	char alloc_name[IFNAMSIZ];
 	int opt, result, test, fd1, fd2;
 	bool verbose = false;

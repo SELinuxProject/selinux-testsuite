@@ -19,7 +19,7 @@ static int thread_status = 0;
 
 static void *worker(void *datap)
 {
-	char *security_context = datap;
+	const char *security_context = datap;
 	int rc;
 
 	rc = setcon(security_context);
@@ -31,7 +31,8 @@ static void *worker(void *datap)
 
 int main(int argc, char *argv[])
 {
-	char *security_context;
+	const char *context_s;
+	char *context_tmp;
 	context_t context;
 	pthread_t thread;
 	int rc;
@@ -41,13 +42,13 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	rc = getcon(&security_context);
+	rc = getcon(&context_tmp);
 	if (rc < 0) {
 		fprintf(stderr, "%s: unable to get my context\n", argv[0]);
 		return 1;
 	}
 
-	context = context_new(security_context);
+	context = context_new(context_tmp);
 	if (!context) {
 		fprintf(stderr, "%s: unable to create context structure\n", argv[0]);
 		return 1;
@@ -58,14 +59,14 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	freecon(security_context);
-	security_context = context_str(context);
-	if (!security_context) {
+	freecon(context_tmp);
+	context_s = context_str(context);
+	if (!context_s) {
 		fprintf(stderr, "%s: unable to obtain new context string\n", argv[0]);
 		return 1;
 	}
 
-	rc = pthread_create(&thread, NULL, worker, security_context);
+	rc = pthread_create(&thread, NULL, worker, (void *)context_s);
 	if (rc) {
 		fprintf(stderr, "%s: unable to kick a new thread\n", argv[0]);
 		return 1;
