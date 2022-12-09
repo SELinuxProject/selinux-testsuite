@@ -171,3 +171,7 @@ ifdef(`lockdown_defined', `allow $1 self:lockdown integrity;')
 define(`allow_lockdown_confidentiality',
 ifdef(`lockdown_defined', `allow $1 self:lockdown confidentiality;')
 )
+
+define(`allow_userns_create',
+ifdef(`user_namespace_defined', `allow $1 self:user_namespace create;')
+)

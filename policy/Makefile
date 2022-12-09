@@ -166,6 +166,10 @@ ifeq ($(shell grep -q anon_inode $(POLDEV)/include/support/all_perms.spt && echo
 TARGETS += test_secretmem.te
 endif
 
+ifeq ($(shell grep -q user_namespace $(POLDEV)/include/support/all_perms.spt && echo true),true)
+export M4PARAM += -Duser_namespace_defined
+endif
+
 all: build
 
 expand_check:
