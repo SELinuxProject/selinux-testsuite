@@ -10,3 +10,4 @@ check_mount_context
 create_file
 grim_reaper
 xfs_quotas_test
+native_quotas_test

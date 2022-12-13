@@ -121,7 +121,7 @@ sub attach_dev {
 }
 
 sub make_fs {
-    my ( $mk_type, $mk_dev, $mk_dir ) = @_;
+    my ( $mk_type, $mk_dev, $mk_dir, $mk_opts ) = @_;
     my $mk_size = 16;
     if ( $mk_type eq "xfs" ) {
         $mk_size = 300;
@@ -137,7 +137,7 @@ sub make_fs {
     attach_dev( $mk_dev, $mk_dir );
 
     print "Make $mk_type filesystem on $mk_dev\n";
-    $result = system("yes | mkfs.$mk_type $mk_dev > /dev/null 2>&1");
+    $result = system("yes | mkfs.$mk_type $mk_opts $mk_dev > /dev/null 2>&1");
     if ( $result != 0 ) {
         system("losetup -d $mk_dev 2>/dev/null");
         print "mkfs.$mk_type failed to create filesystem on $mk_dev\n";

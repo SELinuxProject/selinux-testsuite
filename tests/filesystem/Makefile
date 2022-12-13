@@ -3,7 +3,7 @@
 
 TARGETS = mount umount quotas_test statfs_test create_file_change_context \
 fs_relabel check_file_context grim_reaper check_mount_context create_file \
-xfs_quotas_test
+xfs_quotas_test native_quotas_test
 
 LDLIBS += -lselinux
 

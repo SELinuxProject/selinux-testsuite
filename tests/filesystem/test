@@ -26,6 +26,8 @@ BEGIN {
     $quota_checks   = 1;
     $nfs_enabled    = 0;
     $vfat_enabled   = 0;
+    $ext4_quota     = 0;
+    $make_fs_opts   = "";
 
     $i = 0;
     foreach $arg (@ARGV) {
@@ -60,13 +62,22 @@ BEGIN {
           nfs_gen_opts( $fs_type, $basedir, "filesystem" );
         $nfs_enabled = 1;
     }
+    elsif ( $fs_type eq "ext4" ) {
+
+        # EXT4 has native quota support since kernel 3.6
+        $kvercur = `uname -r`;
+        chomp($kvercur);
+        if ( `$basedir/../kvercmp $kvercur 3.6` >= 1 ) {
+            $ext4_quota   = 1;
+            $make_fs_opts = "-O quota";
+        }
+    }
     elsif ( $fs_type eq "vfat" ) {
         $vfat_enabled = 1;
     }
 
-    # XFS supports quotas internally and therefore does not require calling
-    # security_quota_on().
-    if ( $fs_type eq "xfs" ) {
+    # XFS and EXT4 support quotas internally and require special tests.
+    if ( $fs_type eq "xfs" or ( $fs_type eq "ext4" and $ext4_quota ) ) {
         $test_count   = 62;
         $quota_checks = 1;
     }
@@ -173,7 +184,7 @@ if ($nfs_enabled) {
 }
 else {
     ( $dev, $device_count ) = get_loop_dev( \@device_list, $device_count );
-    make_fs( $fs_type, $dev, $basedir );
+    make_fs( $fs_type, $dev, $basedir, $make_fs_opts );
 
     # For XFS quota tests.
     if ( $fs_type eq "xfs" ) {
@@ -207,6 +218,13 @@ if ($quota_checks) {
         print "# XFS quota test with mount options: uquota,prjquota\n";
         $result = system(
             "runcon -t test_filesystem_t $basedir/xfs_quotas_test $v -s $dev");
+        ok( $result eq 0 );
+    }
+    elsif ( $fs_type eq "ext4" and $ext4_quota ) {
+        print "# EXT4 quota test\n";
+        $result = system(
+            "runcon -t test_filesystem_t $basedir/native_quotas_test $v -s $dev"
+        );
         ok( $result eq 0 );
     }
     else {
@@ -299,7 +317,7 @@ if ($nfs_enabled) {
 }
 else {
     ( $dev, $device_count ) = get_loop_dev( \@device_list, $device_count );
-    make_fs( $fs_type, $dev, $basedir );
+    make_fs( $fs_type, $dev, $basedir, $make_fs_opts );
     $mount_opts = "rootcontext=system_u:object_r:test_filesystem_file_t:s0";
 }
 
@@ -355,7 +373,7 @@ if ( ( $nfs_enabled and $seclabel_type ne 0 ) or not $nfs_enabled ) {
     }
     else {
         ( $dev, $device_count ) = get_loop_dev( \@device_list, $device_count );
-        make_fs( $fs_type, $dev, $basedir );
+        make_fs( $fs_type, $dev, $basedir, $make_fs_opts );
         $mount_opts =
 "rootcontext=system_u:object_r:test_filesystem_sb_relabel_no_relabelfrom_t:s0";
     }
@@ -384,7 +402,7 @@ if ( ( $nfs_enabled and $seclabel_type eq 1 ) or not $nfs_enabled ) {
     }
     else {
         ( $dev, $device_count ) = get_loop_dev( \@device_list, $device_count );
-        make_fs( $fs_type, $dev, $basedir );
+        make_fs( $fs_type, $dev, $basedir, $make_fs_opts );
         $mount_opts =
 "fscontext=system_u:object_r:test_filesystem_sb_relabel_no_relabelto_t:s0";
     }
@@ -413,7 +431,7 @@ if ( ( $nfs_enabled and $seclabel_type ne 0 ) or not $nfs_enabled ) {
     }
     else {
         ( $dev, $device_count ) = get_loop_dev( \@device_list, $device_count );
-        make_fs( $fs_type, $dev, $basedir );
+        make_fs( $fs_type, $dev, $basedir, $make_fs_opts );
         $mount_opts =
 "rootcontext=system_u:object_r:test_filesystem_no_inode_no_relabelfrom_t:s0";
     }
@@ -437,7 +455,7 @@ if ( not $nfs_enabled ) {
     mk_mntpoint_1($private_path);
 
     ( $dev, $device_count ) = get_loop_dev( \@device_list, $device_count );
-    make_fs( $fs_type, $dev, $basedir );
+    make_fs( $fs_type, $dev, $basedir, $make_fs_opts );
     $mount_opts =
 "rootcontext=system_u:object_r:test_filesystem_inode_relabel_no_associate_t:s0";
 
@@ -460,7 +478,7 @@ if ( not $nfs_enabled ) {
 if ( not $nfs_enabled and not $vfat_enabled ) {
     mk_mntpoint_1($private_path);
     ( $dev, $device_count ) = get_loop_dev( \@device_list, $device_count );
-    make_fs( $fs_type, $dev, $basedir );
+    make_fs( $fs_type, $dev, $basedir, $make_fs_opts );
 
 # Use this fscontext= to get sensible audit log entry of:
 #  "allow unlabeled_t test_filesystem_may_create_no_associate_t:filesystem associate;"
@@ -496,7 +514,7 @@ if ($quota_checks) {
     #
     mk_mntpoint_1($private_path);
     ( $dev, $device_count ) = get_loop_dev( \@device_list, $device_count );
-    make_fs( $fs_type, $dev, $basedir );
+    make_fs( $fs_type, $dev, $basedir, $make_fs_opts );
 
     if ( $fs_type eq "xfs" ) {
         $opts_no_quotamod =
@@ -518,6 +536,13 @@ if ($quota_checks) {
         print "Toggle xfs quotas on/off\n";
         $result = system(
 "runcon -t test_filesystem_no_quotamod_t $basedir/xfs_quotas_test -s $dev $v 2>&1"
+        );
+        ok( $result >> 8 eq 13 );
+    }
+    elsif ( $fs_type eq "ext4" and $ext4_quota ) {
+        print "Toggle User quota on/off\n";
+        $result = system(
+"runcon -t test_filesystem_no_quotamod_t $basedir/native_quotas_test $v -s $dev 2>&1"
         );
         ok( $result >> 8 eq 13 );
     }
@@ -544,7 +569,7 @@ if ($quota_checks) {
     #
     mk_mntpoint_1($private_path);
     ( $dev, $device_count ) = get_loop_dev( \@device_list, $device_count );
-    make_fs( $fs_type, $dev, $basedir );
+    make_fs( $fs_type, $dev, $basedir, $make_fs_opts );
 
     if ( $fs_type eq "xfs" ) {
         $opts_no_quotaget =
@@ -566,6 +591,13 @@ if ($quota_checks) {
         print "Toggle xfs quotas on/off\n";
         $result = system(
 "runcon -t test_filesystem_no_quotaget_t $basedir/xfs_quotas_test -s $dev $v 2>&1"
+        );
+        ok( $result >> 8 eq 13 );
+    }
+    elsif ( $fs_type eq "ext4" and $ext4_quota ) {
+        print "Toggle User quota on/off\n";
+        $result = system(
+"runcon -t test_filesystem_no_quotaget_t $basedir/native_quotas_test $v -s $dev 2>&1"
         );
         ok( $result >> 8 eq 13 );
     }
@@ -593,12 +625,12 @@ if ($quota_checks) {
 
     ############### Deny file { quotaon } ##########################
     # hooks.c selinux_quota_on() FILE__QUOTAON
-    # XFS does not require this test
+    # XFS and EXT4 do not require this test
     #
-    if ( not $fs_type eq "xfs" ) {
+    if ( $fs_type ne "xfs" and ( $fs_type ne "ext4" or not $ext4_quota ) ) {
         mk_mntpoint_1($private_path);
         ( $dev, $device_count ) = get_loop_dev( \@device_list, $device_count );
-        make_fs( $fs_type, $dev, $basedir );
+        make_fs( $fs_type, $dev, $basedir, $make_fs_opts );
 
         $opts_no_quotaon =
 "quota,usrquota,grpquota,context=system_u:object_r:test_file_no_quotaon_t:s0";
@@ -641,7 +673,7 @@ if ($nfs_enabled) {
 }
 else {
     ( $dev, $device_count ) = get_loop_dev( \@device_list, $device_count );
-    make_fs( $fs_type, $dev, $basedir );
+    make_fs( $fs_type, $dev, $basedir, $make_fs_opts );
     $mount_opts = "rootcontext=system_u:object_r:test_filesystem_no_mount_t:s0";
 }
 
@@ -664,7 +696,7 @@ if ($nfs_enabled) {
 }
 else {
     ( $dev, $device_count ) = get_loop_dev( \@device_list, $device_count );
-    make_fs( $fs_type, $dev, $basedir );
+    make_fs( $fs_type, $dev, $basedir, $make_fs_opts );
     $mount_opts =
       "rootcontext=system_u:object_r:test_filesystem_no_getattr_t:s0";
 }
@@ -699,7 +731,7 @@ if ($nfs_enabled) {
 }
 else {
     ( $dev, $device_count ) = get_loop_dev( \@device_list, $device_count );
-    make_fs( $fs_type, $dev, $basedir );
+    make_fs( $fs_type, $dev, $basedir, $make_fs_opts );
     $mount_opts =
       "rootcontext=system_u:object_r:test_filesystem_no_remount_t:s0";
 }
@@ -735,7 +767,7 @@ if ($nfs_enabled) {
 }
 else {
     ( $dev, $device_count ) = get_loop_dev( \@device_list, $device_count );
-    make_fs( $fs_type, $dev, $basedir );
+    make_fs( $fs_type, $dev, $basedir, $make_fs_opts );
     $mount_opts =
       "rootcontext=system_u:object_r:test_filesystem_no_unmount_t:s0";
 }
@@ -771,7 +803,7 @@ cleanup1( $basedir, $dev );
 if ( not $nfs_enabled and not $vfat_enabled ) {
     mk_mntpoint_1($private_path);
     ( $dev, $device_count ) = get_loop_dev( \@device_list, $device_count );
-    make_fs( $fs_type, $dev, $basedir );
+    make_fs( $fs_type, $dev, $basedir, $make_fs_opts );
     $mount_opts =
 "rootcontext=system_u:object_r:test_filesystem_inode_setxattr_no_associate_t:s0,fscontext=system_u:object_r:test_filesystem_inode_setxattr_no_associate_t:s0";
 
@@ -807,7 +839,7 @@ if ($test_watch) {
     }
     else {
         ( $dev, $device_count ) = get_loop_dev( \@device_list, $device_count );
-        make_fs( $fs_type, $dev, $basedir );
+        make_fs( $fs_type, $dev, $basedir, $make_fs_opts );
         $mount_opts = "context=system_u:object_r:test_filesystem_no_watch_t:s0";
     }
 
@@ -842,7 +874,7 @@ if ($test_watch) {
     }
     else {
         ( $dev, $device_count ) = get_loop_dev( \@device_list, $device_count );
-        make_fs( $fs_type, $dev, $basedir );
+        make_fs( $fs_type, $dev, $basedir, $make_fs_opts );
         $mount_opts =
           "context=system_u:object_r:test_filesystem_no_watch_sb_t:s0";
     }
@@ -878,7 +910,7 @@ if ($test_watch) {
     }
     else {
         ( $dev, $device_count ) = get_loop_dev( \@device_list, $device_count );
-        make_fs( $fs_type, $dev, $basedir );
+        make_fs( $fs_type, $dev, $basedir, $make_fs_opts );
         $mount_opts =
           "context=system_u:object_r:test_filesystem_no_watch_mount_t:s0";
     }
@@ -918,7 +950,7 @@ if ($nfs_enabled) {
 }
 else {
     ( $dev, $device_count ) = get_loop_dev( \@device_list, $device_count );
-    make_fs( $fs_type, $dev, $basedir );
+    make_fs( $fs_type, $dev, $basedir, $make_fs_opts );
     $mount_opts = "rootcontext=system_u:object_r:test_filesystem_file_t:s0";
     $mount_inval_opts = "fscontext=system_u:object_r:test_filesystem_file_t:s0";
 
@@ -964,7 +996,7 @@ if ( not $nfs_enabled ) {
     ##########################################################################
     mk_mntpoint_1($private_path);
     ( $dev, $device_count ) = get_loop_dev( \@device_list, $device_count );
-    make_fs( $fs_type, $dev, $basedir );
+    make_fs( $fs_type, $dev, $basedir, $make_fs_opts );
 
     # Mount with xttrs to create a file with specific context.
     $context1_opts =
@@ -1048,7 +1080,7 @@ if ( not $nfs_enabled ) {
     ##########################################################################
     mk_mntpoint_1($private_path);
     ( $dev, $device_count ) = get_loop_dev( \@device_list, $device_count );
-    make_fs( $fs_type, $dev, $basedir );
+    make_fs( $fs_type, $dev, $basedir, $make_fs_opts );
     $root_opts =
       "rootcontext=system_u:object_r:test_filesystem_context_file_t:s0";
 
@@ -1098,7 +1130,7 @@ if ( not $nfs_enabled ) {
         #######################################################################
         mk_mntpoint_1($private_path);
         ( $dev, $device_count ) = get_loop_dev( \@device_list, $device_count );
-        make_fs( $fs_type, $dev, $basedir );
+        make_fs( $fs_type, $dev, $basedir, $make_fs_opts );
         $test_opts =
           "context=system_u:object_r:test_filesystem_context_file_t:s0";
 
