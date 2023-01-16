@@ -121,7 +121,6 @@ allow testsuite_domain proc_t:file { getattr read open };
 files_list_var(testsuite_domain)
 files_list_home(testsuite_domain)
 dev_read_rand(testsuite_domain)
-files_list_pids(testsuite_domain)
 require {
 	type root_t;
 	type etc_t;
@@ -153,6 +152,14 @@ selinux_compute_access_vector(testsuite_domain)
 selinux_compute_create_context(testsuite_domain)
 selinux_compute_relabel_context(testsuite_domain)
 selinux_compute_user_contexts(testsuite_domain)
+
+# Reference policy renamed files_list_pids() to files_list_runtime()
+ifdef(`files_list_pids', `
+    files_list_pids(testsuite_domain)
+')
+ifdef(`files_list_runtime', `
+    files_list_runtime(testsuite_domain)
+')
 
 ifdef(`distro_redhat', `
     ifdef(`auth_read_passwd', `
