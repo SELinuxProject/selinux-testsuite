@@ -25,6 +25,8 @@ jobs:
       KERNEL_TYPE: ${{ matrix.env.kernel }}
       ROOT_DOMAIN: ${{ matrix.domain }}
     steps:
+      - name: Install GNU coreutils
+        run: brew install coreutils
       - uses: actions/checkout@v2
       # macOS sometimes allows symlinks to have permissions other than 777,
       # so change all symlink perms to match the Linux convention. Otherwise
@@ -36,8 +38,8 @@ jobs:
         run: sed -i '' 's/-Wall/-Wall -Werror/' tests/Makefile
       - name: Create a Vagrant VM
         run: vagrant up
-      - name: Wait for the machine to come up if rebooting
-        run: while ! vagrant ssh -- true; do sleep 1; done
+      - name: Wait for the machine to come up if rebooting (max 5m)
+        run: gtimeout 5m "$SHELL" -c 'while ! vagrant ssh -- true; do sleep 1; done'
       - name: Show Vagrant VM details
         run: |
           vagrant ssh -- uname -a
