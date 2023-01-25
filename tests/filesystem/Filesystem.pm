@@ -137,7 +137,8 @@ sub make_fs {
     attach_dev( $mk_dev, $mk_dir );
 
     print "Make $mk_type filesystem on $mk_dev\n";
-    $result = system("yes | mkfs.$mk_type $mk_opts $mk_dev > /dev/null 2>&1");
+    $result = system(
+        "yes 2>/dev/null | mkfs.$mk_type $mk_opts $mk_dev >/dev/null 2>&1");
     if ( $result != 0 ) {
         system("losetup -d $mk_dev 2>/dev/null");
         print "mkfs.$mk_type failed to create filesystem on $mk_dev\n";
