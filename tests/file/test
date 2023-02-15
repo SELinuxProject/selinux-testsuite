@@ -26,6 +26,12 @@ system "rm -f $basedir/temp_file 2>&1";
 system "rm -f $basedir/temp_file2 2>&1";
 system "rm -f $basedir/temp_file3 2>&1";
 
+# The test relies on the legacy TIOCSTI ioctl
+$flip_legacy_tiocsti = `sysctl -bn dev.tty.legacy_tiocsti 2>/dev/null` eq "0";
+if ($flip_legacy_tiocsti) {
+    system "sysctl -w dev.tty.legacy_tiocsti=1";
+}
+
 #
 # Create the temp files
 #
@@ -99,10 +105,8 @@ ok( $result, 0 );
 #
 # Attempt to create a SIGIO as the 'good' domain.
 #
-# Temporarily disabled - see:
-# https://lore.kernel.org/selinux/CAHC9VhQwrjwdW27+ktcT_9q-N7AmuUK8GYgoYbPXGVAcjwA4nQ@mail.gmail.com/T/
-#$result = system "runcon -t test_fileop_t -- $basedir/test_sigiotask 2>&1";
-ok(1);
+$result = system "runcon -t test_fileop_t -- $basedir/test_sigiotask 2>&1";
+ok( $result, 0 );
 
 #
 # Attempt to access the restricted file as the 'bad' domain. The first test
@@ -153,10 +157,8 @@ ok( $result, 0 );
 #
 # Attempt to create a SIGIO as the 'bad' domain.
 #
-# Temporarily disabled - see:
-# https://lore.kernel.org/selinux/CAHC9VhQwrjwdW27+ktcT_9q-N7AmuUK8GYgoYbPXGVAcjwA4nQ@mail.gmail.com/T/
-#$result = system "runcon -t test_nofileop_t -- $basedir/test_sigiotask 2>&1";
-ok(1);
+$result = system "runcon -t test_nofileop_t -- $basedir/test_sigiotask 2>&1";
+ok($result);
 
 #
 # Delete the temp files
@@ -164,5 +166,9 @@ ok(1);
 system "rm -f $basedir/temp_file 2>&1";
 system "rm -f $basedir/temp_file2 2>&1";
 system "rm -f $basedir/temp_file3 2>&1";
+
+if ($flip_legacy_tiocsti) {
+    system "sysctl -w dev.tty.legacy_tiocsti=0";
+}
 
 exit;
