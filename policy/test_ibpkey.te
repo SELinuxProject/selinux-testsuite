@@ -10,6 +10,10 @@ type test_ibpkey_access_t;
 testsuite_domain_type(test_ibpkey_access_t)
 typeattribute test_ibpkey_access_t ibpkeydomain;
 
+# ibv_create_cq(3) locks some memory - make sure the domain can do that
+# even with strict resource limits.
+allow test_ibpkey_access_t self:capability ipc_lock;
+
 dev_rw_infiniband_dev(test_ibpkey_access_t)
 dev_rw_sysfs(test_ibpkey_access_t)
 
