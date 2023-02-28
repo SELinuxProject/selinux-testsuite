@@ -89,6 +89,7 @@ EOF
       e2fsprogs \
       jfsutils \
       dosfstools \
+      rdma-core-devel \
       #{kernel_pkgs}
 
     #{extra_commands}

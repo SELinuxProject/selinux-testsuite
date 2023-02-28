@@ -1,25 +1,31 @@
 #!/usr/bin/perl
 
-use Test;
-
-BEGIN { plan tests => 4 }
-
-$basedir = $0;
-$basedir =~ s|(.*)/[^/]*|$1|;
+use Test::More;
 
 my %conf;
-$confpath = $basedir . "/ibpkey_test.conf";
-open( $f, $confpath ) or die("Couldn't open $confpath");
-while ( $r = <$f> ) {
-    if ( $r =~ /^\s*#/ || $r =~ /^\s*$/ ) { next; }
-    chomp $r;
-    ( $k, $v ) = split( /=/, $r );
-    $conf{$k} = $v;
-}
-close($f);
 
-# Verify that we really want to run these tests.
-ok( $conf{SELINUX_INFINIBAND_PKEY_TEST} eq 1 );
+BEGIN {
+    $basedir = $0;
+    $basedir =~ s|(.*)/[^/]*|$1|;
+
+    $confpath = $basedir . "/ibpkey_test.conf";
+    open( $f, $confpath ) or die("Couldn't open $confpath");
+    while ( $r = <$f> ) {
+        if ( $r =~ /^\s*#/ || $r =~ /^\s*$/ ) { next; }
+        chomp $r;
+        ( $k, $v ) = split( /=/, $r );
+        $conf{$k} = $v;
+    }
+    close($f);
+
+    # Verify that we really want to run these tests.
+    if ( $conf{SELINUX_INFINIBAND_PKEY_TEST} eq 1 ) {
+        plan tests => 3;
+    }
+    else {
+        plan skip_all => "test not configured";
+    }
+}
 
 $device = $conf{SELINUX_INFINIBAND_PKEY_TEST_DEV};
 $port   = $conf{SELINUX_INFINIBAND_PKEY_TEST_PORT};
@@ -47,7 +53,7 @@ foreach (@unlabeled_pkeys) {
     }
 }
 if (@unlabeled_pkeys) {
-    ok( $result, 0 );
+    ok( $result eq 0 );
 }
 else {
     ok(1);
@@ -69,7 +75,7 @@ foreach (@unlabeled_pkeys) {
     }
 }
 if (@unlabeled_pkeys) {
-    ok( $result >> 8, 13 );
+    ok( $result >> 8 eq 13 );
 }
 else {
     ok(1);
@@ -83,7 +89,7 @@ foreach (@labeled_pkeys) {
     }
 }
 if (@labeled_pkeys) {
-    ok( $result >> 8, 13 );
+    ok( $result >> 8 eq 13 );
 }
 else {
     ok(1);

@@ -1,24 +1,31 @@
 #!/usr/bin/perl
 
-use Test;
-
-BEGIN { plan tests => 3 }
-
-$basedir = $0;
-$basedir =~ s|(.*)/[^/]*|$1|;
+use Test::More;
 
 my %conf;
-my $confpath = $basedir . "/ibendport_test.conf";
-open( $f, $confpath ) or die("Couldn't open ibtest.conf");
-while ( $r = <$f> ) {
-    if ( $r =~ /^\s*#/ || $r =~ /^\s*$/ ) { next; }
-    chomp $r;
-    ( $k, $v ) = split( /=/, $r );
-    $conf{$k} = $v;
-}
 
-# verify that we really want to run these tests
-ok( $conf{SELINUX_INFINIBAND_ENDPORT_TEST} eq 1 );
+BEGIN {
+    $basedir = $0;
+    $basedir =~ s|(.*)/[^/]*|$1|;
+
+    $confpath = $basedir . "/ibendport_test.conf";
+    open( $f, $confpath ) or die("Couldn't open $confpath");
+    while ( $r = <$f> ) {
+        if ( $r =~ /^\s*#/ || $r =~ /^\s*$/ ) { next; }
+        chomp $r;
+        ( $k, $v ) = split( /=/, $r );
+        $conf{$k} = $v;
+    }
+    close($f);
+
+    # Verify that we really want to run these tests.
+    if ( $conf{SELINUX_INFINIBAND_ENDPORT_TEST} eq 1 ) {
+        plan tests => 2;
+    }
+    else {
+        plan skip_all => "test not configured";
+    }
+}
 
 @allowed_device_port =
   split( /,/, $conf{SELINUX_INFINIBAND_ENDPORT_TEST_ALLOWED} );
@@ -36,7 +43,7 @@ foreach (@allowed_device_port) {
         last;
     }
 }
-ok( $result, 0 );
+ok( $result eq 0 );
 
 foreach (@denied_device_port) {
     @dev_port_pair = split( / /, $_ );
