@@ -14,6 +14,10 @@ typeattribute test_ibpkey_access_t ibpkeydomain;
 # even with strict resource limits.
 allow test_ibpkey_access_t self:capability ipc_lock;
 
+# ibv_get_device_list(3) wants to list the devices via netlink by default
+# (if denied it falls back to listing them via sysfs).
+allow test_ibpkey_access_t self:netlink_rdma_socket create_socket_perms;
+
 dev_rw_infiniband_dev(test_ibpkey_access_t)
 dev_rw_sysfs(test_ibpkey_access_t)
 
