@@ -62,6 +62,7 @@ similar dependencies):
 * jfsutils _(used by the jfs filesystem tests)_
 * dosfstools _(used by the vfat filesystem tests)_
 * nftables _(used by inet_socket and sctp tests if ver >= 9.3 for secmark testing )_
+* rdma-core-devel _(to build the `ibpkey` test program)_
 
 On a modern Fedora system you can install these dependencies with the
 following command (NOTE: On Fedora 32 and below you need to remove
@@ -76,6 +77,7 @@ following command (NOTE: On Fedora 32 and below you need to remove
 		libselinux-devel \
 		net-tools \
 		netlabel_tools \
+		nftables \
 		iptables \
 		lksctp-tools-devel \
 		attr \
@@ -87,7 +89,7 @@ following command (NOTE: On Fedora 32 and below you need to remove
 		e2fsprogs \
 		jfsutils \
 		dosfstools \
-		nftables \
+		rdma-core-devel \
 		kernel-devel-$(uname -r) \
 		kernel-modules-$(uname -r)
 
@@ -135,7 +137,8 @@ command:
 		jfsutils \
 		dosfstools \
 		nftables \
-		netlabel-tools
+		netlabel-tools \
+		libibverbs-dev
 
 On Debian prior to version 11 (bullseye) you need to build and install netlabel_tools manually:
 
@@ -178,13 +181,12 @@ the InfiniBand tests you will need to install some additional packages, the
 list below is for Fedora/RHEL but other Linux distributions should have
 similar packages:
 
-* libibverbs-devel _(to build the `ibpkey` test program)_
 * infiniband-diags _(for `smpquery` used by `infiniband_endport/test`)_
 
 On a modern Fedora system you can install these dependencies with the
 following command:
 
-	# dnf install libibverbs-devel infiniband-diags
+	# dnf install infiniband-diags
 
 Once the necessary packages have been installed, the tests need to be enabled
 and configured for your specific hardware configuration.  The test
