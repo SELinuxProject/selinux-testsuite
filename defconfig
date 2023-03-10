@@ -42,6 +42,13 @@ CONFIG_IP_SCTP=m
 CONFIG_BT=m
 CONFIG_CRYPTO_USER_API=m
 
+# Network protocol implementations.
+# These are enabled to run sctp ASCONF tests using a GRE tunnel
+CONFIG_NET_IPGRE_DEMUX=m
+CONFIG_NET_IPGRE=m
+CONFIG_NET_IPGRE_BROADCAST=y
+CONFIG_IPV6_GRE=m
+
 # Netlink protocol implementations.
 # These are enabled to test the netlink socket controls in
 # tests/netlink_socket; they are not required for SELinux operation itself.
@@ -112,6 +119,7 @@ CONFIG_NFSD_V4_SECURITY_LABEL=y
 CONFIG_XFS_FS=m
 CONFIG_XFS_QUOTA=y
 CONFIG_VFAT_FS=m
+CONFIG_FAT_DEFAULT_IOCHARSET="ascii"
 
 # watch_queue for key changes.
 # They are not required for SELinux operation itself.
