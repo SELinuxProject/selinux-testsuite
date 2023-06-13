@@ -11,10 +11,13 @@
 #include <errno.h>
 #include <poll.h>
 
+#ifndef IPPROTO_MPTCP
+#define IPPROTO_MPTCP 262
+#endif
+
 void usage(char *progname)
 {
-	fprintf(stderr,
-		"usage:  %s port\n", progname);
+	fprintf(stderr, "usage:  %s protocol port\n", progname);
 	exit(1);
 }
 
@@ -27,16 +30,30 @@ main(int argc, char **argv)
 	int result;
 	struct sockaddr_in sin;
 	socklen_t sinlen;
+	int type, protocol;
 	unsigned short port;
 
-	if (argc != 2)
+	if (argc != 3)
 		usage(argv[0]);
 
-	port = atoi(argv[1]);
+	if (!strcmp(argv[1], "tcp")) {
+		type = SOCK_STREAM;
+		protocol = IPPROTO_TCP;
+	} else if (!strcmp(argv[1], "mptcp")) {
+		type = SOCK_STREAM;
+		protocol = IPPROTO_MPTCP;
+	} else if (!strcmp(argv[1], "udp")) {
+		type = SOCK_DGRAM;
+		protocol = IPPROTO_UDP;
+	} else {
+		usage(argv[0]);
+	}
+
+	port = atoi(argv[2]);
 	if (!port)
 		usage(argv[0]);
 
-	ssock = socket(AF_INET, SOCK_STREAM, 0);
+	ssock = socket(AF_INET, type, protocol);
 	if (ssock < 0) {
 		perror("socket");
 		exit(1);

@@ -8,9 +8,13 @@
 #include <unistd.h>
 #include <stdio.h>
 
+#ifndef IPPROTO_MPTCP
+#define IPPROTO_MPTCP 262
+#endif
+
 void usage(char *progname)
 {
-	fprintf(stderr, "usage:  %s [stream|dgram] port\n", progname);
+	fprintf(stderr, "usage:  %s protocol port\n", progname);
 	exit(1);
 }
 
@@ -23,24 +27,30 @@ main(int argc, char **argv)
 	int result;
 	struct sockaddr_in sin;
 	socklen_t sinlen;
-	int type;
+	int type, protocol;
 	unsigned short port;
 
 	if (argc != 3)
 		usage(argv[0]);
 
-	if (!strcmp(argv[1], "stream"))
+	if (!strcmp(argv[1], "tcp")) {
 		type = SOCK_STREAM;
-	else if (!strcmp(argv[1], "dgram"))
+		protocol = IPPROTO_TCP;
+	} else if (!strcmp(argv[1], "mptcp")) {
+		type = SOCK_STREAM;
+		protocol = IPPROTO_MPTCP;
+	} else if (!strcmp(argv[1], "udp")) {
 		type = SOCK_DGRAM;
-	else
+		protocol = IPPROTO_UDP;
+	} else {
 		usage(argv[0]);
+	}
 
 	port = atoi(argv[2]);
 	if (!port)
 		usage(argv[0]);
 
-	sock = socket(AF_INET, type, 0);
+	sock = socket(AF_INET, type, protocol);
 	if (sock < 0) {
 		perror("socket");
 		exit(1);

@@ -18,24 +18,27 @@
 #define SCM_SECURITY 0x03
 #endif
 
+#ifndef IPPROTO_MPTCP
+#define IPPROTO_MPTCP 262
+#endif
+
 void usage(char *progname)
 {
 	fprintf(stderr,
-		"usage:  %s [-f file] [-n] [stream|dgram] port\n"
+		"usage:  %s [-f file] [-n] protocol port\n"
 		"\nWhere:\n\t"
-		"-f      Write a line to the file when listening starts.\n\t"
-		"-n      No peer context will be available therefore send\n\t"
-		"        \"nopeer\" message to client, otherwise the peer context\n\t"
-		"        will be retrieved and sent to client.\n\t"
-		"stream  Use TCP protocol or:\n\t"
-		"dgram   use UDP protocol.\n\t"
-		"port    Listening port\n", progname);
+		"-f        Write a line to the file when listening starts.\n\t"
+		"-n        No peer context will be available therefore send\n\t"
+		"          \"nopeer\" message to client, otherwise the peer context\n\t"
+		"          will be retrieved and sent to client.\n\t"
+		"protocol  Protocol to use (tcp, udp, or mptcp)\n\t"
+		"port      Listening port\n", progname);
 	exit(1);
 }
 
 int main(int argc, char **argv)
 {
-	int sock, result, opt, on = 1;
+	int sock, result, opt, sockprotocol, on = 1;
 	socklen_t sinlen;
 	struct sockaddr_storage sin;
 	struct addrinfo hints, *res;
@@ -63,12 +66,18 @@ int main(int argc, char **argv)
 	hints.ai_flags = AI_PASSIVE;
 	hints.ai_family = AF_INET6;
 
-	if (!strcmp(argv[optind], "stream")) {
+	if (!strcmp(argv[optind], "tcp")) {
 		hints.ai_socktype = SOCK_STREAM;
 		hints.ai_protocol = IPPROTO_TCP;
-	} else if (!strcmp(argv[optind], "dgram")) {
+		sockprotocol      = IPPROTO_TCP;
+	} else if (!strcmp(argv[optind], "mptcp")) {
+		hints.ai_socktype = SOCK_STREAM;
+		hints.ai_protocol = IPPROTO_TCP;
+		sockprotocol      = IPPROTO_MPTCP;
+	} else if (!strcmp(argv[optind], "udp")) {
 		hints.ai_socktype = SOCK_DGRAM;
 		hints.ai_protocol = IPPROTO_UDP;
+		sockprotocol      = IPPROTO_UDP;
 	} else {
 		usage(argv[0]);
 	}
@@ -79,7 +88,7 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
-	sock = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+	sock = socket(res->ai_family, res->ai_socktype, sockprotocol);
 	if (sock < 0) {
 		perror("socket");
 		exit(1);
