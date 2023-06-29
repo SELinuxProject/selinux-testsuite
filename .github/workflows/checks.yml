@@ -17,9 +17,9 @@ jobs:
       matrix:
         domain: [unconfined_t, sysadm_t]
         env:
-          - { version: 36, kernel: default }
           - { version: 37, kernel: default }
-          - { version: 37, kernel: secnext }
+          - { version: 38, kernel: default }
+          - { version: 38, kernel: secnext }
     env:
       FEDORA_VERSION: ${{ matrix.env.version }}
       KERNEL_TYPE: ${{ matrix.env.kernel }}
