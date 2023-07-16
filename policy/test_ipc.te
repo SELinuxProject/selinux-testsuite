@@ -67,5 +67,3 @@ fs_rw_tmpfs_files(ipcdomain)
 
 allow test_ipc_base_t self:sem create_sem_perms;
 allow test_ipc_base_t self:shm create_shm_perms;
-# ipcrm needs this... 
-userdom_search_user_home_dirs(test_ipc_base_t)

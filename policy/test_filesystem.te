@@ -366,7 +366,6 @@ allow test_filesystem_inode_setxattr_no_associate_t test_file_t:file { create re
 #
 ############### Rules for NFS mount ##################
 #
-userdom_search_user_home_content(filesystemdomain)
 allow test_filesystem_t test_filesystem_file_t:filesystem { getattr mount remount unmount relabelto relabelfrom };
 allow test_filesystem_t test_file_t:file { create write relabelfrom };
 allow test_file_t test_filesystem_file_t:filesystem { associate };

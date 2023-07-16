@@ -153,6 +153,13 @@ selinux_compute_create_context(testsuite_domain)
 selinux_compute_relabel_context(testsuite_domain)
 selinux_compute_user_contexts(testsuite_domain)
 
+userdom_search_user_home_content(testsuite_domain)
+# Refpolicy does not have admin_home_t - assume /root will be user_home_dir_t,
+# which is covered by the above call.
+ifdef(`userdom_search_admin_dir', `
+    userdom_search_admin_dir(testsuite_domain)
+')
+
 # Reference policy renamed files_list_pids() to files_list_runtime()
 ifdef(`files_list_pids', `
     files_list_pids(testsuite_domain)

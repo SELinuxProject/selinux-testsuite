@@ -16,7 +16,6 @@ allow test_filesystem_t dosfs_t:filesystem { watch };
 #
 ############### Rules for NFS mount with rootcontext option #################
 #
-userdom_search_user_home_content(filesystemdomain)
 allow test_filesystem_no_watch_mount_t nfs_t:filesystem { unmount };
 allow test_filesystem_no_watch_mount_t test_filesystem_file_t:dir { search };
 allow test_filesystem_no_watch_sb_t nfs_t:filesystem { unmount watch };

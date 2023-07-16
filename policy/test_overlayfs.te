@@ -45,10 +45,6 @@ kernel_search_proc(test_overlay_mounter_t)
 fs_relabelfrom_xattr_fs(test_overlay_mounter_t)
 fs_mount_xattr_fs(test_overlay_mounter_t)
 
-userdom_search_admin_dir(test_overlay_mounter_t)
-userdom_search_user_home_content(test_overlay_mounter_t)
-userdom_read_user_tmp_files(test_overlay_mounter_t)
-
 mount_exec(test_overlay_mounter_t)
 mount_rw_pid_files(test_overlay_mounter_t)
 
@@ -112,9 +108,6 @@ mcs_constrained(test_overlay_client_t)
 
 kernel_read_system_state(test_overlay_client_t)
 kernel_read_proc_symlinks(test_overlay_client_t)
-
-userdom_search_admin_dir(test_overlay_client_t)
-userdom_search_user_home_content(test_overlay_client_t)
 
 fs_getattr_xattr_fs(test_overlay_client_t)
 
