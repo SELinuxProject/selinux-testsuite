@@ -55,6 +55,7 @@ CONFIG_IPV6_GRE=m
 CONFIG_SCSI_ISCSI_ATTRS=m
 CONFIG_NETFILTER_NETLINK=m
 CONFIG_CRYPTO_USER=m
+CONFIG_NF_TABLES=m
 
 # Overlay fs.
 # This is enabled to test overlayfs SELinux integration.
