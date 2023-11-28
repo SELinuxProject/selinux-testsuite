@@ -7,7 +7,7 @@ jobs:
       image: fedora:latest
     steps:
       - run: sudo dnf install -y astyle perltidy findutils git-core
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - run: sudo chown $(id -u):$(id -g) .
       - run: tools/check-syntax -f && git diff --exit-code
   fedora-test:
@@ -27,7 +27,7 @@ jobs:
     steps:
       - name: Install GNU coreutils
         run: brew install coreutils
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       # macOS sometimes allows symlinks to have permissions other than 777,
       # so change all symlink perms to match the Linux convention. Otherwise
       # the rsync run by Vagrant will complain that it can't copy over the
