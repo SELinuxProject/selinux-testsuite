@@ -227,16 +227,15 @@ system "/bin/sh $basedir/cipso-flush";
 # * be omitted. */
 system "/bin/sh $basedir/cipso-load-t5";
 
-if ($is_stream) {
+# Start the server with a defined level.
+$pid = server_start( "-t test_inet_server_t -l s0:c0.c100", "$proto 65535" );
 
-    # Start the server with a defined level.
-    $pid =
-      server_start( "-t test_inet_server_t -l s0:c0.c100", "$proto 65535" );
-
-    # Verify that authorized client can communicate with the server using level.
-    $result = system
+# Verify that authorized client can communicate with the server using level.
+$result = system
 "runcon -t test_inet_client_t -l s0:c0.c100 $basedir/client -e system_u:object_r:netlabel_peer_t:s0:c0.c100 $proto 127.0.0.1 65535";
-    ok( $result eq 0 );
+ok( $result eq 0 );
+
+if ($is_stream) {
 
     # Verify that authorized client can communicate with the server using level.
     $result = system
@@ -257,28 +256,16 @@ if ($is_stream) {
     $result = system
 "runcon -t test_inet_client_t -l s0:c20.c25,c30.c36,c40.c45,c50.c55,c60.c66,c70.c78,c80.c88,c90.c99 $basedir/client $proto 127.0.0.1 65535 2>&1";
     ok( $result >> 8 eq $fail_value1 );
-
-    # Kill the server.
-    server_end($pid);
 }
 else {
-    # Start the server with a defined level.
-    $pid =
-      server_start( "-t test_inet_server_t -l s0:c0.c100", "$proto 65535" );
-
-# Verify that authorized client can communicate with the server using same levels.
-    $result = system
-"runcon -t test_inet_client_t -l s0:c0.c100 $basedir/client -e system_u:object_r:netlabel_peer_t:s0:c0.c100 $proto 127.0.0.1 65535";
-    ok( $result eq 0 );
-
 # Verify that authorized client cannot communicate with the server using levels dominating the server.
     $result = system
 "runcon -t test_inet_client_t -l s0:c40.c101 $basedir/client $proto 127.0.0.1 65535 2>&1";
     ok( $result >> 8 eq $fail_value1 );
-
-    # Kill the server.
-    server_end($pid);
 }
+
+# Kill the server.
+server_end($pid);
 
 # Flush NetLabel configuration.
 system "/bin/sh $basedir/cipso-flush";
