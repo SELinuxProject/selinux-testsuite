@@ -207,7 +207,7 @@ You will need to install an additional package, the package below
 is for Fedora/RHEL but other Linux distributions should have a similar
 package:
 
-* nfs-utils _(for `nfsd', `exportfs', and other NFS-related programs)_
+* nfs-utils _(for `nfsd`, `exportfs`, and other NFS-related programs)_
 
 On a modern Fedora system you can install this dependency with the
 following command:
