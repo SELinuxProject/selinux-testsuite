@@ -31,19 +31,16 @@ BEGIN {
     }
 
     # Determine if CALIPSO supported by netlabelctl(8) and kernel.
-    $test_calipso_stream = 0;
-    if ($is_stream) {
-        $netlabelctl = `netlabelctl -V`;
-        $netlabelctl =~ s/\D//g;
-        $kvercur = `uname -r`;
-        chomp($kvercur);
-        $kverminstream = "4.8";
+    $test_calipso = 0;
+    $netlabelctl  = `netlabelctl -V`;
+    $netlabelctl =~ s/\D//g;
+    $kvercur = `uname -r`;
+    chomp($kvercur);
 
-        $rc = `$basedir/../kvercmp $kvercur $kverminstream`;
-        if ( $netlabelctl gt "021" and $rc > 0 ) {
-            $test_count += 3;
-            $test_calipso_stream = 1;
-        }
+    $rc = `$basedir/../kvercmp $kvercur 4.8`;
+    if ( $netlabelctl gt "021" and $rc > 0 ) {
+        $test_count += $is_stream ? 3 : 2;
+        $test_calipso = 1;
     }
 
     # Determine if kernel has legacy iptables support
@@ -401,30 +398,48 @@ if ($test_nft) {
     system "nft -f $basedir/nftables-flush";
 }
 
-if ($test_calipso_stream) {
+if ($test_calipso) {
 
     # Load NetLabel configuration for CALIPSO/IPv6 labeling over loopback.
     system "/bin/sh $basedir/calipso-load";
 
-    # Start the stream server.
-    $pid = server_start( "-t test_inet_server_t -l s0:c0.c10", "$proto 65535" );
+    if ($is_stream) {
 
-    # Verify that authorized client can communicate with the server.
-    $result = system
+        # Start the server.
+        $pid =
+          server_start( "-t test_inet_server_t -l s0:c0.c10", "$proto 65535" );
+
+        # Verify that authorized client can communicate with the server.
+        $result = system
 "runcon -t test_inet_client_t -l s0:c0.c10 $basedir/client -e system_u:object_r:netlabel_peer_t:s0:c0.c10 $proto ::1 65535";
-    ok( $result eq 0 );
+        ok( $result eq 0 );
 
 # Verify that authorized client can communicate with the server using different valid level.
-    $result = system
+        $result = system
 "runcon -t test_inet_client_t -l s0:c8.c10 $basedir/client -e  system_u:object_r:netlabel_peer_t:s0:c8.c10 $proto ::1 65535";
-    ok( $result eq 0 );
+        ok( $result eq 0 );
+    }
+    else {
+        # IPv6 currently doesn't support getting the packet context
+        # via CMSG (https://github.com/SELinuxProject/selinux-kernel/issues/24)
+        # so don't check the returned label here.
+
+        # Start the server.
+        $pid = server_start( "-t test_inet_server_t -l s0:c0.c10",
+            "-n $proto 65535" );
+
+        # Verify that authorized client can communicate with the server.
+        $result = system
+"runcon -t test_inet_client_t -l s0:c0.c10 $basedir/client -e nopeer $proto ::1 65535";
+        ok( $result eq 0 );
+    }
 
 # Verify that authorized client cannot communicate with the server using invalid level.
     $result = system
 "runcon -t test_inet_client_t -l s0:c8.c12 -- $basedir/client $proto ::1 65535 2>&1";
-    ok( $result >> 8 eq 5 );
+    ok( $result >> 8 eq $fail_value2 );
 
-    # Kill the stream server.
+    # Kill the server.
     server_end($pid);
 
     system "/bin/sh $basedir/calipso-flush";
