@@ -37,7 +37,6 @@ interface(`testsuite_domain_type',`
 interface(`testsuite_domain_type_minimal',`
 	gen_require(`
 		type setrans_var_run_t;
-		type install_t;
 	')
 
 	testsuite_domain_type_common($1)
@@ -47,10 +46,13 @@ interface(`testsuite_domain_type_minimal',`
 	allow $1 proc_t:lnk_file { read };
 	allow $1 self:dir { search };
 	allow $1 self:file { open read write };
-	allow $1 install_t:fd use; # for rpm-ostree --apply-live magic
 	dontaudit $1 security_t:filesystem getattr;
 	dontaudit $1 self:file getattr;
 	dontaudit $1 setrans_var_run_t:dir search;
+
+	ifdef(`anaconda_fd_use',`
+		anaconda_fd_use($1) # for rpm-ostree --apply-live magic
+	')
 ')
 
 interface(`testsuite_caller_association_setcontext',`
