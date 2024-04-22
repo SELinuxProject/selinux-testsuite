@@ -30,13 +30,13 @@ $result = system(
 );
 ok($result);         # we expect this to fail.
 
-# Verify that test_getrlimit_t can get limits of test_setrlimit_child_t
+# Verify that test_getrlimit_t can get limits of test_getrlimit_child_t
 $result = system(
 "runcon -t test_getrlimit_t $basedir/parent -g test_getrlimit_child_t $basedir/child 2>&1"
 );
 ok( $result, 0 );    # we expect this to succeed.
 
-# Verify that test_no_getrlimit_t cannot get limit of test_setrlimit_child_t
+# Verify that test_no_getrlimit_t cannot get limit of test_getrlimit_child_t
 $result = system(
 "runcon -t test_no_getrlimit_t $basedir/parent -g test_getrlimit_child_t $basedir/child 2>&1"
 );
