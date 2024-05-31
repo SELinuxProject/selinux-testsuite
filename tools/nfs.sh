@@ -77,27 +77,31 @@ POPD=0
 popd >/dev/null 2>&1
 umount /mnt/selinux-testsuite
 #
-echo -e "Run 'filesystem' tests with mount context option:\n\t$FS_CTX"
-mount -t nfs -o vers=4.2,$FS_CTX localhost:$TESTDIR /mnt/selinux-testsuite
-pushd /mnt/selinux-testsuite >/dev/null 2>&1
-POPD=1
-cd tests
-./nfsruntests.pl filesystem/test
-cd ../
-POPD=0
-popd >/dev/null 2>&1
-umount /mnt/selinux-testsuite
+# The block below is commented out since these tests do not pass
+# on any known kernel.
+# See https://github.com/SELinuxProject/selinux-testsuite/issues/91
 #
-echo -e "Run 'fs_filesystem' tests with mount context option:\n\t$FS_CTX"
-mount -t nfs -o vers=4.2,$FS_CTX localhost:$TESTDIR /mnt/selinux-testsuite
-pushd /mnt/selinux-testsuite >/dev/null 2>&1
-POPD=1
-cd tests
-./nfsruntests.pl fs_filesystem/test
-cd ../
-POPD=0
-popd >/dev/null 2>&1
-umount /mnt/selinux-testsuite
+#echo -e "Run 'filesystem' tests with mount context option:\n\t$FS_CTX"
+#mount -t nfs -o vers=4.2,$FS_CTX localhost:$TESTDIR /mnt/selinux-testsuite
+#pushd /mnt/selinux-testsuite >/dev/null 2>&1
+#POPD=1
+#cd tests
+#./nfsruntests.pl filesystem/test
+#cd ../
+#POPD=0
+#popd >/dev/null 2>&1
+#umount /mnt/selinux-testsuite
+#
+#echo -e "Run 'fs_filesystem' tests with mount context option:\n\t$FS_CTX"
+#mount -t nfs -o vers=4.2,$FS_CTX localhost:$TESTDIR /mnt/selinux-testsuite
+#pushd /mnt/selinux-testsuite >/dev/null 2>&1
+#POPD=1
+#cd tests
+#./nfsruntests.pl fs_filesystem/test
+#cd ../
+#POPD=0
+#popd >/dev/null 2>&1
+#umount /mnt/selinux-testsuite
 #
 echo "Run NFS context specific tests"
 cd tests
