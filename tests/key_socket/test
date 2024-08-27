@@ -16,7 +16,13 @@ BEGIN {
         $v = " ";
     }
 
-    plan tests => 5;
+    $result = system "$basedir/key_sock $v 2>&1";
+    if ( $result >> 8 eq 97 ) {    # EAFNOSUPPORT
+        plan skip_all => "PF_KEY not supported by kernel";
+    }
+    else {
+        plan tests => 5;
+    }
 }
 
 ############ Test key_socket #############
