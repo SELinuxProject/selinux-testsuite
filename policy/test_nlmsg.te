@@ -1,0 +1,34 @@
+########################################
+#
+# Policy for testing the nlmsg extended permissions.
+
+define(`RTM_GETLINK', `18')
+define(`RTM_SETLINK', `19')
+define(`RTM_GETADDR', `22')
+
+attribute nlmsgtestdomain;
+
+# Domain that is allowed the nlmsg extended permissions.
+type test_nlmsg_xperm_t;
+typeattribute test_nlmsg_xperm_t nlmsgtestdomain;
+testsuite_domain_type(test_nlmsg_xperm_t)
+allow test_nlmsg_xperm_t self:netlink_route_socket create_socket_perms;
+# Also allow the legacy nlmsg_read/write permissions to ensure no false positives.
+allow test_nlmsg_xperm_t self:netlink_route_socket { nlmsg nlmsg_read nlmsg_write };
+allowxperm test_nlmsg_xperm_t self:netlink_route_socket nlmsg { RTM_GETLINK RTM_SETLINK RTM_GETADDR };
+
+# Domain that is not allowed the nlmsg extended permissions.
+type test_nlmsg_noxperm_t;
+typeattribute test_nlmsg_noxperm_t nlmsgtestdomain;
+testsuite_domain_type(test_nlmsg_noxperm_t)
+allow test_nlmsg_noxperm_t self:netlink_route_socket create_socket_perms;
+# Also allow the legacy nlmsg_read/write permissions to ensure no false positives.
+allow test_nlmsg_noxperm_t self:netlink_route_socket { nlmsg nlmsg_read nlmsg_write };
+allowxperm test_nlmsg_noxperm_t self:netlink_route_socket nlmsg ~{ RTM_GETLINK RTM_SETLINK RTM_GETADDR };
+
+#
+# Common rules for all nlmsg test domains.
+#
+
+# Trigger kernel module auto-loading of the protocol implementations.
+kernel_request_load_module(nlmsgtestdomain)

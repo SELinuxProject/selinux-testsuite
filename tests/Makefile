@@ -153,6 +153,11 @@ ifneq ($(shell ./kvercmp $$(uname -r) 6.5),-1)
 SUBDIRS += inet_socket/mptcp
 endif
 
+# nlmsg test dependencies: policy >= 30, nlmsg permission, netlink_xperm capability
+ifeq ($(shell [ $(MOD_POL_VERS) -ge 18 -a $(MAX_KERNEL_POLICY) -ge 30 ] && [ -f /sys/fs/selinux/class/netlink_route_socket/perms/nlmsg ] && grep -q 1 $(SELINUXFS)/policy_capabilities/netlink_xperm && echo true),true)
+SUBDIRS += nlmsg
+endif
+
 ifeq ($(DISTRO),RHEL4)
     SUBDIRS:=$(filter-out bounds dyntrace dyntrans inet_socket mmap nnp_nosuid overlay unix_socket, $(SUBDIRS))
 endif
