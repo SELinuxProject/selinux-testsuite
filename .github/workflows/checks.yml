@@ -1,5 +1,6 @@
 name: checks
 on: [push, pull_request]
+
 jobs:
   style-check:
     runs-on: ubuntu-latest
@@ -10,43 +11,19 @@ jobs:
       - uses: actions/checkout@v4
       - run: sudo chown $(id -u):$(id -g) .
       - run: tools/check-syntax -f && git diff --exit-code
-  fedora-test:
-    runs-on: macos-12
+  run:
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         domain: [unconfined_t, sysadm_t]
-        env:
-          - { version: 38, kernel: default }
-          - { version: 39, kernel: default }
-          - { version: 39, kernel: secnext }
-    env:
-      FEDORA_VERSION: ${{ matrix.env.version }}
-      KERNEL_TYPE: ${{ matrix.env.kernel }}
-      ROOT_DOMAIN: ${{ matrix.domain }}
+        arch: [x86_64, aarch64]
+        kernel: [latest, secnext]
     steps:
-      - name: Install GNU coreutils
-        run: brew install coreutils
-      - uses: actions/checkout@v4
-      # macOS sometimes allows symlinks to have permissions other than 777,
-      # so change all symlink perms to match the Linux convention. Otherwise
-      # the rsync run by Vagrant will complain that it can't copy over the
-      # perms.
-      - name: Fix symlink permissions
-        run: find . -type link -exec chmod -h 777 \{\} \;
-      - name: Treat compiler warnings as errors
-        run: sed -i '' 's/-Wall/-Wall -Werror/' tests/Makefile
-      - name: Create a Vagrant VM
-        run: vagrant up
-      - name: Wait for the machine to come up if rebooting (max 5m)
-        run: gtimeout 5m "$SHELL" -c 'while ! vagrant ssh -- true; do sleep 1; done'
-      - name: Show Vagrant VM details
-        run: |
-          vagrant ssh -- uname -a
-          vagrant ssh -- cat /proc/cmdline
-      - name: Run SELinux testsuite
-        run: vagrant ssh -- sudo make -C /root/testsuite test
-      - name: Check unwanted denials
-        run: vagrant ssh -- '! sudo ausearch -m avc -i </dev/null | grep ${{ matrix.domain }}'
-      - name: Check .gitignore coverage
-        run: test "$(vagrant ssh -- sudo git -C /root/testsuite ls-files -o --exclude-standard | wc -l)" -eq 0
+      - name: Schedule test on Testing Farm
+        uses: sclorg/testing-farm-as-github-action@main
+        with:
+          api_key: ${{ secrets.TESTING_FARM_API_TOKEN }}
+          arch: ${{ matrix.arch }}
+          variables: STS_ROOT_DOMAIN=${{ matrix.domain }}; STS_KERNEL=${{ matrix.kernel }}
+          tmt_plan_filter: tag:ci

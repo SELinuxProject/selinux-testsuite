@@ -1,0 +1,150 @@
+# can't do this in the prepare step because of
+# https://github.com/teemtee/tmt/issues/902
+/prepare-system:
+  summary: Prepare the system for testing
+  order: 1
+  require: policycoreutils-python-utils
+  test: |
+    set -ex
+
+    if [ "$TMT_REBOOT_COUNT" -eq 0 ]; then
+      reboot=0
+
+      # Work around systemd/ssh bug
+      # https://github.com/fedora-selinux/selinux-policy/pull/2330
+      {
+        echo '(allow init_t sshd_t (fd (use)))'
+        echo '(allow systemd_logind_t sshd_t (fd (use)))'
+      } >ssh_workaround.cil
+      semodule -i ssh_workaround.cil
+      rm -f ssh_workaround.cil
+
+      case "$STS_ROOT_DOMAIN" in
+      unconfined_t|'')
+        ;;
+      sysadm_t)
+        semanage boolean --modify --on ssh_sysadm_login
+        semanage login --modify -s sysadm_u root
+
+        # Work around missing policy for sysadm_t
+        # https://github.com/fedora-selinux/selinux-policy/pull/2340
+        echo '(allow sysadm_t self (key_socket (create ioctl read getattr lock write setattr append bind connect getopt setopt shutdown)))' >sysadm_workaround.cil
+        semodule -i sysadm_workaround.cil
+        rm -f sysadm_workaround.cil
+
+        reboot=1
+        ;;
+      *)
+        echo "Invalid STS_ROOT_DOMAIN value!"
+        exit 1
+        ;;
+      esac
+
+      case "$STS_KERNEL" in
+      default|'')
+        dnf install -y kernel-modules-$(uname -r) kernel-devel-$(uname -r)
+        ;;
+      latest)
+        dnf install -y kernel-modules kernel-devel
+        ;;
+      secnext)
+        dnf install -y --disablerepo testing-farm-tag-repository \
+          --nogpgcheck --releasever rawhide \
+          --repofrompath 'kernel-secnext,https://repo.paul-moore.com/rawhide/$basearch' \
+          kernel-modules kernel-devel
+        ;;
+      *)
+        echo "Invalid STS_KERNEL value!"
+        exit 1
+        ;;
+      esac
+
+      if [ "$(grubby --default-kernel)" != "/boot/vmlinuz-$(uname -r)" ]; then
+        reboot=1
+      fi
+
+      if [ "$reboot" -ne 0 ]; then
+        tmt-reboot
+      fi
+    fi
+
+    # reset the audit log
+    :>/var/log/audit.log
+    rm -f /var/log/audit.log.*
+/machine-info:
+  summary: Show machine info
+  order: 2
+  test: |
+    set -x
+
+    uname -r
+    id -Z
+    rpm -q libselinux
+    rpm -q selinux-policy
+    lscpu
+/run:
+  summary: Run the testsuite
+  order: 3
+  duration: 20m
+  require:
+    - make
+    - perl-Test
+    - perl-Test-Harness
+    - perl-Test-Simple
+    - perl-lib
+    - selinux-policy-devel
+    - gcc
+    - libselinux-devel
+    - net-tools
+    - netlabel_tools
+    - iptables
+    - nftables
+    - lksctp-tools-devel
+    - attr
+    - libbpf-devel
+    - keyutils-libs-devel
+    - quota
+    - xfsprogs-devel
+    - libuuid-devel
+    - e2fsprogs
+    - jfsutils
+    - dosfstools
+    - rdma-core-devel
+  test: make -C .. test
+/run-nfs:
+  summary: Run the NFS tests
+  order: 3
+  duration: 25m
+  require: nfs-utils
+  test: env -C .. bash -x ./tools/nfs.sh
+/avc-check:
+  summary: Check unwanted denials
+  order: 4
+  tag: [ci]
+  test: '! ausearch -m avc -i </dev/null | grep "$STS_ROOT_DOMAIN"'
+/gitignore-coverage:
+  summary: Check .gitignore coverage
+  order: 4
+  tag: [ci]
+  require: git-core
+  test: |
+    # exclude tmt's litter
+    mkdir -p "$HOME/.config/git"
+    echo "tmt-*" >"$HOME/.config/git/ignore"
+
+    git -C .. ls-files -o --exclude-standard
+    test "$(git -C .. ls-files -o --exclude-standard | wc -l)" -eq 0
+/unprepare:
+  summary: Undo the preparation
+  order: 5
+  require: policycoreutils-python-utils
+  test: |
+    set -ex
+
+    make -C ../policy unload || true
+    if [ "$STS_ROOT_DOMAIN" = sysadm_t ]; then
+      semanage boolean --modify --off ssh_sysadm_login
+      semanage login --modify -s unconfined_u root
+      semodule -r sysadm_workaround
+    fi
+    semodule -r ssh_workaround
