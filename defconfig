@@ -131,3 +131,8 @@ CONFIG_KEY_NOTIFICATIONS=y
 # This is not required for SELinux operation itself.
 CONFIG_TRACING=y
 CONFIG_DEBUG_FS=y
+
+# Test SMC sockets
+CONFIG_INFINIBAND=m
+CONFIG_SMC=m
+CONFIG_SMC_LO=y

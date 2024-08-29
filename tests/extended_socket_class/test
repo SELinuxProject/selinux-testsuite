@@ -6,6 +6,7 @@ BEGIN {
     $test_count     = 6;
     $test_bluetooth = 0;
     $test_sctp      = 0;
+    $test_smc       = 0;
 
     # check if SCTP is enabled
     if ( system("modprobe sctp 2>/dev/null && checksctp 2>/dev/null") eq 0 ) {
@@ -17,6 +18,12 @@ BEGIN {
     if ( system("modprobe bluetooth 2>/dev/null") eq 0 ) {
         $test_count += 2;
         $test_bluetooth = 1;
+    }
+
+    # check if SMC is supported
+    if ( system("modprobe smc 2>/dev/null") eq 0 ) {
+        $test_count += 2;
+        $test_smc = 1;
     }
 
     plan tests => $test_count;
@@ -131,3 +138,18 @@ $result = system(
 "runcon -t test_no_alg_socket_t -- $basedir/sockcreate alg seqpacket default 2>&1"
 );
 ok($result);
+
+if ($test_smc) {
+
+    # Verify that test_smc_socket_t can create a SMC socket (AF_SMC).
+    $result = system(
+"runcon -t test_smc_socket_t -- $basedir/sockcreate smc stream default 2>&1"
+    );
+    ok( $result, 0 );
+
+    # Verify that test_no_smc_socket_t cannot create a SMC socket (AF_SMC).
+    $result = system(
+"runcon -t test_no_smc_socket_t -- $basedir/sockcreate smc stream default 2>&1"
+    );
+    ok($result);
+}

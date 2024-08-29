@@ -48,6 +48,9 @@ extended_socket_class_test(bluetooth_socket, socket)
 # Test use of alg_socket for Alg (Crypto API) sockets instead of socket.
 extended_socket_class_test(alg_socket, socket)
 
+# Test use of smc_socket for SMC sockets instead of socket.
+extended_socket_class_test(smc_socket, socket)
+
 #
 # Common rules for all extended_socket_class test domains.
 #

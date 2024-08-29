@@ -47,6 +47,7 @@ static struct nameval domains[] = {
 #define AF_QIPCRTR 42
 #endif
 	{ "qipcrtr", AF_QIPCRTR },
+	{ "smc", AF_SMC },
 	{ NULL, 0 }
 };
 
