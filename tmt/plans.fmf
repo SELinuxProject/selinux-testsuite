@@ -1,0 +1,14 @@
+/run:
+  summary: Run the testsuite
+  discover:
+    how: fmf
+    filter: tag:-ci
+  execute:
+    how: tmt
+/run-ci:
+  summary: Run the CI for the testsuite
+  tag: [ci]
+  discover:
+    how: fmf
+  execute:
+    how: tmt
