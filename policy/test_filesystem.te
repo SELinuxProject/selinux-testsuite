@@ -31,6 +31,7 @@ allow test_filesystem_t test_file_t:dir { add_name mounton read write remove_nam
 # Create test file
 allow test_filesystem_t test_filesystem_file_t:dir { read add_name write search mounton };
 allow test_filesystem_t test_filesystem_file_t:file { open getattr create read write relabelfrom relabelto };
+allow test_filesystem_t test_filesystem_file_t:lnk_file { read };
 
 fs_mount_all_fs(test_filesystem_t)
 fs_remount_all_fs(test_filesystem_t)
@@ -44,6 +45,7 @@ fs_getattr_xattr_fs(test_filesystem_t)
 
 # Required when running the tests on a labeled NFS mount.
 fs_getattr_nfs(test_filesystem_t)
+fs_read_nfs_symlinks(test_filesystem_t)
 
 # Update quotas
 fs_set_all_quotas(test_filesystem_t)
