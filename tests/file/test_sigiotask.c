@@ -58,7 +58,7 @@ int main(int argc, char **argv)
 	/*
 	 * Spawn off the child process to handle the information protocol.
 	 */
-	if( (pid = fork()) < 0 ) {
+	if((pid = fork()) < 0 ) {
 		perror("test_sigiotask:fork");
 		exit(2);
 	}

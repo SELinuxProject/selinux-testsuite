@@ -127,7 +127,7 @@ int main (int argc, char *argv[])
 	selinux_ctxt[ret] = 0;
 	if (strstr(selinux_ctxt, argv[1]) == NULL) {
 		fprintf(stderr, "Couldn't find the right selinux context. "
-			"got:%s expected:%s\n", selinux_ctxt, argv[1]);
+				"got:%s expected:%s\n", selinux_ctxt, argv[1]);
 		return 3;
 	}
 

@@ -42,8 +42,8 @@ usage(char *pname)
 {
 	fprintf(stderr, "Usage: %s [options] cmd [arg...]\n\n", pname);
 	fprintf(stderr, "Create a child process that executes a shell "
-		"command in a new user namespace,\n"
-		"and possibly also other new namespace(s).\n\n");
+			"command in a new user namespace,\n"
+			"and possibly also other new namespace(s).\n\n");
 	fprintf(stderr, "Options can be:\n\n");
 #define fpe(str) fprintf(stderr, "    %s", str);
 	fpe("-i          New IPC namespace\n");

@@ -63,7 +63,7 @@ int main(int argc, char **argv)
 	 * < 2.6.27 or >= 2.6.39:  Should only check FD__USE and succeed.
 	 */
 	rc = ioctl(fd, FIONBIO, &val);
-	if( !rc == !useaccessmode ) {
+	if(!rc == !useaccessmode ) {
 		printf("test_noioctl:FIONBIO");
 		exit(1);
 	}
@@ -74,7 +74,7 @@ int main(int argc, char **argv)
 	 * Old:  Should hit the FILE__GETATTR test and fail.
 	 */
 	rc = ioctl(fd, FS_IOC_GETVERSION, &val);
-	if( (useaccessmode && rc == 0) ||
+	if((useaccessmode && rc == 0) ||
 	    (!useaccessmode && rc < 0 && errno != ENOTTY) ) {
 		perror("test_noioctl:FS_IOC_GETVERSION");
 		exit(1);
