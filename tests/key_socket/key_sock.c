@@ -111,7 +111,7 @@ int main(int argc, char *argv[])
 	    r_msg.sadb_msg_type != w_msg.sadb_msg_type ||
 	    r_msg.sadb_msg_satype != w_msg.sadb_msg_satype ||
 	    r_msg.sadb_msg_seq != w_msg.sadb_msg_seq ||
-	    r_msg.sadb_msg_pid != getpid()) {
+	    (pid_t)r_msg.sadb_msg_pid != getpid()) {
 		fprintf(stderr, "Failed to read correct sadb_msg data:\n");
 		fprintf(stderr, "\tSent - ver: %d type: %d sa_type: %d seq: %d pid: %d\n",
 			w_msg.sadb_msg_version, w_msg.sadb_msg_type,

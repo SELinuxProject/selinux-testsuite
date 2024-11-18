@@ -138,12 +138,14 @@ int main(int argc, char **argv)
 		newrlimp = &newrlim;
 		if (soft) {
 			newrlim.rlim_max = oldrlim.rlim_max;
+			newrlim.rlim_cur = oldrlim.rlim_cur;
 			if (newrlim.rlim_cur == RLIM_INFINITY)
 				newrlim.rlim_cur = 1024;
 			else
 				newrlim.rlim_cur = oldrlim.rlim_cur / 2;
 		} else {
 			newrlim.rlim_cur = oldrlim.rlim_cur;
+			newrlim.rlim_max = oldrlim.rlim_max;
 			if (newrlim.rlim_max == RLIM_INFINITY)
 				newrlim.rlim_max = 1024;
 			else

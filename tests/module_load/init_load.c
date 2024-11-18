@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
 	}
 
 	fd = open(file_name, O_RDONLY);
-	if (!fd) {
+	if (fd < 0) {
 		fprintf(stderr, "Failed to open %s: %s\n",
 			file_name, strerror(errno));
 		exit(-1);

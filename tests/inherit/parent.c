@@ -66,7 +66,7 @@ int main(int argc, char **argv)
 		fprintf(stderr, "%s:  out of memory\n", argv[0]);
 		exit(-1);
 	}
-	childargv[1] = malloc(6);
+	childargv[1] = malloc(11);
 	if (!childargv[1]) {
 		fprintf(stderr, "%s:  out of memory\n", argv[0]);
 		exit(-1);
