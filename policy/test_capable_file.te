@@ -29,7 +29,7 @@ type test_nofcap_t;
 typeattribute test_nofcap_t capabledomain;
 testsuite_domain_type(test_nofcap_t)
 
-# Allow these domains to create a temporay file.
+# Allow these domains to create a temporary file.
 allow capabledomain test_file_t:file { setattr rw_file_perms };
 allow capabledomain test_file_t:chr_file { create };
 allow capabledomain test_file_t:dir { setattr rw_dir_perms };

@@ -29,7 +29,7 @@ setup () {
     # (test_overlay_mounter_t, test_overlay_client_t)
     chcon -R -t test_overlay_files_ro_t $BASEDIR/lower
 
-    # Label noaccessfile and noaccessdir, with types not accessable to either the
+    # Label noaccessfile and noaccessdir, with types not accessible to either the
     # mounter or the client types
     chcon -t test_overlay_files_noaccess_t $BASEDIR/lower/noaccessfile $BASEDIR/lower/noaccessdir $BASEDIR/lower/null_noaccess
     chcon -t test_overlay_mounter_files_t $BASEDIR/lower/mounterfile $BASEDIR/lower/mounterdir $BASEDIR/lower/null_mounter

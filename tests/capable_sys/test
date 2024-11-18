@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 #
-# This test performs checks for system-related capabilties.
+# This test performs checks for system-related capabilities.
 #
 
 use Test;

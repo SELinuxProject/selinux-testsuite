@@ -286,7 +286,7 @@ int main(int argc, char **argv)
 	if (fd_type == BPF_TEST)
 		exit(0);
 
-	/* If BPF enabed, then need to set limits */
+	/* If BPF enabled, then need to set limits */
 	if (fd_type == BPF_MAP_FD || fd_type == BPF_PROG_FD)
 		bpf_setrlimit();
 #else
