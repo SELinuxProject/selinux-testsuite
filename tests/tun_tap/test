@@ -16,7 +16,15 @@ BEGIN {
         $v = " ";
     }
 
-    plan tests => 14;
+    $result = system("runcon -t test_tun_tap_t $basedir/tun_tap $v -c 2>&1");
+
+    # check for TUN/TAP support - ENOENT
+    if ( $result >> 8 eq 2 ) {
+        plan skip_all => "No TUN/TAP support";
+    }
+    else {
+        plan tests => 14;
+    }
 }
 
 ############ Test tun_socket TUN #############
