@@ -9,14 +9,15 @@ BEGIN {
     chop($seuser);
     $seuser =~ s|^(\w+):.*$|$1|;
 
-    $isnfs = `stat -f --print %T $basedir`;
+    $fs = `stat -f --print %T $basedir`;
 
     # check if kernel supports overlayfs and SELinux labeling
     if ( system("grep -q security_inode_copy_up /proc/kallsyms") ) {
         plan skip_all => "overlayfs not supported with SELinux in this kernel";
     }
-    elsif ( $isnfs eq "nfs" ) {
-        plan skip_all => "overlayfs upperdir not supported on NFS";
+    elsif ( $fs eq "nfs" or $fs eq "overlayfs" ) {
+        plan skip_all =>
+          "overlayfs upperdir not supported on NFS and OverlayFS";
     }
     else {
         plan tests => 119;

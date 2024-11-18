@@ -28,9 +28,9 @@ int main(int argc, char **argv)
 	}
 
 	/* This one should hit the FILE__GETATTR or FILE__IOCTL test */
-	rc = ioctl(fd, FIGETBSZ, &val);
+	rc = ioctl(fd, FS_IOC_GETFLAGS, &val);
 	if( rc < 0 ) {
-		perror("test_ioctl:FIGETBSZ");
+		perror("test_ioctl:FS_IOC_GETFLAGS");
 		exit(1);
 	}
 

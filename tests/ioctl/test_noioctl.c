@@ -44,9 +44,9 @@ int main(int argc, char **argv)
 	}
 
 	/* This one should hit the FILE__IOCTL or FILE__GETATTR test and fail. */
-	rc = ioctl(fd, FIGETBSZ, &val);
+	rc = ioctl(fd, FS_IOC_GETFLAGS, &val);
 	if( rc == 0 ) {
-		printf("test_noioctl:FIGETBSZ");
+		printf("test_noioctl:FS_IOC_GETFLAGS");
 		exit(1);
 	}
 
