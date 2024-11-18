@@ -27,7 +27,7 @@ int main(int argc, char **argv)
 {
 	int opt, result, save_err;
 	const char *newcon;
-	char *context, *fs_con = NULL, *base_dir, *type;
+	char *context, *fs_con = NULL, *base_dir = NULL, *type = NULL;
 	char fs_mount[PATH_MAX];
 	bool verbose = false;
 	context_t con_t;

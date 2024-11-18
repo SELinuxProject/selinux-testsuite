@@ -11,6 +11,7 @@
 #include <errno.h>
 #include <selinux/selinux.h>
 
+__attribute__((noreturn))
 void usage(char *progname)
 {
 	fprintf(stderr,
