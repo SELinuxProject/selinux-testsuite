@@ -18,7 +18,7 @@
 /*
  * Test the sigio operations by creating a child and registering that process
  * for SIGIO signals for the terminal. The main process forces a SIGIO
- * on the terminal by sending a charcter to that device.
+ * on the terminal by sending a character to that device.
  */
 int main(int argc, char **argv)
 {

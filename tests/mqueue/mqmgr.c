@@ -10,7 +10,7 @@
 #include<errno.h>
 
 /*
- * Managed the creation and distruction of a posix mqueue.
+ * Managed the creation and destruction of a posix mqueue.
  * The first argument is the name of the mqueue to be managed
  * (including starting '/'). The second argument is the
  * operation. '1' to create, '0' to remove.

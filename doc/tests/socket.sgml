@@ -242,7 +242,7 @@ The socket scripts test the following hooks:
 </para>
 </sect2>
 
-<sect2 id="socket_secure"><title>Secure Socket Sytem Call Tests</title>
+<sect2 id="socket_secure"><title>Secure Socket System Call Tests</title>
 <para>
 The tests in the <filename>socket_secure</filename> and
 <filename>unix_secure</filename> subdirectories create a single server
