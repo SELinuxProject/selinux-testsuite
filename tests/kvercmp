@@ -1,15 +1,17 @@
-#!/bin/bash
+#!/bin/sh
 
-function kvercmp()
+set -eu
+
+kvercmp()
 {
-	ver1=`echo $1 | sed 's/-/./'`
-	ver2=`echo $2 | sed 's/-/./'`
+	ver1=$(echo "$1" | sed 's/-/./')
+	ver2=$(echo "$2" | sed 's/-/./')
 
 	ret=0
 	i=1
-	while [ 1 ]; do
-		digit1=`echo $ver1 | cut -d . -f $i`
-		digit2=`echo $ver2 | cut -d . -f $i`
+	while true; do
+		digit1=$(echo "$ver1" | cut -d . -f $i)
+		digit2=$(echo "$ver2" | cut -d . -f $i)
 
 		if [ -z "$digit1" ]; then
 			if [ -z "$digit2" ]; then
