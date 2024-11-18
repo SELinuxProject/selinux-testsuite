@@ -1,5 +1,5 @@
 TARGETS = bpf_test
-DEPS = bpf_common.c bpf_common.h
+DEPS = bpf_common.c
 LDLIBS += -lselinux -lbpf
 
 # export so that BPF_ENABLED entries get built correctly on local build
