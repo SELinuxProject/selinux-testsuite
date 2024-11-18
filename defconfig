@@ -10,6 +10,7 @@ CONFIG_SECURITY_SELINUX=y
 # For testing of labeled IPSEC, NetLabel, and SECMARK functionality.
 # Not strictly required for basic SELinux operation.
 CONFIG_SECURITY_NETWORK_XFRM=y
+CONFIG_XFRM_USER=y
 CONFIG_NETLABEL=y
 CONFIG_IP_NF_SECURITY=m
 CONFIG_INET_XFRM_MODE_TRANSPORT=m
