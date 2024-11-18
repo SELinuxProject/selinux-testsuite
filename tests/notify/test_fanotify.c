@@ -86,6 +86,10 @@ int main(int argc, char *argv[])
 			FILE *f;
 
 			f = fopen(argv[optind], "r");  // open file for reading
+			if (!f) {
+				perror("test_fanotify:bad listen file");
+				exit(1);
+			}
 			fgetc(f);                      // read char from file
 
 			fclose(f);
@@ -100,9 +104,9 @@ int main(int argc, char *argv[])
 					if (fds.revents & POLLIN) {
 						struct fanotify_event_metadata buff[200];
 
-						size_t len = read(fd, (void *)&buff, sizeof(buff));
+						ssize_t len = read(fd, (void *)&buff, sizeof(buff));
 						if (len == -1) {
-							perror("test_fanotify:can't open file");
+							perror("test_fanotify:can't read file");
 							exit(1);
 						} else {
 							listening = 0;
