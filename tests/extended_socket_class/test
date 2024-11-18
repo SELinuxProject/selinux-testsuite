@@ -3,10 +3,11 @@
 use Test;
 
 BEGIN {
-    $test_count     = 6;
+    $test_count     = 4;
     $test_bluetooth = 0;
     $test_sctp      = 0;
     $test_smc       = 0;
+    $test_alg       = 0;
 
     # check if SCTP is enabled
     if ( system("modprobe sctp 2>/dev/null && checksctp 2>/dev/null") eq 0 ) {
@@ -24,6 +25,12 @@ BEGIN {
     if ( system("modprobe smc 2>/dev/null") eq 0 ) {
         $test_count += 2;
         $test_smc = 1;
+    }
+
+    # check if ALG is supported
+    if ( system("modprobe af_alg 2>/dev/null") eq 0 ) {
+        $test_count += 2;
+        $test_alg = 1;
     }
 
     plan tests => $test_count;
@@ -127,17 +134,20 @@ if ($test_bluetooth) {
     ok($result);
 }
 
-# Verify that test_alg_socket_t can create a Crypto API socket.
-$result = system(
-"runcon -t test_alg_socket_t -- $basedir/sockcreate alg seqpacket default 2>&1"
-);
-ok( $result, 0 );
+if ($test_alg) {
 
-# Verify that test_no_alg_socket_t cannot create a Crypto API socket.
-$result = system(
+    # Verify that test_alg_socket_t can create a Crypto API socket.
+    $result = system(
+"runcon -t test_alg_socket_t -- $basedir/sockcreate alg seqpacket default 2>&1"
+    );
+    ok( $result, 0 );
+
+    # Verify that test_no_alg_socket_t cannot create a Crypto API socket.
+    $result = system(
 "runcon -t test_no_alg_socket_t -- $basedir/sockcreate alg seqpacket default 2>&1"
-);
-ok($result);
+    );
+    ok($result);
+}
 
 if ($test_smc) {
 
