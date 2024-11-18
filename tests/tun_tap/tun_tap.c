@@ -5,6 +5,7 @@ static void print_usage(char *progname)
 	fprintf(stderr,
 		"usage:  %s [-p] [-s ] [-v]\n"
 		"Where:\n\t"
+		"-c  Check if TUN/TAP features are available.\n\t"
 		"-p  Test TAP driver, default is TUN driver.\n\t"
 		"-s  If -v, then show TUN/TAP Features.\n\t"
 		"-v  Print information.\n", progname);
@@ -16,14 +17,17 @@ int main(int argc, char *argv[])
 	char *context, *test_str;
 	int opt, result, fd, bit, count, test;
 	unsigned int features, f_switch;
-	bool verbose = false, show = false;
+	bool verbose = false, show = false, check = false;
 	struct ifreq ifr;
 
 	test = IFF_TUN;
 	test_str = "TUN";
 
-	while ((opt = getopt(argc, argv, "psv")) != -1) {
+	while ((opt = getopt(argc, argv, "cpsv")) != -1) {
 		switch (opt) {
+		case 'c':
+			check = true;
+			break;
 		case 'p':
 			test = IFF_TAP;
 			test_str = "TAP";
@@ -52,7 +56,7 @@ int main(int argc, char *argv[])
 
 	/* Start TUN/TAP */
 	result = open_dev(&fd, test_str, verbose);
-	if (result != 0)
+	if (check || result != 0)
 		exit(result);
 
 	if (verbose && show) {
