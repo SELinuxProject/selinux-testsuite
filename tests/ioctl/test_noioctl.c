@@ -18,7 +18,7 @@
  * argument. This version of the program expects some of the ioctl()
  * calls to fail, so if one does succeed, we exit with a bad return code.
  * This program expects the domain it is running as to have only read
- * acess to the given file.
+ * access to the given file.
  */
 int main(int argc, char **argv)
 {

@@ -29,7 +29,7 @@ int main(int argc, char **argv)
 		exit(2);
 	}
 
-	/* The next two acesses should fail, so if that happens, we return success. */
+	/* The next two accesses should fail, so if that happens, we return success. */
 
 	rc = fcntl(fd, F_SETFL, 0);
 	if( rc != -1 ) {
