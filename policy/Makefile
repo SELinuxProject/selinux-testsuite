@@ -201,6 +201,8 @@ ifeq ($(shell grep -q io_uring $(POLDEV)/include/support/all_perms.spt && echo t
 TARGETS += test_io_uring.te
 endif
 
+.PHONY: all build clean expand_check load unload
+
 all: build
 
 expand_check:
