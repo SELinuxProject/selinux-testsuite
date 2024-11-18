@@ -1,5 +1,7 @@
 SUBDIRS = policy tests 
 
+.PHONY: all test check-syntax clean
+
 all:
 	@set -e; for i in $(SUBDIRS); do $(MAKE) -C $$i all ; done
 
