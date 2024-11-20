@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
 	enum {
 		MAP_FD = 1,
 		PROG_FD
-	} bpf_fd_type;
+	} bpf_fd_type = -1;
 
 	while ((opt = getopt(argc, argv, "mpv")) != -1) {
 		switch (opt) {

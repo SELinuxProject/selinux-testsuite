@@ -76,14 +76,16 @@ static void request_service_provider_fd(int fd,
 		break;
 #if HAVE_BPF
 	case BPF_MAP_FD:
-		obj.fd = create_bpf_map();
-		if (obj.fd < 0)
+		result = create_bpf_map();
+		if (result < 0)
 			exit(70);
+		obj.fd = result;
 		break;
 	case BPF_PROG_FD:
-		obj.fd = create_bpf_prog();
-		if (obj.fd < 0)
+		result = create_bpf_prog();
+		if (result < 0)
 			exit(71);
+		obj.fd = result;
 		break;
 #else
 	case BPF_MAP_FD:
@@ -122,7 +124,7 @@ static void request_service_provider_fd(int fd,
 static int binder_parse(int fd, binder_uintptr_t ptr, binder_size_t size)
 {
 	binder_uintptr_t end = ptr + size;
-	uint32_t cmd;
+	uint32_t cmd = BR_DEAD_REPLY;
 
 	while (ptr < end) {
 		cmd = *(uint32_t *)ptr;
@@ -286,7 +288,7 @@ int main(int argc, char **argv)
 	if (fd_type == BPF_TEST)
 		exit(0);
 
-	/* If BPF enabed, then need to set limits */
+	/* If BPF enabled, then need to set limits */
 	if (fd_type == BPF_MAP_FD || fd_type == BPF_PROG_FD)
 		bpf_setrlimit();
 #else

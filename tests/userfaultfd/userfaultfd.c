@@ -177,7 +177,7 @@ int main (int argc, char *argv[])
 		return -1;
 	}
 
-	/* Acces to the registered memory range should invoke the 'missing'
+	/* Access to the registered memory range should invoke the 'missing'
 	 * userfaultfd page fault, which should get handled by the thread
 	 * created above.
 	 */

@@ -175,6 +175,8 @@ ifeq ($(shell grep -q user_namespace $(POLDEV)/include/support/all_perms.spt && 
 export M4PARAM += -Duser_namespace_defined
 endif
 
+.PHONY: all expand_check build load unload clean
+
 all: build
 
 expand_check:

@@ -23,7 +23,7 @@ close($f);
 $cgroup_cpu = "/sys/fs/cgroup/cpu/tasks";
 if ( -w $cgroup_cpu ) {
 
-    # We can only set the scheduler policy fo SCHED_{RR,FIFO} in the root
+    # We can only set the scheduler policy to SCHED_{RR,FIFO} in the root
     # cgroup so move our target process to the root cgroup.
     open( my $fd, ">>", $cgroup_cpu );
     print $fd $pid;

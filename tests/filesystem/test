@@ -176,6 +176,9 @@ ok( $result >> 8 eq 13 );
 
 system("rm -rf $basedir/mntpoint 2>/dev/null");
 
+# Preload module
+system("modprobe loop 2>/dev/null");
+
 ############### Test Basic Mount/Unmount ##########################
 mk_mntpoint_1($private_path);
 
