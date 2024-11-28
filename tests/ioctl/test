@@ -6,9 +6,11 @@
 use Test;
 
 BEGIN {
-    $test_count  = 2;
-    $test_xperms = 0;
+    $test_count       = 2;
+    $test_xperms      = 0;
+    $test_cond_xperms = 0;
 
+    $polver    = `checkpolicy -V | cut -f 1 -d ' '`;
     $modver    = `checkmodule -V | cut -f 2 -d -`;
     $selinuxfs = `cat /proc/mounts | grep selinuxfs | cut -f 2 -d ' '`;
     chomp($selinuxfs);
@@ -16,6 +18,10 @@ BEGIN {
     if ( $modver >= 18 && $kernver >= 30 ) {
         $test_xperms = 1;
         $test_count += 2;
+    }
+    if ( $polver >= 34 && $kernver >= 34 ) {
+        $test_cond_xperms = 1;
+        $test_count += 15;
     }
 
     plan tests => $test_count;
@@ -60,6 +66,78 @@ if ($test_xperms) {
     $result = system
 "runcon -t test_ioctl_noxperm_t -- $basedir/test_ioctl $basedir/temp_file 2>&1";
     ok($result);
+}
+
+if ($test_cond_xperms) {
+    #
+    # Attempt to perform the ioctls in the false configuration
+    #
+
+    #
+    # First round with boolean set to false
+    #
+    $result = system "setsebool test_ioctl_cond_xperm_switch off 2>&1";
+    ok( $result, 0 );
+
+    $result = system
+      "runcon -t test_ioctl_cond_xperm_a_t -- $basedir/test_siocgifname 2>&1";
+    ok( $result >> 8, 7 );
+
+    $result = system
+      "runcon -t test_ioctl_cond_xperm_a_t -- $basedir/test_siocgifindex 2>&1";
+    ok( $result, 0 );
+
+    $result = system
+      "runcon -t test_ioctl_cond_xperm_b_t -- $basedir/test_siocgifname 2>&1";
+    ok( $result, 0 );
+
+    $result = system
+      "runcon -t test_ioctl_cond_xperm_b_t -- $basedir/test_siocgifindex 2>&1";
+    ok( $result >> 8, 7 );
+
+    #
+    # Second round with boolean set to true
+    #
+    $result = system "setsebool test_ioctl_cond_xperm_switch on 2>&1";
+    ok( $result, 0 );
+
+    $result = system
+      "runcon -t test_ioctl_cond_xperm_a_t -- $basedir/test_siocgifname 2>&1";
+    ok( $result, 0 );
+
+    $result = system
+      "runcon -t test_ioctl_cond_xperm_a_t -- $basedir/test_siocgifindex 2>&1";
+    ok( $result >> 8, 7 );
+
+    $result = system
+      "runcon -t test_ioctl_cond_xperm_b_t -- $basedir/test_siocgifname 2>&1";
+    ok( $result >> 8, 7 );
+
+    $result = system
+      "runcon -t test_ioctl_cond_xperm_b_t -- $basedir/test_siocgifindex 2>&1";
+    ok( $result, 0 );
+
+    $result = system "setsebool test_ioctl_cond_xperm_switch off 2>&1";
+    ok( $result, 0 );
+
+    $result = system
+      "runcon -t test_ioctl_cond_xperm_a_t -- $basedir/test_siocgifname 2>&1";
+    ok( $result >> 8, 7 );
+
+    #
+    # Third (control) round with boolean set to false
+    #
+    $result = system
+      "runcon -t test_ioctl_cond_xperm_a_t -- $basedir/test_siocgifindex 2>&1";
+    ok( $result, 0 );
+
+    $result = system
+      "runcon -t test_ioctl_cond_xperm_b_t -- $basedir/test_siocgifname 2>&1";
+    ok( $result, 0 );
+
+    $result = system
+      "runcon -t test_ioctl_cond_xperm_b_t -- $basedir/test_siocgifindex 2>&1";
+    ok( $result >> 8, 7 );
 }
 
 system "rm -f $basedir/temp_file 2>&1";
