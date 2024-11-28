@@ -1,0 +1,26 @@
+define(`SIOCGIFNAME', `{ 0x8910 }')
+define(`SIOCGIFINDEX', `{ 0x8933 }')
+
+bool test_ioctl_cond_xperm_switch false;
+
+# Domain for process that is allowed SIOCGIFNAME on true and SIOCGIFINDEX on false.
+type test_ioctl_cond_xperm_a_t;
+testsuite_domain_type(test_ioctl_cond_xperm_a_t)
+typeattribute test_ioctl_cond_xperm_a_t ioctldomain;
+allow test_ioctl_cond_xperm_a_t self:udp_socket { create ioctl };
+if (test_ioctl_cond_xperm_switch) {
+  allowxperm test_ioctl_cond_xperm_a_t self:udp_socket ioctl SIOCGIFNAME;
+} else {
+  allowxperm test_ioctl_cond_xperm_a_t self:udp_socket ioctl SIOCGIFINDEX;
+}
+
+# Domain for process that is allowed SIOCGIFINDEX on true and SIOCGIFNAME on false.
+type test_ioctl_cond_xperm_b_t;
+testsuite_domain_type(test_ioctl_cond_xperm_b_t)
+typeattribute test_ioctl_cond_xperm_b_t ioctldomain;
+allow test_ioctl_cond_xperm_b_t self:udp_socket { create ioctl };
+if (test_ioctl_cond_xperm_switch) {
+  allowxperm test_ioctl_cond_xperm_b_t self:udp_socket ioctl SIOCGIFINDEX;
+} else {
+  allowxperm test_ioctl_cond_xperm_b_t self:udp_socket ioctl SIOCGIFNAME;
+}
