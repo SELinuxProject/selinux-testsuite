@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 #
-# This test performs checks for system-related capabilties.
+# This test performs checks for system-related capabilities.
 #
 
 use Test;
@@ -10,7 +10,7 @@ BEGIN {
     $basedir =~ s|(.*)/[^/]*|$1|;
 
     $fs          = `stat -f --print %T $basedir`;
-    $test_fibmap = ( $fs ne "btrfs" and $fs ne "nfs" );
+    $test_fibmap = ( $fs ne "btrfs" and $fs ne "nfs" and $fs ne "overlayfs" );
 
     $test_count = 7;
     if ($test_fibmap) {

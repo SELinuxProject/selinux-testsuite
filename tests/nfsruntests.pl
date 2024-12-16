@@ -1,5 +1,9 @@
 #!/usr/bin/perl
+
+use strict;
+use warnings;
+
 use Test::Harness;
 
-@test = "$ARGV[0]";
+my @test = "$ARGV[0]";
 runtests(@test);

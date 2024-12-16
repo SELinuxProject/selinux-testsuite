@@ -12,6 +12,7 @@
 #define IPPROTO_MPTCP 262
 #endif
 
+__attribute__((noreturn))
 void usage(char *progname)
 {
 	fprintf(stderr, "usage:  %s protocol port\n", progname);
