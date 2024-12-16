@@ -33,10 +33,10 @@
         dnf install -y kernel-modules kernel-devel
         ;;
       secnext)
-        dnf install -y --disablerepo testing-farm-tag-repository \
+        dnf install -y \
           --nogpgcheck --releasever rawhide \
           --repofrompath 'kernel-secnext,https://repo.paul-moore.com/rawhide/$basearch' \
-          kernel-modules kernel-devel
+          kernel-modules-*.secnext.* kernel-devel-*.secnext.*
         ;;
       *)
         echo "Invalid STS_KERNEL value!"
