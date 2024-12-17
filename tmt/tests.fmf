@@ -99,6 +99,7 @@
 /run-nfs:
   summary: Run the NFS tests
   order: 3
+  tag: [nfs]
   duration: 25m
   require: nfs-utils
   test: env -C .. bash -x ./tools/nfs.sh
