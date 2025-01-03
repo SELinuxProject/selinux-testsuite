@@ -25,5 +25,6 @@ jobs:
         with:
           api_key: ${{ secrets.TESTING_FARM_API_TOKEN }}
           arch: ${{ matrix.arch }}
+          compose: Fedora-${{ matrix.kernel == 'secnext' && 'Rawhide' || 'latest' }}
           variables: STS_ROOT_DOMAIN=${{ matrix.domain }}; STS_KERNEL=${{ matrix.kernel }}
           tmt_plan_filter: tag:ci
