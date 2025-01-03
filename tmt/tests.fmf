@@ -66,6 +66,9 @@
     id -Z
     rpm -q libselinux
     rpm -q selinux-policy
+    checkpolicy -V
+    checkmodule -V
+    sestatus
     lscpu
 /run:
   summary: Run the testsuite
