@@ -91,6 +91,16 @@ sub server_end {
     system("rm -f $basedir/flag");
 }
 
+if ( $proto eq "mptcp" ) {
+
+    # Temporarily enable MPTCP if it's disabled by default
+    $mptcp_enabled = `sysctl -n net.mptcp.enabled`;
+    chomp($mptcp_enabled);
+    if ( $mptcp_enabled ne "1" ) {
+        system("sysctl -w net.mptcp.enabled=1");
+    }
+}
+
 # Load NetLabel configuration for full CIPSO/IPv4 labeling over loopback.
 system "/bin/sh $basedir/cipso-fl-load";
 
@@ -443,6 +453,12 @@ if ($test_calipso) {
     server_end($pid);
 
     system "/bin/sh $basedir/calipso-flush";
+}
+
+if ( $proto eq "mptcp" and $mptcp_enabled ne "1" ) {
+
+    # Reset net.mptcp.enabled if it was 0 before test
+    system("sysctl -w net.mptcp.enabled=0");
 }
 
 exit;
