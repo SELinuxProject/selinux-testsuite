@@ -16,7 +16,13 @@ BEGIN {
         $v = " ";
     }
 
-    plan tests => 8;
+    $kexec_perm_file   = "/sys/fs/selinux/class/system/perms/kexec_image_load";
+    $kexec_load_exists = 0;
+    if ( -f $kexec_perm_file ) {
+        $kexec_load_exists = 1;
+    }
+
+    plan tests => 17;
 }
 
 print "Test finit_module(2)\n";
@@ -58,5 +64,67 @@ ok( $result >> 8 eq 13 );
 $result = system
 "runcon -t test_kmodule_deny_module_request_t $basedir/init_load $v $basedir setest_module_request 2>&1";
 ok( $result >> 8 eq 13 );
+
+SKIP: {
+    skip(
+"Not all system permissions available; skipping kexec, initramfs, firmware and policy tests",
+        9
+    ) unless $kexec_load_exists;
+
+    $kver = `uname -r`;
+    chomp($kver);
+    $kernel = "/boot/vmlinuz-$kver";
+    $initrd = "/boot/initramfs-$kver.img";
+
+    $result =
+      system "runcon -t test_kexec_allow_kexec_image_load_t kexec -l $kernel";
+    ok( $result eq 0 );
+
+    $result = system "runcon -t test_kexec_allow_kexec_image_load_t kexec -u";
+    ok( $result eq 0 );
+
+    # Deny system { kexec_image_load }
+    $result = system
+      "runcon -t test_kexec_deny_kexec_image_load_t kexec -l $kernel 2>&1";
+    ok( $result >> 8 eq 255 );
+
+    $result = system
+"runcon -t test_kexec_allow_kexec_initramfs_load_t kexec -l --initrd=$initrd $kernel";
+    ok( $result eq 0 );
+
+    # Deny system { kexec_initramfs_load }
+    $result = system
+"runcon -t test_kexec_deny_kexec_initramfs_load_t kexec -l --initrd=$initrd $kernel 2>&1";
+    ok( $result >> 8 eq 255 );
+
+    system("mkdir -p /usr/lib/firmware");
+    system("echo 'Test firmware' > /usr/lib/firmware/dummy-firmware");
+    system("chcon -t firmware_allow_file_t /usr/lib/firmware/dummy-firmware");
+
+    $result = system
+"runcon -t test_kmodule_allow_firmware_load_t $basedir/init_load $v $basedir setest_firmware_load";
+    ok( $result eq 0 );
+
+    system("chcon -t firmware_deny_file_t /usr/lib/firmware/dummy-firmware");
+
+    # Deny system { firmware_load } - EACCES
+    $result = system
+"runcon -t test_kmodule_deny_firmware_load_t $basedir/init_load $v $basedir setest_firmware_load 2>&1";
+    ok( $result >> 8 eq 13 );
+
+    system("rm -f /usr/lib/firmware/dummy-firmware");
+    system("echo 'measure func=BPRM_CHECK' > /tmp/test_ima_policy");
+
+    $result = system
+qq(runcon -t test_policy_allow_policy_load_t bash -c "echo '/tmp/test_ima_policy' > /sys/kernel/security/ima/policy");
+    ok( $result eq 0 );
+
+    # Deny system { policy_load } - EACCES
+    $result = system
+qq(runcon -t test_policy_deny_policy_load_t bash -c "echo '/tmp/test_ima_policy' > /sys/kernel/security/ima/policy 2>&1");
+    ok( $result >> 8 eq 1 );
+
+    system("rm -f /tmp/test_ima_policy");
+}
 
 exit;

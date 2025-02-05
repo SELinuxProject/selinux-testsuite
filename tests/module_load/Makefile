@@ -1,4 +1,4 @@
-obj-m = setest_module_load.o setest_module_request.o
+obj-m = setest_module_load.o setest_module_request.o setest_firmware_load.o
 
 TARGETS = finit_load init_load
 LDLIBS += -lselinux

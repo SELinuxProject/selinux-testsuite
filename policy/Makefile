@@ -180,6 +180,14 @@ ifeq ($(shell [ $(POL_VERS) -ge 34 -a $(MAX_KERNEL_POLICY) -ge 34 ] && echo true
 TARGETS += test_ioctl_cond_xperms.te
 endif
 
+ifeq ($(shell grep -q firmware_load $(POLDEV)/include/support/all_perms.spt && \
+             grep -q kexec_image_load $(POLDEV)/include/support/all_perms.spt && \
+             grep -q kexec_initramfs_load $(POLDEV)/include/support/all_perms.spt && \
+             grep -q policy_load $(POLDEV)/include/support/all_perms.spt && \
+             echo true),true)
+TARGETS += test_file_load.te
+endif
+
 all: build
 
 expand_check:
