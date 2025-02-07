@@ -16,6 +16,7 @@
 #define SCM_SECURITY 0x03
 #endif
 
+__attribute__((noreturn))
 void usage(char *progname)
 {
 	fprintf(stderr,

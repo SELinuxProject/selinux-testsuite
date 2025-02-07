@@ -10,7 +10,7 @@ TEX	:=	$(patsubst %.sgml, %.tex, $(TOP))
 LOG	:=	$(patsubst %.sgml, %.log, $(TOP))
 OUT	:=	$(patsubst %.sgml, %.out, $(TOP))
 
-all: $(PS) $(PDF) $(HMTL)
+all: $(PS) $(PDF) $(HTML)
 
 $(PS): $(ALL) custom.dsl
 	jw -f docbook -d custom.dsl -b ps $(TOP)

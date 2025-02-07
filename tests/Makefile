@@ -6,7 +6,7 @@ INCLUDEDIR ?= $(PREFIX)/include
 SELINUXFS ?= /sys/fs/selinux
 FILESYSTEMS ?= ext4 xfs jfs vfat
 
-export CFLAGS+=-g -O0 -Wall -D_GNU_SOURCE
+export CFLAGS+=-g -O0 -Werror -Wall -Wextra -Wno-unused-parameter -D_GNU_SOURCE
 
 DISTRO=$(shell ./os_detect)
 SELINUXFS := $(shell cat /proc/mounts | grep selinuxfs | cut -f 2 -d ' ')

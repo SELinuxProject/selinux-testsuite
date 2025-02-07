@@ -180,6 +180,8 @@ ifeq ($(shell [ $(POL_VERS) -ge 34 -a $(MAX_KERNEL_POLICY) -ge 34 ] && echo true
 TARGETS += test_ioctl_cond_xperms.te
 endif
 
+.PHONY: all build clean expand_check load unload
+
 all: build
 
 expand_check:

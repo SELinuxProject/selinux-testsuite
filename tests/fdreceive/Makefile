@@ -1,7 +1,7 @@
 TARGETS = client server
 
 ifneq (,$(findstring -DHAVE_BPF,$(CFLAGS)))
-	DEPS = ../bpf/bpf_common.c ../bpf/bpf_common.h
+	DEPS = ../bpf/bpf_common.c
 	LDLIBS += -lbpf
 endif
 

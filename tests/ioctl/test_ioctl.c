@@ -27,11 +27,21 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
-	/* This one should hit the FILE__GETATTR or FILE__IOCTL test */
+	/*
+	 * This one should hit the FILE__GETATTR or FILE__IOCTL test.
+	 * FIGETBSZ is not available on overlayfs,
+	 * and FS_IOC_GETFLAGS is not available on NFS.
+	 */
 	rc = ioctl(fd, FIGETBSZ, &val);
 	if( rc < 0 ) {
-		perror("test_ioctl:FIGETBSZ");
-		exit(1);
+		if(errno == EINVAL) {
+			rc = ioctl(fd, FS_IOC_GETFLAGS, &val);
+		}
+
+		if( rc < 0 ) {
+			perror("test_ioctl:FIGETBSZ/FS_IOC_GETFLAGS");
+			exit(1);
+		}
 	}
 
 	/* This one should hit the FILE__IOCTL test */

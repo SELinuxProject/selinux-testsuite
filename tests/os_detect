@@ -1,8 +1,10 @@
-#!/bin/bash
+#!/bin/sh
 
-if [[ -r /etc/redhat-release ]]; then
-	ver=$(cat /etc/redhat-release | sed -ne '/^Red Hat Enterprise Linux/p')
-	if [[ -n $ver ]]; then
+set -eu
+
+if [ -r /etc/redhat-release ]; then
+	ver=$(sed -ne '/^Red Hat Enterprise Linux/p' /etc/redhat-release)
+	if [ -n "$ver" ]; then
 		echo "$ver" | \
 			sed -e 's/Red Hat Enterprise Linux[ \ta-zA-Z]*\([0-9]\+\).*/RHEL\1/'
 	fi

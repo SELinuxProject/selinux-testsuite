@@ -8,7 +8,7 @@ use Test::More;
 BEGIN {
     # check if kernel supports posix mqueues file system is mounted
     if ( system("mount | grep -q mqueue") ) {
-        plan skip_all => "mqueue fileystem not supported/mounted";
+        plan skip_all => "mqueue filesystem not supported/mounted";
     }
     else {
         plan tests => 13;

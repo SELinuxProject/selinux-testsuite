@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
 	size_t len;
 	ssize_t num;
 	int opt, index = 0, i, result = 0;
-	char *mount_info[2], *buf = NULL, *item, *tgt;
+	char *mount_info[2], *buf = NULL, *item, *tgt = NULL;
 	bool verbose = false;
 
 	while ((opt = getopt(argc, argv, "t:v")) != -1) {

@@ -76,8 +76,8 @@ $result = system(
 );
 ok($result);
 
-# It ensure the child domain shall be bounded to the parent.
-# So, we expect all the alloed actiona are intersection with test_bounds_parent_t
+# It ensures the child domain shall be bounded to the parent.
+# So, we expect all the allowed actions are intersections with test_bounds_parent_t
 
 $result = system(
 "runcon -t test_bounds_child_t -- dd if=$basedir/bounds_file_red of=/dev/null count=1 2>&1 > /dev/null"

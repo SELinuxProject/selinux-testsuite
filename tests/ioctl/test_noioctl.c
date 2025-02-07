@@ -18,7 +18,7 @@
  * argument. This version of the program expects some of the ioctl()
  * calls to fail, so if one does succeed, we exit with a bad return code.
  * This program expects the domain it is running as to have only read
- * acess to the given file.
+ * access to the given file.
  */
 int main(int argc, char **argv)
 {
@@ -43,10 +43,17 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
-	/* This one should hit the FILE__IOCTL or FILE__GETATTR test and fail. */
+	/*
+	 * This one should hit the FILE__GETATTR or FILE__IOCTL test.
+	 * FIGETBSZ is not available on overlayfs,
+	 * and FS_IOC_GETFLAGS is not available on NFS.
+	 */
 	rc = ioctl(fd, FIGETBSZ, &val);
+	if( rc == -1 && errno == EINVAL ) {
+		rc = ioctl(fd, FS_IOC_GETFLAGS, &val);
+	}
 	if( rc == 0 ) {
-		printf("test_noioctl:FIGETBSZ");
+		printf("test_ioctl:FIGETBSZ/FS_IOC_GETFLAGS");
 		exit(1);
 	}
 

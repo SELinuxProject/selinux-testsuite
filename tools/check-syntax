@@ -111,7 +111,7 @@ function style_fix() {
 	[[ -z "$1" ]] && return
 	[[ -z "$2" || ! -w "$2" ]] && return
 
-	tmp="$(mktemp --tmpdir=$(dirname "$2"))"
+	tmp="$(mktemp --tmpdir="$(dirname "$2")")"
 	case "$1" in
 	c|C)
 		tool_c_style "$2" > "$tmp"
