@@ -17,3 +17,4 @@ Possible values for the `STS_KERNEL` env parameter are:
 * `default` - try to use the kernel currently booted on the test machine.
 * `latest` - update to the latest kernel available in the repos and boot it.
 * `secnext` - install the "secnext" kernel from https://repo.paul-moore.com/ and boot it.
+* `local` - use the currently booted kernel and don't try to install additional kernel RPMs - useful for e.g. locally built and installed kernels.

@@ -38,6 +38,10 @@
           --repofrompath 'kernel-secnext,https://repo.paul-moore.com/rawhide/$basearch' \
           kernel-modules-*.secnext.* kernel-devel-*.secnext.*
         ;;
+      local)
+        # for a non-rpm directly-installed kernel - assume all necessary files
+        # are already in place and don't install any kernel packages
+        ;;
       *)
         echo "Invalid STS_KERNEL value!"
         exit 1
