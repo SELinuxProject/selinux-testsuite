@@ -40,7 +40,7 @@ ok( $result eq 0 );
 # CAP_FSETID
 $fn   = "$basedir/temp_file";
 $mode = ( stat($fn) )[2];
-system "runcon -t test_fcap_t -- chmod g+rs $basedir/temp_file 2>&1";
+system "runcon -t test_fcap_t -- chmod g+s $basedir/temp_file 2>&1";
 $result = 1;
 if ( $mode eq ( stat($fn) )[2] ) {
     $result = 0;
@@ -82,7 +82,7 @@ ok($result);
 $fn   = "$basedir/temp_file";
 $mode = ( stat($fn) )[2];
 $result =
-  system "runcon -t test_resfcap_t -- chmod g+rs $basedir/temp_file 2>&1";
+  system "runcon -t test_resfcap_t -- chmod g+s $basedir/temp_file 2>&1";
 $result = 1;
 if ( $mode eq ( stat($fn) )[2] ) {
     $result = 0;
