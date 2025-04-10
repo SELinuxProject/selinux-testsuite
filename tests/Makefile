@@ -184,7 +184,7 @@ all:
 
 test: all
 	chcon -R -t test_file_t .
-	@SUBDIRS="$(SUBDIRS)" PATH=/usr/bin:/bin:/usr/sbin:/sbin ./runtests.pl
+	@SUBDIRS="$(SUBDIRS)" ./runtests.pl
 
 clean:
 	@for subdir in $(SUBDIRS); do \
