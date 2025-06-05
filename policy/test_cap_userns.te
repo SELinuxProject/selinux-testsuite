@@ -4,6 +4,7 @@
 #
 
 attribute capusernsdomain;
+attribute cap2usernsdomain;
 
 # Domain for process that is allowed non-init userns capabilities
 type test_cap_userns_t;
@@ -22,3 +23,17 @@ typeattribute test_no_cap_userns_t capusernsdomain;
 allow_userns_create(capusernsdomain)
 # linux >= v5.12 needs setfcap to map UID 0
 allow capusernsdomain self:capability setfcap;
+
+# Domain for process that is allowed to use cap_checkpoint_restore
+type test_cap2_userns_t;
+testsuite_domain_type(test_cap2_userns_t)
+typeattribute test_cap2_userns_t cap2usernsdomain;
+allow test_cap2_userns_t self:cap2_userns checkpoint_restore;
+
+# Domain for process that is not to use cap_checkpoint_restore
+type test_no_cap2_userns_t;
+testsuite_domain_type(test_no_cap2_userns_t)
+typeattribute test_no_cap2_userns_t cap2usernsdomain;
+
+# Rules common to both domains.
+kernel_rw_kernel_ns_lastpid_sysctl(cap2usernsdomain)
