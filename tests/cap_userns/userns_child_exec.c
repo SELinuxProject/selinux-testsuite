@@ -198,7 +198,7 @@ static char child_stack[STACK_SIZE];    /* Space for child's stack */
 int
 main(int argc, char *argv[])
 {
-	int flags, opt, map_zero, test_clone = 0;
+	int flags, opt, map_zero, test_clone = 0, wstatus;
 	pid_t child_pid;
 	struct child_args args;
 	char *uid_map, *gid_map;
@@ -332,11 +332,11 @@ main(int argc, char *argv[])
 
 	close(args.pipe_fd[1]);
 
-	if (waitpid(child_pid, NULL, 0) == -1)      /* Wait for child */
+	if (waitpid(child_pid, &wstatus, 0) == -1)      /* Wait for child */
 		errExit("waitpid");
 
 	if (verbose)
 		printf("%s: terminating\n", argv[0]);
 
-	exit(EXIT_SUCCESS);
+	exit(WEXITSTATUS(wstatus));
 }
