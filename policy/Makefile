@@ -175,6 +175,10 @@ ifeq ($(shell grep -q user_namespace $(POLDEV)/include/support/all_perms.spt && 
 export M4PARAM += -Duser_namespace_defined
 endif
 
+ifeq ($(shell grep -q checkpoint_restore $(POLDEV)/include/support/all_perms.spt && echo true),true)
+export M4PARAM += -Dcheckpoint_restore_defined
+endif
+
 # conditional xperm dependency: policy >= 34
 ifeq ($(shell [ $(POL_VERS) -ge 34 -a $(MAX_KERNEL_POLICY) -ge 34 ] && echo true),true)
 TARGETS += test_ioctl_cond_xperms.te
