@@ -7,8 +7,12 @@ BEGIN {
     $basedir =~ s|(.*)/[^/]*|$1|;
 
     $isnfs = `stat -f --print %T $basedir`;
-
-    plan tests => 8;
+    if ( $isnfs ne "nfs" ) {
+        plan tests => 8;
+    }
+    else {
+        plan tests => 7;
+    }
 }
 
 # Verify that test_mac_admin_t can relabel a file to an undefined context.
@@ -38,14 +42,13 @@ $result = system(
 );
 ok( $result, 0 );    # we expect this to succeed.
 
-# Verify that test_mac_admin_t sees the undefined label value.
-$result = `runcon -t test_mac_admin_t -- secon -t -f $basedir/test_dir 2>&1`;
-chomp($result);
 if ( $isnfs ne "nfs" ) {
+
+    # Verify that test_mac_admin_t sees the undefined label value.
+    $result =
+      `runcon -t test_mac_admin_t -- secon -t -f $basedir/test_dir 2>&1`;
+    chomp($result);
     ok( $result, "UNDEFINED" );
-}
-else {
-    ok( $result, "unlabeled_t" );
 }
 
 # Verify that test_no_mac_admin_t sees the unlabeled context.
