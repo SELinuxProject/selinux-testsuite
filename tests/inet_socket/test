@@ -25,7 +25,9 @@ BEGIN {
     }
 
     $test_ipsec = 0;
-    if ( system("ip xfrm policy help 2>&1 | grep -q ctx") eq 0 ) {
+    if (    system("ip xfrm policy help 2>&1 | grep -q ctx") eq 0
+        and system("ip xfrm policy list &>/dev/null") eq 0 )
+    {
         $test_count += 4;
         $test_ipsec = 1;
     }
