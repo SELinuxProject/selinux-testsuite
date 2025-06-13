@@ -51,7 +51,7 @@ similar dependencies):
 * libselinux-devel _(to build some of the test programs)_
 * net-tools _(for `ifconfig`, used by `capable_net/test`)_
 * netlabel\_tools _(to load NetLabel configuration during `inet_socket` tests)_
-* iptables _(to load the `iptables SECMARK` rules during `inet_socket` tests)_
+* iptables-nft _(to load the `iptables SECMARK` rules during `inet_socket` tests)_
 * lksctp-tools-devel _(to build the SCTP test programs)_
 * attr _(tools used by the overlayfs tests)_
 * libbpf-devel _(tools used by the bpf tests)_
@@ -78,7 +78,7 @@ following command (NOTE: On Fedora 32 and below you need to remove
 		net-tools \
 		netlabel_tools \
 		nftables \
-		iptables \
+		iptables-nft \
 		lksctp-tools-devel \
 		attr \
 		libbpf-devel \
