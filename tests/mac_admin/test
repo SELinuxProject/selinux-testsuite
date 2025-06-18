@@ -11,7 +11,7 @@ BEGIN {
         plan tests => 8;
     }
     else {
-        plan tests => 7;
+        plan tests => 6;
     }
 }
 
@@ -49,12 +49,13 @@ if ( $isnfs ne "nfs" ) {
       `runcon -t test_mac_admin_t -- secon -t -f $basedir/test_dir 2>&1`;
     chomp($result);
     ok( $result, "UNDEFINED" );
-}
 
-# Verify that test_no_mac_admin_t sees the unlabeled context.
-$result = `runcon -t test_no_mac_admin_t -- secon -t -f $basedir/test_dir 2>&1`;
-chomp($result);
-ok( $result, "unlabeled_t" );
+    # Verify that test_no_mac_admin_t sees the unlabeled context.
+    $result =
+      `runcon -t test_no_mac_admin_t -- secon -t -f $basedir/test_dir 2>&1`;
+    chomp($result);
+    ok( $result, "unlabeled_t" );
+}
 
 # Delete the test directory
 system("rm -rf $basedir/test_dir");
