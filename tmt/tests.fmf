@@ -58,8 +58,8 @@
     fi
 
     # reset the audit log
-    :>/var/log/audit.log
-    rm -f /var/log/audit.log.*
+    :>/var/log/audit/audit.log
+    rm -f /var/log/audit/audit.log.*
 /machine-info:
   summary: Show machine info
   order: 2
