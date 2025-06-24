@@ -1,17 +1,18 @@
 #!/usr/bin/perl
 
-use Test;
+use Test::More;
 
 BEGIN {
     $basedir = $0;
     $basedir =~ s|(.*)/[^/]*|$1|;
 
     $isnfs = `stat -f --print %T $basedir`;
-    if ( $isnfs ne "nfs" ) {
-        plan tests => 8;
+
+    if ( $isnfs eq "nfs" ) {
+        plan skip_all => "undefined contexts not supported over NFS";
     }
     else {
-        plan tests => 6;
+        plan tests => 8;
     }
 }
 
@@ -19,18 +20,18 @@ BEGIN {
 system("rm -f $basedir/test_file; touch $basedir/test_file");
 $result = system(
     "runcon -t test_mac_admin_t -- chcon -t UNDEFINED $basedir/test_file 2>&1");
-ok( $result, 0 );    # we expect this to succeed.
+ok( $result eq 0 );    # we expect this to succeed.
 
 # Verify that test_mac_admin_t sees the undefined context.
 $result = `runcon -t test_mac_admin_t -- secon -t -f $basedir/test_file 2>&1`;
 chomp($result);
-ok( $result, "UNDEFINED" );
+ok( $result eq "UNDEFINED" );
 
 # Verify that test_no_mac_admin_t sees the unlabeled context
 $result =
   `runcon -t test_no_mac_admin_t -- secon -t -f $basedir/test_file 2>&1`;
 chomp($result);
-ok( $result, "unlabeled_t" );
+ok( $result eq "unlabeled_t" );
 
 # Delete the test file.
 system("rm -f $basedir/test_file");
@@ -40,22 +41,17 @@ system("rm -rf $basedir/test_dir");
 $result = system(
 "runcon -t test_mac_admin_t -- mkdir --context=system_u:object_r:UNDEFINED:s0 $basedir/test_dir 2>&1"
 );
-ok( $result, 0 );    # we expect this to succeed.
+ok( $result eq 0 );    # we expect this to succeed.
 
-if ( $isnfs ne "nfs" ) {
+# Verify that test_mac_admin_t sees the undefined label value.
+$result = `runcon -t test_mac_admin_t -- secon -t -f $basedir/test_dir 2>&1`;
+chomp($result);
+ok( $result eq "UNDEFINED" );
 
-    # Verify that test_mac_admin_t sees the undefined label value.
-    $result =
-      `runcon -t test_mac_admin_t -- secon -t -f $basedir/test_dir 2>&1`;
-    chomp($result);
-    ok( $result, "UNDEFINED" );
-
-    # Verify that test_no_mac_admin_t sees the unlabeled context.
-    $result =
-      `runcon -t test_no_mac_admin_t -- secon -t -f $basedir/test_dir 2>&1`;
-    chomp($result);
-    ok( $result, "unlabeled_t" );
-}
+# Verify that test_no_mac_admin_t sees the unlabeled context.
+$result = `runcon -t test_no_mac_admin_t -- secon -t -f $basedir/test_dir 2>&1`;
+chomp($result);
+ok( $result eq "unlabeled_t" );
 
 # Delete the test directory
 system("rm -rf $basedir/test_dir");
