@@ -75,9 +75,7 @@
     sestatus
     lscpu
 /run:
-  summary: Run the testsuite
   order: 3
-  duration: 20m
   require:
     - make
     - perl-Test
@@ -102,14 +100,16 @@
     - jfsutils
     - dosfstools
     - rdma-core-devel
-  test: make -C .. test
-/run-nfs:
-  summary: Run the NFS tests
-  order: 3
-  tag: [nfs]
-  duration: 25m
-  require: nfs-utils
-  test: env -C .. bash -x ./tools/nfs.sh
+  /main:
+    summary: Run the testsuite
+    duration: 20m
+    test: make -C .. test
+  /nfs:
+    summary: Run the NFS tests
+    tag: [nfs]
+    duration: 25m
+    require+: [nfs-utils]
+    test: env -C .. bash -x ./tools/nfs.sh
 /avc-check:
   summary: Check unwanted denials
   order: 4
