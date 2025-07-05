@@ -7,9 +7,19 @@ require {
     type user_tmp_t;
 }
 
+attribute testkexecdomain;
+
+type test_kexec_tmp_file_t;
+files_tmp_file(test_kexec_tmp_file_t)
+
+files_rw_generic_tmp_dir(testkexecdomain)
+files_tmp_filetrans(testkexecdomain, test_kexec_tmp_file_t, file)
+manage_files_pattern(testkexecdomain, test_kexec_tmp_file_t, test_kexec_tmp_file_t)
+
 ###################### Allow sys kexec_image_load ######################
 type test_kexec_allow_kexec_image_load_t;
 testsuite_domain_type(test_kexec_allow_kexec_image_load_t)
+typeattribute test_kexec_allow_kexec_image_load_t testkexecdomain;
 
 files_search_boot(test_kexec_allow_kexec_image_load_t)
 fs_rw_inherited_tmpfs_files(test_kexec_allow_kexec_image_load_t)
@@ -17,12 +27,12 @@ exec_files_pattern(test_kexec_allow_kexec_image_load_t, kdump_exec_t, kdump_exec
 domain_entry_file(test_kexec_allow_kexec_image_load_t, kdump_exec_t)
 allow test_kexec_allow_kexec_image_load_t self:capability sys_boot;
 
-allow test_kexec_allow_kexec_image_load_t boot_t:system  kexec_image_load;
-allow test_kexec_allow_kexec_image_load_t tmpfs_t:system kexec_image_load;
+allow test_kexec_allow_kexec_image_load_t { boot_t tmpfs_t test_kexec_tmp_file_t }:system kexec_image_load;
 
 ###################### Deny sys kexec_image_load ######################
 type test_kexec_deny_kexec_image_load_t;
 testsuite_domain_type(test_kexec_deny_kexec_image_load_t)
+typeattribute test_kexec_deny_kexec_image_load_t testkexecdomain;
 
 files_search_boot(test_kexec_deny_kexec_image_load_t)
 fs_rw_inherited_tmpfs_files(test_kexec_deny_kexec_image_load_t)
@@ -30,34 +40,32 @@ exec_files_pattern(test_kexec_deny_kexec_image_load_t, kdump_exec_t, kdump_exec_
 domain_entry_file(test_kexec_deny_kexec_image_load_t, kdump_exec_t)
 allow test_kexec_deny_kexec_image_load_t self:capability sys_boot;
 
-neverallow test_kexec_deny_kexec_image_load_t boot_t:system  kexec_image_load;
-neverallow test_kexec_deny_kexec_image_load_t tmpfs_t:system kexec_image_load;
+neverallow test_kexec_deny_kexec_image_load_t { boot_t tmpfs_t test_kexec_tmp_file_t }:system kexec_image_load;
 
 ###################### Allow sys kexec_initramfs_load ######################
 type test_kexec_allow_kexec_initramfs_load_t;
 testsuite_domain_type(test_kexec_allow_kexec_initramfs_load_t)
+typeattribute test_kexec_allow_kexec_initramfs_load_t testkexecdomain;
 
 files_search_boot(test_kexec_allow_kexec_initramfs_load_t)
 fs_rw_inherited_tmpfs_files(test_kexec_allow_kexec_initramfs_load_t)
 domain_entry_file(test_kexec_allow_kexec_initramfs_load_t, kdump_exec_t)
 allow test_kexec_allow_kexec_initramfs_load_t  self:capability sys_boot;
 
-allow test_kexec_allow_kexec_initramfs_load_t  boot_t:system  { kexec_image_load kexec_initramfs_load } ;
-allow test_kexec_allow_kexec_initramfs_load_t  tmpfs_t:system { kexec_image_load kexec_initramfs_load };
+allow test_kexec_allow_kexec_initramfs_load_t { boot_t tmpfs_t test_kexec_tmp_file_t }:system { kexec_image_load kexec_initramfs_load };
 
 ###################### Deny sys kexec_initramfs_load ######################
 type test_kexec_deny_kexec_initramfs_load_t;
 testsuite_domain_type(test_kexec_deny_kexec_initramfs_load_t)
+typeattribute test_kexec_deny_kexec_initramfs_load_t testkexecdomain;
 
 files_search_boot(test_kexec_deny_kexec_initramfs_load_t)
 fs_rw_inherited_tmpfs_files(test_kexec_deny_kexec_initramfs_load_t)
 domain_entry_file(test_kexec_deny_kexec_initramfs_load_t, kdump_exec_t)
-allow test_kexec_deny_kexec_initramfs_load_t boot_t:system  kexec_image_load;
-allow test_kexec_deny_kexec_initramfs_load_t tmpfs_t:system kexec_image_load;
+allow test_kexec_deny_kexec_initramfs_load_t { boot_t tmpfs_t test_kexec_tmp_file_t }:system kexec_image_load;
 allow test_kexec_deny_kexec_initramfs_load_t self:capability sys_boot;
 
-neverallow test_kexec_deny_kexec_initramfs_load_t boot_t:system  kexec_initramfs_load;
-neverallow test_kexec_deny_kexec_initramfs_load_t tmpfs_t:system kexec_initramfs_load;
+neverallow test_kexec_deny_kexec_initramfs_load_t { boot_t tmpfs_t test_kexec_tmp_file_t }:system kexec_initramfs_load;
 
 ###################### Allow sys firmware_load ######################
 type test_kmodule_allow_firmware_load_t;
