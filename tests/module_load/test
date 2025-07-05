@@ -116,12 +116,12 @@ SKIP: {
     system("echo 'measure func=BPRM_CHECK' > /tmp/test_ima_policy");
 
     $result = system
-qq(runcon -t test_policy_allow_policy_load_t bash -c "echo '/tmp/test_ima_policy' > /sys/kernel/security/ima/policy");
+qq(runcon -t test_policy_allow_policy_load_t sh -c "echo '/tmp/test_ima_policy' > /sys/kernel/security/ima/policy");
     ok( $result eq 0 );
 
     # Deny system { policy_load } - EACCES
     $result = system
-qq(runcon -t test_policy_deny_policy_load_t bash -c "echo '/tmp/test_ima_policy' > /sys/kernel/security/ima/policy 2>&1");
+qq(runcon -t test_policy_deny_policy_load_t sh -c "echo '/tmp/test_ima_policy' > /sys/kernel/security/ima/policy 2>&1");
     ok( $result >> 8 eq 1 );
 
     system("rm -f /tmp/test_ima_policy");
