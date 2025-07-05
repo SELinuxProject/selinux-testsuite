@@ -37,6 +37,29 @@
           --nogpgcheck --releasever rawhide \
           --repofrompath 'kernel-secnext,https://repo.paul-moore.com/rawhide/$basearch' \
           kernel-modules-*.secnext.* kernel-devel-*.secnext.*
+
+        # add classes/permissions currently not supported in Fedora
+        semodule -c -E base
+        sed -i \
+          -e 's/\((class system (ipc_info syslog_read syslog_mod syslog_console module_request module_load \)\(halt reboot status start stop enable disable reload undefined ))\)/\1firmware_load kexec_image_load kexec_initramfs_load policy_load x509_certificate_load \2/' \
+          -e 's/\((class netlink_[a-z0-9_]*_socket (\)\(nlmsg_read \)/\1nlmsg \2/' \
+          base.cil
+        echo "(policycap netlink_xperm)" >>base.cil
+        # allow nlmsg to some system domains so that the system can boot
+        for source in daemon initrc_domain systemprocess unconfined_domain_type sysadm_t; do
+          echo "(allow $source self (netlink_route_socket (nlmsg)))" >>base.cil
+          echo "(allow $source self (netlink_firewall_socket (nlmsg)))" >>base.cil
+          echo "(allow $source self (netlink_tcpdiag_socket (nlmsg)))" >>base.cil
+          echo "(allow $source self (netlink_xfrm_socket (nlmsg)))" >>base.cil
+          echo "(allow $source self (netlink_audit_socket (nlmsg)))" >>base.cil
+          echo "(allow $source self (netlink_ip6fw_socket (nlmsg)))" >>base.cil
+        done
+        semodule -X 456 -i base.cil
+        rm -f base.cil
+        sed -i.orig \
+          -e 's/module_load /module_load firmware_load kexec_image_load kexec_initramfs_load policy_load x509_certificate_load /' \
+          -e 's/nlmsg_read /nlmsg nlmsg_read /' \
+          /usr/share/selinux/devel/include/support/all_perms.spt
         ;;
       local)
         # for a non-rpm directly-installed kernel - assume all necessary files
@@ -100,6 +123,7 @@
     - jfsutils
     - dosfstools
     - rdma-core-devel
+    - kexec-tools
   /main:
     summary: Run the testsuite
     duration: 20m
@@ -138,4 +162,8 @@
     if [ "$STS_ROOT_DOMAIN" = sysadm_t ]; then
       semanage boolean --modify --off ssh_sysadm_login
       semanage login --modify -s unconfined_u root
+    fi
+    if [ "$STS_KERNEL" = secnext ]; then
+      semodule -X 456 -r base
+      env -C /usr/share/selinux/devel/include/support mv all_perms.spt.orig all_perms.spt
     fi
