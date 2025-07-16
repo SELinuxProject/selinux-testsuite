@@ -28,7 +28,8 @@ SUBDIRS:= domain_trans entrypoint execshare exectrace execute_no_trans \
 	task_getpgid task_setpgid file ioctl capable_file capable_net \
 	capable_sys dyntrans dyntrace bounds nnp_nosuid mmap unix_socket \
 	inet_socket/tcp inet_socket/udp overlay checkreqprot mqueue \
-	mac_admin atsecure infiniband_endport infiniband_pkey
+	mac_admin atsecure infiniband_endport infiniband_pkey \
+	attribute_assignment
 
 ifeq ($(shell grep -q cap_userns $(POLDEV)/include/support/all_perms.spt && echo true),true)
 ifneq ($(shell ./kvercmp $$(uname -r) 4.7),-1)
