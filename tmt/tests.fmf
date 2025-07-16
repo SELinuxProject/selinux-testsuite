@@ -24,7 +24,11 @@
         exit 1
         ;;
       esac
-
+      dnf copr enable -y vmojzis/userspace_test
+      dnf install -y checkpolicy
+      dnf list --showduplicates checkpolicy
+      dnf update -y checkpolicy
+      rpm -qa checkpolicy
       case "$STS_KERNEL" in
       default|'')
         dnf install -y kernel-modules-$(uname -r) kernel-devel-$(uname -r)
