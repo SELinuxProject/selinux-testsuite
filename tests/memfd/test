@@ -1,0 +1,41 @@
+#!/usr/bin/perl
+#
+# This test exercises the memfd_class support
+#
+
+use Test;
+
+BEGIN {
+    $test_count = 4;
+    plan tests => $test_count;
+}
+
+$basedir = $0;
+$basedir =~ s|(.*)/[^/]*|$1|;
+
+#
+# Attempt to call memfd_create() from the allowed domain.
+#
+$result = system "runcon -t test_memfd_t -- $basedir/memfd 2>&1";
+ok( $result, 0 );
+
+#
+# Attempt to call memfd_create() from the not-allowed domain.
+#
+$result = system "runcon -t test_memfd_nocreate_t -- $basedir/memfd 2>&1";
+ok($result);
+
+#
+# Attempt to fexecve() on a memfd_create() fd from the allowed domain.
+#
+$result = system
+"runcon -t test_memfd_with_exec_t -- $basedir/memfd_fexecve $basedir/nothing 2>&1";
+ok( $result, 0 );
+
+#
+# Attempt to fexecve() on a memfd_create() fd from the not-allowed domain.
+#
+$result = system
+"runcon -t test_memfd_with_noexec_t -- $basedir/memfd_fexecve $basedir/nothing 2>&1";
+ok($result);
+exit;

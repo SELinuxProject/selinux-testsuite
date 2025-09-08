@@ -1,0 +1,25 @@
+########################################
+#
+# Policy for testing memfd_file.
+
+attribute memfdtestdomain;
+
+type test_memfd_t;
+typeattribute test_memfd_t memfdtestdomain;
+testsuite_domain_type(test_memfd_t);
+allow test_memfd_t self:memfd_file { create mmap_rw_file_perms };
+
+type test_memfd_nocreate_t;
+typeattribute test_memfd_nocreate_t memfdtestdomain;
+testsuite_domain_type(test_memfd_nocreate_t);
+allow test_memfd_nocreate_t self:memfd_file mmap_rw_file_perms;
+
+type test_memfd_with_exec_t;
+typeattribute test_memfd_with_exec_t memfdtestdomain;
+testsuite_domain_type(test_memfd_with_exec_t);
+allow test_memfd_with_exec_t self:memfd_file { create mmap_rw_file_perms execute execute_no_trans };
+
+type test_memfd_with_noexec_t;
+typeattribute test_memfd_with_noexec_t memfdtestdomain;
+testsuite_domain_type(test_memfd_with_noexec_t);
+allow test_memfd_with_noexec_t self:memfd_file { create mmap_rw_file_perms execute };
