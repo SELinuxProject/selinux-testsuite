@@ -118,6 +118,7 @@
     - e2fsprogs
     - jfsutils
     - dosfstools
+    - btrfs-progs
     - rdma-core-devel
     - kexec-tools
   /main:

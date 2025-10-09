@@ -126,6 +126,10 @@ sub make_fs {
     if ( $mk_type eq "xfs" ) {
         $mk_size = 300;
     }
+    elsif ( $mk_type eq "btrfs" ) {
+        $mk_size = 128;
+    }
+
     print "Create $mk_dir/fstest with dd\n";
     $result =
       system(
