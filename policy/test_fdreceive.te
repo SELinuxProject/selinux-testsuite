@@ -27,7 +27,9 @@ typeattribute test_fdreceive_client2_t fdreceivedomain;
 # Can receive fds from client, not from client2.
 # Can access test file, not second test file.
 type test_fdreceive_server_t;
-testsuite_domain_type(test_fdreceive_server_t);
+# Use the _minimal interface to avoid allowing fd use by default
+testsuite_domain_type_minimal(test_fdreceive_server_t)
+allow test_fdreceive_server_t self:unix_stream_socket create_stream_socket_perms;
 typeattribute test_fdreceive_server_t fdreceivedomain;
 
 # Grant the necessary permissions for the server domain.

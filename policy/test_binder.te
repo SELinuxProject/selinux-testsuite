@@ -42,7 +42,8 @@ allow test_binder_provider_no_fd_t test_file_t:fifo_file rw_file_perms;
 ################################# Client ####################################
 #
 type test_binder_client_t;
-testsuite_domain_type(test_binder_client_t)
+# Must use _minimal interface to avoid granting domain fd use permission
+testsuite_domain_type_minimal(test_binder_client_t)
 typeattribute test_binder_client_t binderdomain;
 allow test_binder_client_t test_binder_provider_t:binder { call impersonate };
 allow test_binder_client_t test_binder_mgr_t:binder { call };

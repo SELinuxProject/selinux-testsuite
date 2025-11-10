@@ -69,6 +69,7 @@ optional_policy(`
 
 # Needed for domains outside domain_type()
 dontaudit testsuite_caller_domain testsuite_domain:process { noatsecure rlimitinh siginh };
+allow testsuite_caller_domain testsuite_domain:process sigkill;
 
 # keys test may trigger search AVCs for root's keys
 dontaudit testsuite_domain testsuite_caller_domain:key { search };

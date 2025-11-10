@@ -22,7 +22,8 @@ typeattribute test_inherit_child_t inheritdomain;
 # Domain for child process that cannot inherit from parent due to lack
 # of fd use permission.
 type test_inherit_nouse_t;
-testsuite_domain_type(test_inherit_nouse_t)
+# Use the _minimal interface to avoid allowing fd use by default
+testsuite_domain_type_minimal(test_inherit_nouse_t)
 typeattribute test_inherit_nouse_t inheritdomain;
 
 # Domain for child process that cannot inherit r/w fd to test file
