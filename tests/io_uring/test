@@ -1,0 +1,83 @@
+#!/usr/bin/perl
+
+use Test;
+BEGIN { plan tests => 11 }
+
+$basedir = $0;
+$basedir =~ s|(.*)/[^/]*|$1|;
+
+# Remove any leftover test files from prior runs.
+system("rm -f $basedir/iouring.out");
+
+# Verify that test_io_uring_t passes the t1 test
+$result = system("runcon -t test_io_uring_t $basedir/iouring t1");
+ok( $result, 0 );
+
+# Verify that test_io_uring_no_override_t fails the t1 test on io_uring override_creds
+$result = system(
+    "runcon -t test_io_uring_no_override_t $basedir/iouring t1 2>/dev/null");
+ok($result);
+
+# Verify that test_io_uring_no_readwrite_t fails the t1 test on anon_inode read write
+$result = system(
+    "runcon -t test_io_uring_no_readwrite_t $basedir/iouring t1 2>/dev/null");
+ok($result);
+
+# Verify that test_io_uring_no_map_t fails the t1 test on anon_inode map
+$result =
+  system("runcon -t test_io_uring_no_map_t $basedir/iouring t1 2>/dev/null");
+ok($result);
+
+# Verify that test_io_uring_no_create_t fails the t1 test on anon_inode create
+$result =
+  system("runcon -t test_io_uring_no_create_t $basedir/iouring t1 2>/dev/null");
+ok($result);
+
+# Verify that test_io_uring_parent_t passes the t1 test with
+# test_io_uring_child_t as the exec/child context
+$seuser = `secon -u --pid $$`;
+chomp($seuser);
+$serole = `secon -r --pid $$`;
+chomp($serole);
+$serange = `secon -m --pid $$`;
+chomp($serange);
+$childctx = "$seuser:$serole:test_io_uring_child_t:$serange";
+$result =
+  system("runcon -t test_io_uring_parent_t $basedir/iouring t1 $childctx");
+ok( $result, 0 );
+
+# Verify that test_io_uring_child_no_override_t fails the t1 test on io_uring override_creds
+$childctx = "$seuser:$serole:test_io_uring_child_no_override_t:$serange";
+$result =
+  system(
+    "runcon -t test_io_uring_parent_t $basedir/iouring t1 $childctx 2>/dev/null"
+  );
+ok($result);
+
+# Verify that test_io_uring_child_no_map_t fails the t1 test on anon_inode map
+$childctx = "$seuser:$serole:test_io_uring_child_no_map_t:$serange";
+$result =
+  system(
+    "runcon -t test_io_uring_parent_t $basedir/iouring t1 $childctx 2>/dev/null"
+  );
+ok($result);
+
+# Verify that test_io_uring_child_no_readwrite_t fails the t1 test on anon_inode read write
+$childctx = "$seuser:$serole:test_io_uring_child_no_readwrite_t:$serange";
+$result =
+  system(
+    "runcon -t test_io_uring_parent_t $basedir/iouring t1 $childctx 2>/dev/null"
+  );
+ok($result);
+
+# Verify that test_io_uring_sqpoll_t passes the sqpoll test
+$result = system("runcon -t test_io_uring_sqpoll_t $basedir/iouring sqpoll");
+ok( $result, 0 );
+
+# Verify that test_io_uring_no_sqpoll_t fails the sqpoll test
+$result = system(
+    "runcon -t test_io_uring_no_sqpoll_t $basedir/iouring sqpoll 2>/dev/null");
+ok($result);
+
+# Cleanup
+system("rm -f $basedir/iouring.out");

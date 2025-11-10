@@ -64,6 +64,7 @@ similar dependencies):
 * btrfs-progs _(used by the btrfs filesystem tests)_
 * nftables _(used by inet_socket and sctp tests if ver >= 9.3 for secmark testing )_
 * rdma-core-devel _(to build the `ibpkey` test program)_
+* liburing-devel _(to build the `iouring` test program)_
 
 On a modern Fedora system you can install these dependencies with the
 following command (NOTE: On Fedora 32 and below you need to remove
@@ -92,6 +93,7 @@ following command (NOTE: On Fedora 32 and below you need to remove
 		dosfstools \
 		btrfs-progs \
 		rdma-core-devel \
+		liburing-devel \
 		kernel-devel-$(uname -r) \
 		kernel-modules-$(uname -r)
 
@@ -141,7 +143,8 @@ command:
 		btrfs-progs \
 		nftables \
 		netlabel-tools \
-		libibverbs-dev
+		libibverbs-dev \
+		liburing-dev
 
 On Debian prior to version 11 (bullseye) you need to build and install netlabel_tools manually:
 

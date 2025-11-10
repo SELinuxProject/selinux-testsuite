@@ -121,6 +121,7 @@
     - btrfs-progs
     - rdma-core-devel
     - kexec-tools
+    - liburing-devel
   /main:
     summary: Run the testsuite
     duration: 20m

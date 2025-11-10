@@ -1,0 +1,138 @@
+#################################
+#
+# Policy for testing io_uring
+#
+
+#
+# Common type for POSIX shared memory created by the test program.
+#
+type test_io_uring_tmpfs_t;
+files_type(test_io_uring_tmpfs_t)
+
+#
+# Common type for test files created by the tests program.
+#
+type test_io_uring_test_file_t;
+files_type(test_io_uring_test_file_t)
+
+#
+# Common io_uring testsuite domain rules
+#
+# Parameter:
+# 1. domain prefix (without _t) to allow declaring derived types
+#
+define(`testsuite_io_uring_domain', `
+#
+# Inherit the minimal set of testsuite domain rules.
+# We must NOT use testsuite_domain_type() here because Fedora
+# policy defines its own io_uring type transition for all domains,
+# which we can not override otherwise.
+#
+testsuite_domain_type_minimal($1_t)
+
+#
+# Since we are not associating the domain attribute, we have to
+# explicitly allow any permissions typically allowed via it, like fork.
+#
+allow $1_t self:process fork;
+
+#
+# Define a per-domain type for any io_uring anon inodes created
+# by this domain. We use per-domain types so we can distinguish
+# parent-created from child-created io_urings. No allow rules
+# here though - see individual test domains below.
+#
+type $1_io_uring_t;
+type_transition $1_t self:anon_inode $1_io_uring_t "[io_uring]";
+
+#
+# Label any POSIX shared memory created by this domain with
+# a common type and allow access for testing.
+#
+fs_tmpfs_filetrans($1_t, test_io_uring_tmpfs_t, file)
+allow $1_t test_io_uring_tmpfs_t:file { create unlink open read write getattr map };
+
+#
+# Label any test files created by this domain with
+# a common type and allow access for testing.
+#
+filetrans_pattern($1_t, test_file_t, test_io_uring_test_file_t, file);
+allow $1_t test_io_uring_test_file_t:file { create open read write getattr unlink };
+')
+
+# Domain with all the permissions required for the t1 test (parent+child)
+type test_io_uring_t;
+testsuite_io_uring_domain(test_io_uring)
+allow test_io_uring_t test_io_uring_io_uring_t:anon_inode { create map read write };
+allow test_io_uring_t self:io_uring override_creds;
+
+# Domain with the permissions required for the t1 test except override_creds
+type test_io_uring_no_override_t;
+testsuite_io_uring_domain(test_io_uring_no_override)
+allow test_io_uring_no_override_t test_io_uring_no_override_io_uring_t:anon_inode { create map read write };
+
+# Domain with the permissions required for the t1 test except anon_inode read write
+type test_io_uring_no_readwrite_t;
+testsuite_io_uring_domain(test_io_uring_no_readwrite)
+allow test_io_uring_no_readwrite_t test_io_uring_no_readwrite_io_uring_t:anon_inode { create map  };
+allow test_io_uring_no_readwrite_t self:io_uring override_creds;
+
+# Domain with the permissions required for the t1 test except anon_inode map
+type test_io_uring_no_map_t;
+testsuite_io_uring_domain(test_io_uring_no_map)
+allow test_io_uring_no_map_t test_io_uring_no_map_io_uring_t:anon_inode { create read write };
+allow test_io_uring_no_map_t self:io_uring override_creds;
+
+# Domain with the permissions required for the t1 test except anon_inode create
+type test_io_uring_no_create_t;
+testsuite_io_uring_domain(test_io_uring_no_create)
+allow test_io_uring_no_create_t test_io_uring_no_create_io_uring_t:anon_inode { map read write };
+allow test_io_uring_no_create_t self:io_uring override_creds;
+
+# Domain with all the permissions required for the t1 parent process only
+type test_io_uring_parent_t;
+testsuite_io_uring_domain(test_io_uring_parent)
+allow test_io_uring_parent_t test_io_uring_parent_io_uring_t:anon_inode { create map read write };
+
+# Domain with all the permissions required by the t1 child process only
+type test_io_uring_child_t;
+testsuite_io_uring_domain(test_io_uring_child)
+spec_domtrans_pattern(test_io_uring_parent_t, test_file_t, test_io_uring_child_t)
+allow test_io_uring_parent_t test_io_uring_child_t:process { noatsecure rlimitinh siginh };
+allow test_io_uring_child_t test_io_uring_parent_io_uring_t:anon_inode { map read write };
+allow test_io_uring_child_t test_io_uring_parent_t:io_uring override_creds;
+
+# Domain with the permissions required by the t1 child process except override_creds
+type test_io_uring_child_no_override_t;
+testsuite_io_uring_domain(test_io_uring_child_no_override)
+spec_domtrans_pattern(test_io_uring_parent_t, test_file_t, test_io_uring_child_no_override_t)
+allow test_io_uring_parent_t test_io_uring_child_no_override_t:process { noatsecure rlimitinh siginh };
+allow test_io_uring_child_no_override_t test_io_uring_parent_io_uring_t:anon_inode { map read write };
+
+# Domain with the permissions required by the t1 child process except anon_inode map
+type test_io_uring_child_no_map_t;
+testsuite_io_uring_domain(test_io_uring_child_no_map)
+spec_domtrans_pattern(test_io_uring_parent_t, test_file_t, test_io_uring_child_no_map_t)
+allow test_io_uring_parent_t test_io_uring_child_no_map_t:process { noatsecure rlimitinh siginh };
+allow test_io_uring_child_no_map_t test_io_uring_parent_io_uring_t:anon_inode { read write };
+allow test_io_uring_child_no_map_t test_io_uring_parent_t:io_uring override_creds;
+
+# Domain with the permissions required by the t1 child process except anon_inode read write
+type test_io_uring_child_no_readwrite_t;
+testsuite_io_uring_domain(test_io_uring_child_no_readwrite)
+spec_domtrans_pattern(test_io_uring_parent_t, test_file_t, test_io_uring_child_no_readwrite_t)
+allow test_io_uring_parent_t test_io_uring_child_no_readwrite_t:process { noatsecure rlimitinh siginh };
+allow test_io_uring_child_no_readwrite_t test_io_uring_parent_io_uring_t:anon_inode map;
+allow test_io_uring_child_no_readwrite_t test_io_uring_parent_t:io_uring override_creds;
+
+# Domain with all the permissions required for the sqpoll test
+type test_io_uring_sqpoll_t;
+testsuite_io_uring_domain(test_io_uring_sqpoll)
+allow test_io_uring_sqpoll_t test_io_uring_sqpoll_io_uring_t:anon_inode { create map read write };
+allow test_io_uring_sqpoll_t self:io_uring { override_creds sqpoll };
+
+# Domain with the permissions required for the sqpoll test except for io_uring sqpoll
+type test_io_uring_no_sqpoll_t;
+testsuite_io_uring_domain(test_io_uring_no_sqpoll)
+allow test_io_uring_no_sqpoll_t test_io_uring_no_sqpoll_io_uring_t:anon_inode { create map read write };
+allow test_io_uring_no_sqpoll_t self:io_uring override_creds;

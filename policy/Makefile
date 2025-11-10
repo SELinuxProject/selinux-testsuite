@@ -197,6 +197,10 @@ ifeq ($(shell grep -q firmware_load $(POLDEV)/include/support/all_perms.spt && \
 TARGETS += test_file_load.te
 endif
 
+ifeq ($(shell grep -q io_uring $(POLDEV)/include/support/all_perms.spt && echo true),true)
+TARGETS += test_io_uring.te
+endif
+
 all: build
 
 expand_check:
