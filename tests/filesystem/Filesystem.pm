@@ -152,22 +152,28 @@ sub make_fs {
     }
 }
 
+sub umount_rm {
+    my ($path) = @_;
+    system("umount -R -l $path 2>/dev/null");
+    system("rm -rf $path 2>/dev/null");
+}
+
 sub mk_mntpoint_1 {
     my ($path) = @_;
-    system("rm -rf $path/mp1 2>/dev/null");
+    umount_rm("$path/mp1");
     system("mkdir -p $path/mp1 2>/dev/null");
 }
 
 sub mk_mntpoint_2 {
     my ($path) = @_;
-    system("rm -rf $path/mp2 2>/dev/null");
+    umount_rm("$path/mp2");
     system("mkdir -p $path/mp2 2>/dev/null");
 }
 
 sub cleanup {
     my ($base) = @_;
-    system("rm -rf $base/fstest 2>/dev/null");
-    system("rm -rf $base/mntpoint 2>/dev/null");
+    umount_rm("$base/fstest");
+    umount_rm("$base/mntpoint");
 }
 
 sub cleanup1 {
@@ -175,8 +181,8 @@ sub cleanup1 {
     system("udevadm settle");
     system("losetup -d $d 2>/dev/null");
     system("udevadm settle");
-    system("rm -rf $base/fstest 2>/dev/null");
-    system("rm -rf $base/mntpoint 2>/dev/null");
+    umount_rm("$base/fstest");
+    umount_rm("$base/mntpoint");
 }
 
 # Cleanup any attached /dev/loop entries
