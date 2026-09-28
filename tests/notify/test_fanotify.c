@@ -5,6 +5,7 @@
 
 #include <getopt.h>
 
+#include <errno.h>
 #include <fcntl.h>
 #include <poll.h>
 #include <sys/fanotify.h>
@@ -12,7 +13,7 @@
 
 void printUsage()
 {
-	fprintf(stderr, "Usage: test_fanotify [-p] [-r] [-l] [-m] file_name\n");
+	fprintf(stderr, "Usage: test_fanotify [-p] [-r] [-l] [-m] [-c] file_name\n");
 	exit(1);
 }
 
@@ -26,13 +27,14 @@ int main(int argc, char *argv[])
 	int mask = FAN_OPEN;  // default mask
 	int flags = FAN_MARK_ADD;
 	int listening = 0;
+	int check = 0;
 
 	// the -p flag will test for watch_with_perm
 	// the mask used at mark will contain FAN_OPEN_PERM
 	//
 	// the -r flag will test for watching accesses to files for reads
 	// the mask will contain FAN_ACCESS
-	while ((arg = getopt(argc, argv, "prlm")) != -1) {
+	while ((arg = getopt(argc, argv, "prlmc")) != -1) {
 		switch (arg) {
 		case 'p':
 			mask |= FAN_OPEN_PERM;
@@ -46,6 +48,9 @@ int main(int argc, char *argv[])
 		case 'm':
 			flags |= FAN_MARK_MOUNT;
 			break;
+		case 'c':
+			check = 1;
+			break;
 		default:
 			printUsage();
 		}
@@ -53,6 +58,11 @@ int main(int argc, char *argv[])
 
 	// get file descriptor for new fanotify event queue
 	fd = fanotify_init(FAN_CLASS_CONTENT, O_RDWR);
+	if (check) {
+		if (fd < 0 && errno == ENOSYS)
+			exit(ENOSYS);
+		exit(0);
+	}
 	if (fd < 0) {
 		perror("fanotify_init:bad file descriptor");
 		exit(1);
