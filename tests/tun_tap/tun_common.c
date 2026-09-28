@@ -5,7 +5,7 @@ int open_dev(int *fd, char *test_str, bool verbose)
 	char *tun_dev = "/dev/net/tun";
 
 	*fd = open(tun_dev, O_RDWR);
-	if (fd < 0) {
+	if (*fd < 0) {
 		fprintf(stderr, "Failed to open device: %s\n",
 			strerror(errno));
 		return errno;
