@@ -102,7 +102,11 @@ endif
 
 ifeq ($(shell grep -q module_load $(POLDEV)/include/support/all_perms.spt && echo true),true)
 ifneq ($(shell ./kvercmp $$(uname -r) 4.7),-1)
+ifneq ($(wildcard /lib/modules/$(shell uname -r)/build/Makefile),)
 SUBDIRS+=module_load
+else
+$(warning Skipping module_load tests: /lib/modules/$(shell uname -r)/build not found)
+endif
 endif
 endif
 
