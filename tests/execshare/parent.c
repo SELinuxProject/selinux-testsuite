@@ -43,7 +43,7 @@ int main(int argc, char **argv)
 		perror("malloc");
 		exit(-1);
 	}
-	clone_stack = page + pagesize;
+	clone_stack = (unsigned char *)page + pagesize;
 
 	rc = getcon(&context_tmp);
 	if (rc < 0) {

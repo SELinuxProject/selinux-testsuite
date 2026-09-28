@@ -231,7 +231,7 @@ static void extract_handle_and_acquire(int fd,
 static int binder_parse(int fd, binder_uintptr_t ptr, binder_size_t size)
 {
 	binder_uintptr_t end = ptr + size;
-	uint32_t cmd;
+	uint32_t cmd = BR_DEAD_REPLY;
 
 	while (ptr < end) {
 		cmd = *(uint32_t *)ptr;

@@ -9,7 +9,7 @@
 #include <stdlib.h>
 
 char my_path[1024];
-#define CLEANUP_AND_EXIT do { unlink(my_path); exit(1); } while (0)
+#define CLEANUP_AND_EXIT do { unlink(my_path); _exit(1); } while (0)
 
 void handler(int sig)
 {
@@ -43,7 +43,6 @@ int main(int argc, char **argv)
 	}
 
 	sun.sun_family = AF_UNIX;
-	sunlen = sizeof(struct sockaddr_un);
 	strcpy(sun.sun_path, argv[2]);
 	sunlen = strlen(sun.sun_path) + 1 + sizeof(short);
 	strcpy(my_path, sun.sun_path);

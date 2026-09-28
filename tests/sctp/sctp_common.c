@@ -105,9 +105,9 @@ void print_addr_info(struct sockaddr *sin, char *text)
 
 char *get_ip_option(int fd, bool ipv4, socklen_t *opt_len)
 {
-	int result, i;
+	int result;
 	unsigned char ip_options[1024];
-	socklen_t len = sizeof(ip_options);
+	socklen_t i, len = sizeof(ip_options);
 	char *ip_optbuf;
 
 	if (ipv4)

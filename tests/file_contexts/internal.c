@@ -13,7 +13,7 @@
 void assertContextsMatch(struct selabel_handle *hnd, const char *log_prefix,
 			 struct test_t *tests, size_t n)
 {
-	int i;
+	size_t i;
 
 	for (i = 0; i < n; i++) {
 		char *context = NULL;

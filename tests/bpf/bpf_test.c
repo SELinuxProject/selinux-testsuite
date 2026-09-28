@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
 		PROG_LOAD,
 		TOKEN_CROSS_DOMAIN_SUCCESS,
 		TOKEN_CROSS_DOMAIN_FAILURE,
-	} bpf_fd_type;
+	} bpf_fd_type = -1;
 
 	while ((opt = getopt(argc, argv, "mpclvsf")) != -1) {
 		switch (opt) {
