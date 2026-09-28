@@ -1,20 +1,24 @@
 #!/usr/bin/perl
 
+use strict;
+use warnings;
+
 use Test::Harness;
 
-@dirs = split( / /, $ENV{SUBDIRS} );
+my @dirs    = split( / /, $ENV{SUBDIRS} );
+my @scripts = ();
 
 for (@dirs) {
     push @scripts, "$_/test";
 }
 
-$output = `id`;
+my $output = `id`;
 $output =~ /uid=\d+\((\w+)\).*context=(\w+):(\w+):(\w+)/
   || die("Can't determine user's id\n");
-$unixuser = $1;
-$user     = $2;
-$role     = $3;
-$type     = $4;
+my $unixuser = $1;
+my $user     = $2;
+my $role     = $3;
+my $type     = $4;
 
 print "Running as user $unixuser with context $2:$3:$4\n\n";
 
