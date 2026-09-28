@@ -1,4 +1,6 @@
-#!/bin/bash
+#!/bin/sh
+
+set -eu
 
 if [ $# -ne 1 ]; then
 	echo "Usage $0 <selinuxfs directory>"
@@ -8,10 +10,10 @@ fi
 # This is heuristic but seems unlikely to be wrong,
 # the kernel initial sid should always be SystemHigh
 # and SystemHigh is normally s15
-level=$(cat $1/initial_contexts/kernel | tr '\0' '\n' | cut -d: -f4)
+level=$(cat "$1/initial_contexts/kernel" | tr '\0' '\n' | cut -d: -f4)
 
-if [ -z $level ]; then echo "NON-MLS"
-elif [ $level = 's0' ]; then echo "MCS"
-elif [ $level = 's15' ]; then echo "MLS"
+if [ -z "$level" ]; then echo "NON-MLS"
+elif [ "$level" = 's0' ]; then echo "MCS"
+elif [ "$level" = 's15' ]; then echo "MLS"
 else echo "UNKNOWN"
 fi
