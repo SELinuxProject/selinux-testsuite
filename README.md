@@ -126,20 +126,24 @@ command:
 
 	# apt-get install perl \
 		gcc \
+		make \
 		selinux-policy-dev \
-		libselinux1-dev \
+		libselinux-dev \
 		net-tools \
 		iptables \
 		libsctp-dev \
+		lksctp-tools \
 		attr \
 		libbpf-dev \
 		libkeyutils-dev \
+		keyutils \
 		linux-headers-$(uname -r) \
 		quota \
 		xfsprogs \
 		xfslibs-dev \
 		uuid-dev \
 		e2fsprogs \
+		f2fs-tools \
 		jfsutils \
 		dosfstools \
 		btrfs-progs \
@@ -147,6 +151,9 @@ command:
 		netlabel-tools \
 		libibverbs-dev \
 		liburing-dev
+
+On Debian 13 (trixie) and older, install `libselinux1-dev` instead of
+`libselinux-dev`.
 
 On Debian prior to version 11 (bullseye) you need to build and install netlabel_tools manually:
 
