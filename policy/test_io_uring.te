@@ -37,6 +37,12 @@ testsuite_domain_type_minimal($1_t)
 allow $1_t self:process fork;
 
 #
+# Allow io_uring_setup(2), which the kernel checks against the
+# io_uring allowed permission if the policy defines it.
+#
+ifdef(`io_uring_allowed_defined', `allow $1_t self:io_uring allowed;')
+
+#
 # Define a per-domain type for any io_uring anon inodes created
 # by this domain. We use per-domain types so we can distinguish
 # parent-created from child-created io_urings. No allow rules

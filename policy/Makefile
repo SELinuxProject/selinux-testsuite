@@ -207,6 +207,9 @@ endif
 
 ifeq ($(shell grep -q io_uring $(POLDEV)/include/support/all_perms.spt && echo true),true)
 TARGETS += test_io_uring.te
+ifeq ($(shell grep -q all_io_uring_perms.*allowed $(POLDEV)/include/support/all_perms.spt && echo true),true)
+export M4PARAM += -Dio_uring_allowed_defined
+endif
 endif
 
 all: build
