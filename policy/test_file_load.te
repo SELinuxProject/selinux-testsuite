@@ -7,12 +7,24 @@ require {
     type user_tmp_t;
 }
 
+# Reference policy does not have the *_inherited_* interfaces
+ifdef(`fs_rw_inherited_tmpfs_files', `', `
+define(`fs_rw_inherited_tmpfs_files', `fs_rw_tmpfs_files($1)')
+')
+ifdef(`userdom_read_inherited_user_tmp_files', `', `
+define(`userdom_read_inherited_user_tmp_files', `userdom_read_user_tmp_files($1)')
+')
+
 attribute testkexecdomain;
 
 type test_kexec_tmp_file_t;
 files_tmp_file(test_kexec_tmp_file_t)
 
+# Reference policy does not have files_rw_generic_tmp_dir(), but its
+# files_tmp_filetrans() below already allows writing to /tmp.
+ifdef(`files_rw_generic_tmp_dir', `
 files_rw_generic_tmp_dir(testkexecdomain)
+')
 files_tmp_filetrans(testkexecdomain, test_kexec_tmp_file_t, file)
 manage_files_pattern(testkexecdomain, test_kexec_tmp_file_t, test_kexec_tmp_file_t)
 

@@ -2,6 +2,15 @@
 #
 # Policy for testing BPF map create and program load with BPF token
 
+require {
+	type bpf_t;
+}
+
+# Reference policy does not have fs_list_bpf_dirs()
+ifdef(`fs_list_bpf_dirs', `', `
+define(`fs_list_bpf_dirs', `allow $1 bpf_t:dir list_dir_perms;')
+')
+
 ################### Allow map_create_as and prog_load_as ###################
 fs_list_bpf_dirs(test_bpf_t)
 allow test_bpf_t bpf_t:filesystem mount;
