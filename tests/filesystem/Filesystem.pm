@@ -15,7 +15,7 @@ sub check_config {
     $watch         = 0;
 
     $result = `$base/../kvercmp $kvercur $kverminstream`;
-    if ( $result > 0 && -e $fanotify_fs ) {
+    if ( $result > 0 && -e $fanotify_fs && -d "/proc/sys/fs/fanotify/" ) {
         $watch = 1;
         $tst_count += 11;
     }
