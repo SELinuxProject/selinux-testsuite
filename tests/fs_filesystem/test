@@ -62,7 +62,7 @@ BEGIN {
     # rootcontext is not supported.
     # $seclabel_type: No seclabel = 0, fscontext = 1, context = 2
     if ( $fs_type eq "nfs4" or $fs_type eq "nfs" ) {
-        ( $dev, $nfs_mount_opts, $nfs_inval_mount_opts, $seclabel_type ) =
+        ( $dev, $nfs_mount_opts, $seclabel_type ) =
           nfs_gen_opts( $fs_type, $basedir, "fs_filesystem" );
         $nfs_enabled = 1;
     }
@@ -137,8 +137,12 @@ BEGIN {
         # via inode_setxattr_no_associate() test in nfs_filesystem/test
         $test_count -= 3;
 
-        # Remove additional Test Invalid Mount tests
-        $test_count -= 1;
+        # Skip Test Invalid Mount tests: since kernel commit ec1ade6a0448
+        # ("nfs: account for selinux security context when deciding to share
+        # superblock"), NFS allocates a fresh superblock when the security
+        # options differ, so the "same sb, different settings" error this test
+        # checks for is unreachable on NFS.
+        $test_count -= 2;
 
         # Remove tests involving multiple *context= options as invalid
         $test_count -= 20;
@@ -995,16 +999,15 @@ if ($test_watch) {
 }
 
 ############### Test Invalid Mount ##########################
-# This will generate a log entry "SELinux: mount invalid. Same superblock,
-#    different security settings for (dev 0:49, type nfs4)"
-# Note that NFS is already mounted at this point by nfs.sh
+# Skipped on NFS: since kernel commit ec1ade6a0448 ("nfs: account for
+# selinux security context when deciding to share superblock"), NFS
+# allocates a fresh superblock when the security options differ, so the
+# "same sb, different settings" error this test checks for is unreachable
+# here.
 #
-mk_mntpoint_1($private_path);
+if ( not $nfs_enabled ) {
+    mk_mntpoint_1($private_path);
 
-if ($nfs_enabled) {
-    $mount_inval_opts = $nfs_inval_mount_opts;
-}
-else {
     ( $dev, $device_count ) = get_loop_dev( \@device_list, $device_count );
     make_fs( $fs_type, $dev, $basedir, $make_fs_opts );
     $mount_opts = "rootcontext=system_u:object_r:test_filesystem_file_t:s0";
@@ -1016,25 +1019,20 @@ else {
 "runcon -t test_filesystem_t $basedir/fsmount -s $dev -t $private_path/mp1 -f $fs_type -o $mount_opts $v"
     );
     ok( $result eq 0 );
-}
 
-print "Test 'Invalid Mount' $fs_type filesystem on $private_path/mp1\n";
-print "Using mount options:\n\t$mount_inval_opts\n";
-$result = system(
+    print "Test 'Invalid Mount' $fs_type filesystem on $private_path/mp1\n";
+    print "Using mount options:\n\t$mount_inval_opts\n";
+    $result = system(
 "runcon -t test_filesystem_t $basedir/fsmount -s $dev -t $private_path/mp1 -f $fs_type -o $mount_inval_opts $v 2>&1"
-);
-if ( $nfs_enabled and $result >> 8 eq 16 ) {
-    ok( 1, "Returned EBUSY, known bug" );
-}
-else {    # Still gets mounted, so need to unmount
+    );
     system(
 "runcon -t test_filesystem_t $filesystem_dir/umount -t $private_path/mp1 $v 2>&1"
     );
     ok( $result >> 8 eq 22 );    # EINVAL
-}
 
-print "Removing: $basedir/mntpoint\n";
-cleanup1( $basedir, $dev );
+    print "Removing: $basedir/mntpoint\n";
+    cleanup1( $basedir, $dev );
+}
 
 if ( not $nfs_enabled ) {
     ##########################################################################

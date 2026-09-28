@@ -303,19 +303,5 @@ sub nfs_gen_opts {
         $nfs_mount_opts = "$vers,$proto,$clientaddr,$addr,$seclabel";
     }
 
-    # Build option for testing 'SELinux: mount invalid. Same superblock,...'
-    # that returns EBUSY. Depends on what the initial mount set as its value
-    $inval_seclabel = $seclabel;
-    if ( $seclabel_type eq 0 ) {
-        $inval_seclabel = "context=system_u:object_r:test_filesystem_file_t:s0";
-    }
-    elsif ( $seclabel_type eq 1 ) {
-        $inval_seclabel =~ s/fscontext/context/i;
-    }
-    elsif ( $seclabel_type eq 2 ) {
-        $inval_seclabel =~ s/context/fscontext/i;
-    }
-    $nfs_inval_mount_opts = "$vers,$proto,$clientaddr,$addr,$inval_seclabel";
-
-    return ( $dev, $nfs_mount_opts, $nfs_inval_mount_opts, $seclabel_type );
+    return ( $dev, $nfs_mount_opts, $seclabel_type );
 }
