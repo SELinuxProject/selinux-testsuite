@@ -12,13 +12,13 @@ testsuite_domain_type(test_mqmanageop_t)
 domain_obj_id_change_exemption(test_mqmanageop_t)
 typeattribute test_mqmanageop_t mqopdomain;
 
-# Domain for process that is allowed to read the read posix mqueues
+# Domain for process that is allowed to read from posix mqueues
 type test_mqreadop_t;
 testsuite_domain_type(test_mqreadop_t)
 domain_obj_id_change_exemption(test_mqreadop_t)
 typeattribute test_mqreadop_t mqopdomain;
 
-# Domain for process that is allowed to wirte to write posix mqueues
+# Domain for process that is allowed to write to posix mqueues
 type test_mqwriteop_t;
 testsuite_domain_type(test_mqwriteop_t)
 domain_obj_id_change_exemption(test_mqwriteop_t)
