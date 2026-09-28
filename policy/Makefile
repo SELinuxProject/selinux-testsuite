@@ -212,6 +212,8 @@ export M4PARAM += -Dio_uring_allowed_defined
 endif
 endif
 
+.PHONY: all build clean expand_check load unload
+
 all: build
 
 expand_check:
