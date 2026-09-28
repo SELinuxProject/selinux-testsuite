@@ -1,5 +1,5 @@
 TARGETS = tun_tap tun_relabel
-DEPS = tun_common.c tun_common.h
+DEPS = tun_common.c
 LDLIBS += -lselinux
 
 all: $(TARGETS)

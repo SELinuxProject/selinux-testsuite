@@ -1,5 +1,5 @@
 TARGETS = fsmount fspick move_mount
-DEPS = fs_common.c fs_common.h
+DEPS = fs_common.c
 LDLIBS += -lselinux
 USE_FS = ../filesystem
 
