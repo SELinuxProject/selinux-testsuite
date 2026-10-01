@@ -15,7 +15,7 @@ BEGIN {
 }
 use lib $filesystem_dir;
 use Filesystem
-  qw(check_config udisks2_stop udisks2_restart get_loop_dev attach_dev make_fs mk_mntpoint_1 mk_mntpoint_2 cleanup cleanup1 reaper nfs_gen_opts);
+  qw(check_config udisks2_stop udisks2_restart get_loop_dev attach_dev make_fs mk_mntpoint_1 mk_mntpoint_2 cleanup cleanup1 reaper nfs_gen_opts ext4_native_quota_supported legacy_quota_supported);
 
 BEGIN {
     # extract fs_type
@@ -23,14 +23,15 @@ BEGIN {
     $fs_type   = $test_name ne "fs_filesystem" ? $test_name : " ";
 
     # Options: -v = Verbose, -e enable udisks(8) daemon, -f filesystem type
-    $v              = " ";
-    $disable_udisks = 1;
-    $udisks2_status = 0;
-    $quota_checks   = 1;
-    $nfs_enabled    = 0;
-    $vfat_enabled   = 0;
-    $ext4_quota     = 0;
-    $make_fs_opts   = "";
+    $v                      = " ";
+    $disable_udisks         = 1;
+    $udisks2_status         = 0;
+    $quota_checks           = 1;
+    $nfs_enabled            = 0;
+    $vfat_enabled           = 0;
+    $ext4_quota             = 0;
+    $ext4_quota_unsupported = 0;
+    $make_fs_opts           = "";
 
     $i = 0;
     foreach $arg (@ARGV) {
@@ -67,12 +68,25 @@ BEGIN {
     }
     elsif ( $fs_type eq "ext4" ) {
 
-        # EXT4 has native quota support since kernel 3.6
+        # EXT4 has native quota support since kernel 3.6, but some kernels
+        # (e.g. built without CONFIG_QUOTA) can't mount a filesystem with
+        # the quota feature at all, which would break every ext4 mount in
+        # this script since mkfs always sets the feature. Probe it.
         $kvercur = `uname -r`;
         chomp($kvercur);
-        if ( `$basedir/../kvercmp $kvercur 3.6` >= 1 ) {
+        if ( `$basedir/../kvercmp $kvercur 3.6` >= 1
+            && ext4_native_quota_supported() )
+        {
             $ext4_quota   = 1;
             $make_fs_opts = "-O quota";
+        }
+        elsif ( not legacy_quota_supported() ) {
+
+            # Neither native nor legacy ext4 quota mechanisms work on this
+            # kernel (e.g. no quota format registered at all). Don't fall
+            # into the legacy quotacheck(8)/quotaon(8) path - it needs the
+            # same missing kernel support and is guaranteed to fail too.
+            $ext4_quota_unsupported = 1;
         }
     }
     elsif ( $fs_type eq "vfat" ) {
@@ -95,6 +109,12 @@ BEGIN {
 
     # BTRFS uses internal quotas requiring no security hooks
     elsif ( $fs_type eq "btrfs" ) {
+        $test_count   = 54;
+        $quota_checks = 0;
+    }
+
+    # No quota mechanism at all is usable on this kernel for ext4
+    elsif ( $fs_type eq "ext4" and $ext4_quota_unsupported ) {
         $test_count   = 54;
         $quota_checks = 0;
     }

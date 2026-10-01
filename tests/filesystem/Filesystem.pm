@@ -1,7 +1,61 @@
 package Filesystem;
-use Exporter qw(import);
+use Exporter   qw(import);
+use File::Temp qw(tempdir);
 our @EXPORT_OK =
-  qw(check_config udisks2_stop udisks2_restart get_loop_dev attach_dev make_fs mk_mntpoint_1 mk_mntpoint_2 cleanup cleanup1 reaper nfs_gen_opts);
+  qw(check_config udisks2_stop udisks2_restart get_loop_dev attach_dev make_fs mk_mntpoint_1 mk_mntpoint_2 cleanup cleanup1 reaper nfs_gen_opts ext4_native_quota_supported legacy_quota_supported);
+
+# EXT4 native quota (-O quota) is a RO_COMPAT feature: any kernel that
+# doesn't support it (e.g. built without CONFIG_QUOTA) will refuse to
+# mount *any* filesystem carrying that feature bit, not just quota-using
+# ones. Probe it directly instead of relying on kernel version alone, so
+# a single unmountable feature flag can't take down the whole test.
+#
+# Use an isolated tempdir under /tmp rather than the caller's $basedir:
+# per-filesystem test directories (tests/filesystem/ext4, .../jfs, etc.)
+# are symlinks back to tests/filesystem itself, so writing probe files
+# into $basedir would pollute the directory every other filesystem test
+# shares, and any incomplete cleanup here (a stuck loop device or mount)
+# could corrupt whichever filesystem test runs next.
+sub ext4_native_quota_supported {
+    my $dir = tempdir( "ext4_quota_probe.XXXXXX", TMPDIR => 1, CLEANUP => 1 );
+    my $img = "$dir/probe.img";
+    my $mnt = "$dir/probe.mnt";
+
+    system("dd if=/dev/zero of=$img bs=1M count=8 status=none 2>/dev/null");
+    system("mkfs.ext4 -q -F -O quota $img >/dev/null 2>&1");
+    mkdir($mnt);
+    my $rc = system("mount -o loop $img $mnt >/dev/null 2>&1");
+    system("umount $mnt >/dev/null 2>&1") if $rc == 0;
+
+    return $rc == 0 ? 1 : 0;
+}
+
+# The legacy quota mechanism (external vfsv0 quota files, activated via
+# quotacheck(8) + quotaon(8)) needs a registered kernel quota format
+# (CONFIG_QFMT_V1/V2) just as much as native quota does - it is not a
+# fallback that works whenever native quota doesn't. Probe it the same
+# way, so callers can tell "use legacy" apart from "no quota mechanism
+# is usable at all on this kernel". Uses an isolated tempdir for the same
+# reason as ext4_native_quota_supported().
+sub legacy_quota_supported {
+    my $dir = tempdir( "ext4_quota_probe.XXXXXX", TMPDIR => 1, CLEANUP => 1 );
+    my $img = "$dir/probe.img";
+    my $mnt = "$dir/probe.mnt";
+
+    system("dd if=/dev/zero of=$img bs=1M count=8 status=none 2>/dev/null");
+    system("mkfs.ext4 -q -F $img >/dev/null 2>&1");
+    mkdir($mnt);
+    my $rc =
+      system("mount -o loop,usrquota,grpquota $img $mnt >/dev/null 2>&1");
+    if ( $rc == 0 ) {
+        system("quotacheck -ugF vfsv0 $mnt >/dev/null 2>&1");
+        $rc = system("quotaon -ug $mnt >/dev/null 2>&1");
+        system("quotaoff -ug $mnt >/dev/null 2>&1") if $rc == 0;
+    }
+    system("umount $mnt >/dev/null 2>&1");
+
+    return $rc == 0 ? 1 : 0;
+}
 
 sub check_config {
     my ( $base, $fanotify_fs, $nfs_enabled, $vfat_enabled ) = @_;
