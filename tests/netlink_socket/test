@@ -1,28 +1,40 @@
 #!/usr/bin/perl
 
-use Test;
-BEGIN { plan tests => 8 }
+use Test::More;
 
-$basedir = $0;
-$basedir =~ s|(.*)/[^/]*|$1|;
+BEGIN {
+    $basedir = $0;
+    $basedir =~ s|(.*)/[^/]*|$1|;
 
-# Verify that test_netlink_iscsi_socket_t can create a NETLINK_ISCSI socket.
-$result = system(
-    "runcon -t test_netlink_iscsi_socket_t -- $basedir/netlinkcreate iscsi 2>&1"
-);
-ok( $result, 0 );
+    # Determine if the kernel supports NETLINK_ISCSI. Probe unconfined so a
+    # failure here means the protocol isn't available, not an SELinux denial.
+    $test_iscsi =
+      system("$basedir/netlinkcreate iscsi 2>/dev/null") == 0 ? 1 : 0;
+
+    plan tests => 8;
+}
+
+SKIP: {
+    skip( "NETLINK_ISCSI not supported by this kernel", 2 ) unless $test_iscsi;
+
+    # Verify that test_netlink_iscsi_socket_t can create a NETLINK_ISCSI socket.
+    $result = system(
+"runcon -t test_netlink_iscsi_socket_t -- $basedir/netlinkcreate iscsi 2>&1"
+    );
+    ok( $result == 0 );
 
 # Verify that test_no_netlink_iscsi_socket_t cannot create a NETLINK_ISCSI socket.
-$result = system(
+    $result = system(
 "runcon -t test_no_netlink_iscsi_socket_t -- $basedir/netlinkcreate iscsi 2>&1"
-);
-ok($result);
+    );
+    ok($result);
+}
 
 # Verify that test_netlink_netfilter_socket_t can create a NETLINK_NETFILTER socket.
 $result = system(
 "runcon -t test_netlink_netfilter_socket_t -- $basedir/netlinkcreate netfilter 2>&1"
 );
-ok( $result, 0 );
+ok( $result == 0 );
 
 # Verify that test_no_netlink_netfilter_socket_t cannot create a NETLINK_NETFILTER socket.
 $result = system(
@@ -34,7 +46,7 @@ ok($result);
 $result = system(
 "runcon -t test_netlink_generic_socket_t -- $basedir/netlinkcreate generic 2>&1"
 );
-ok( $result, 0 );
+ok( $result == 0 );
 
 # Verify that test_no_netlink_generic_socket_t cannot create a NETLINK_GENERIC socket.
 $result = system(
@@ -46,7 +58,7 @@ ok($result);
 $result = system(
 "runcon -t test_netlink_crypto_socket_t -- $basedir/netlinkcreate crypto 2>&1"
 );
-ok( $result, 0 );
+ok( $result == 0 );
 
 # Verify that test_no_netlink_crypto_socket_t cannot create a NETLINK_CRYPTO socket.
 $result = system(
