@@ -1,17 +1,41 @@
 #!/usr/bin/perl
 
-use Test;
-BEGIN { plan tests => 11 }
+use Test::More;
 
-$basedir = $0;
-$basedir =~ s|(.*)/[^/]*|$1|;
+BEGIN {
+    $basedir = $0;
+    $basedir =~ s|(.*)/[^/]*|$1|;
+
+    # Probe unconfined so a failure here means io_uring isn't built into
+    # the kernel at all, not that it was denied by policy.
+    my $io_uring_supported =
+      system("$basedir/iouring probe >/dev/null 2>&1") == 0 ? 1 : 0;
+
+    # kernel.io_uring_disabled was only added in v6.6, well after the
+    # io_uring support being tested here (v5.16), so its absence does not
+    # mean io_uring is unsupported - only a value of 2 means io_uring is
+    # administratively disabled, even for privileged processes.
+    chomp( my $io_uring_disabled =
+          `sysctl -n kernel.io_uring_disabled 2>/dev/null` );
+
+    if ( !$io_uring_supported ) {
+        plan skip_all => "io_uring not supported by this kernel";
+    }
+    elsif ( $io_uring_disabled eq "2" ) {
+        plan skip_all =>
+          "io_uring is disabled via the kernel.io_uring_disabled sysctl";
+    }
+    else {
+        plan tests => 11;
+    }
+}
 
 # Remove any leftover test files from prior runs.
 system("rm -f $basedir/iouring.out");
 
 # Verify that test_io_uring_t passes the t1 test
 $result = system("runcon -t test_io_uring_t $basedir/iouring t1");
-ok( $result, 0 );
+ok( $result == 0 );
 
 # Verify that test_io_uring_no_override_t fails the t1 test on io_uring override_creds
 $result = system(
@@ -44,7 +68,7 @@ chomp($serange);
 $childctx = "$seuser:$serole:test_io_uring_child_t:$serange";
 $result =
   system("runcon -t test_io_uring_parent_t $basedir/iouring t1 $childctx");
-ok( $result, 0 );
+ok( $result == 0 );
 
 # Verify that test_io_uring_child_no_override_t fails the t1 test on io_uring override_creds
 $childctx = "$seuser:$serole:test_io_uring_child_no_override_t:$serange";
@@ -72,7 +96,7 @@ ok($result);
 
 # Verify that test_io_uring_sqpoll_t passes the sqpoll test
 $result = system("runcon -t test_io_uring_sqpoll_t $basedir/iouring sqpoll");
-ok( $result, 0 );
+ok( $result == 0 );
 
 # Verify that test_io_uring_no_sqpoll_t fails the sqpoll test
 $result = system(

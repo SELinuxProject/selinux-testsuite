@@ -479,6 +479,7 @@ int main(int argc, char *argv[])
 	struct rlimit rlim;
 
 	enum { TST_UNKNOWN,
+	       TST_PROBE,
 	       TST_SQPOLL,
 	       TST_T1_PARENT, TST_T1_CHILD
 	     } tst_method;
@@ -486,7 +487,9 @@ int main(int argc, char *argv[])
 	/* parse the command line and do some sanity checks */
 	tst_method = TST_UNKNOWN;
 	if (argc >= 2) {
-		if (!strcmp(argv[1], "sqpoll"))
+		if (!strcmp(argv[1], "probe"))
+			tst_method = TST_PROBE;
+		else if (!strcmp(argv[1], "sqpoll"))
 			tst_method = TST_SQPOLL;
 		else if (!strcmp(argv[1], "t1") ||
 			 !strcmp(argv[1], "t1_parent"))
@@ -497,6 +500,21 @@ int main(int argc, char *argv[])
 	if (tst_method == TST_UNKNOWN) {
 		fprintf(stderr, "usage: %s <method> ... \n", argv[0]);
 		exit(EINVAL);
+	}
+
+	/*
+	 * Minimal probe: just check whether the kernel supports io_uring at
+	 * all, without any of the SELinux-specific setup below. Meant to be
+	 * run unconfined so a failure here means io_uring isn't available,
+	 * not that it was denied by policy. Exits 0 if supported, 1 if not.
+	 */
+	if (tst_method == TST_PROBE) {
+		struct io_uring probe_ring;
+
+		if (io_uring_queue_init(URING_ENTRIES, &probe_ring, 0) < 0)
+			exit(1);
+		io_uring_queue_exit(&probe_ring);
+		exit(0);
 	}
 
 	progname = strdup(argv[0]);
