@@ -6,27 +6,31 @@ BEGIN {
     $basedir = $0;
     $basedir =~ s|(.*)/[^/]*|$1|;
 
-    # Probe unconfined so a failure here means io_uring isn't built into
-    # the kernel at all, not that it was denied by policy.
-    my $io_uring_supported =
-      system("$basedir/iouring probe >/dev/null 2>&1") == 0 ? 1 : 0;
-
     # kernel.io_uring_disabled was only added in v6.6, well after the
     # io_uring support being tested here (v5.16), so its absence does not
     # mean io_uring is unsupported - only a value of 2 means io_uring is
-    # administratively disabled, even for privileged processes.
+    # administratively disabled, even for privileged processes. Check
+    # this first: when it applies, the unconfined probe below would also
+    # fail (io_uring_setup() -> EPERM), giving a less specific message.
     chomp( my $io_uring_disabled =
           `sysctl -n kernel.io_uring_disabled 2>/dev/null` );
 
-    if ( !$io_uring_supported ) {
-        plan skip_all => "io_uring not supported by this kernel";
-    }
-    elsif ( $io_uring_disabled eq "2" ) {
+    if ( $io_uring_disabled eq "2" ) {
         plan skip_all =>
           "io_uring is disabled via the kernel.io_uring_disabled sysctl";
     }
     else {
-        plan tests => 11;
+        # Probe unconfined so a failure here means io_uring isn't built
+        # into the kernel at all, not that it was denied by policy.
+        my $io_uring_supported =
+          system("$basedir/iouring probe >/dev/null 2>&1") == 0 ? 1 : 0;
+
+        if ( !$io_uring_supported ) {
+            plan skip_all => "io_uring not supported by this kernel";
+        }
+        else {
+            plan tests => 11;
+        }
     }
 }
 
