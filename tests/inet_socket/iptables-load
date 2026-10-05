@@ -8,6 +8,9 @@
 # - Specified the interface since the tests are only performed over loopback.
 # - Set the port number and context to the values used by the test script and policy.
 
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+HAS_IPV6="$SCRIPT_DIR/../has_ipv6"
+
 # Flush the security table.
 iptables -t security -F
 
@@ -28,6 +31,7 @@ iptables -t security -A OUTPUT -m state --state ESTABLISHED,RELATED -j CONNSECMA
 iptables -t security -A INPUT -i lo -p udp --dport 65535 -j SECMARK --selctx system_u:object_r:test_server_packet_t:s0
 iptables -t security -A OUTPUT -o lo -p udp --sport 65535 -j SECMARK --selctx system_u:object_r:test_server_packet_t:s0
 
+if "$HAS_IPV6"; then
 ##### IPv6 entries
 ip6tables -t security -F
 
@@ -47,3 +51,4 @@ ip6tables -t security -A OUTPUT -m state --state ESTABLISHED,RELATED -j CONNSECM
 # Label UDP packets similarly.
 ip6tables -t security -A INPUT -i lo -p udp --dport 65535 -j SECMARK --selctx system_u:object_r:test_server_packet_t:s0
 ip6tables -t security -A OUTPUT -o lo -p udp --sport 65535 -j SECMARK --selctx system_u:object_r:test_server_packet_t:s0
+fi

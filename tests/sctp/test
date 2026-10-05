@@ -104,6 +104,27 @@ BEGIN {
             $test_count += 8;
             $test_nft = 1;
         }
+
+        # Determine if IPv6 is enabled on loopback.
+        $test_ipv6 = system("$basedir/../has_ipv6") == 0 ? 1 : 0;
+
+        if ( !$test_ipv6 ) {
+            $test_count -= 11;
+
+            if ($test_calipso) {
+                $test_count -= 13;
+                if ($test_clpeeloff) {
+                    $test_count -= 6;
+                }
+                $test_calipso = 0;
+            }
+            if ($test_iptables) {
+                $test_count -= 4;
+            }
+            if ($test_nft) {
+                $test_count -= 4;
+            }
+        }
     }
 
     plan tests => $test_count;
@@ -112,6 +133,13 @@ BEGIN {
 sub server_start {
     my ( $runcon_args, $prog, $args ) = @_;
     my $pid;
+
+    # Select the family before entering the confined server domain.
+    if ( !$test_ipv6
+        && ( $prog eq "sctp_server" || $prog eq "sctp_peeloff_server" ) )
+    {
+        $args = "-4 $args";
+    }
 
     system("mkfifo $basedir/flag");
 
@@ -164,16 +192,19 @@ $result = system
 "runcon -t test_sctp_client_t $basedir/sctp_client $v -n -e nopeer seq 127.0.0.1 1035";
 ok( $result eq 0 );
 
-# Verify that authorized client can communicate with the server SEQ->STREAM.
-$result = system
-  "runcon -t test_sctp_client_t $basedir/sctp_client $v -e nopeer seq ::1 1035";
-ok( $result eq 0 );
+if ($test_ipv6) {
+
+    # Verify that authorized client can communicate with the server SEQ->STREAM.
+    $result = system
+"runcon -t test_sctp_client_t $basedir/sctp_client $v -e nopeer seq ::1 1035";
+    ok( $result eq 0 );
 
 # Verify that the client cannot communicate with server when using port < 1024 STREAM->STREAM.
 # deny sctp_socket { name_connect }
-$result = system
+    $result = system
 "runcon -t test_sctp_client_t -- $basedir/sctp_client $v -e nopeer stream ::1 1023 2>&1";
-ok( $result >> 8 eq 8 );
+    ok( $result >> 8 eq 8 );
+}
 
 # Kill the stream server.
 server_end($pid);
@@ -194,15 +225,17 @@ $result = system
 "runcon -t test_sctp_connectx_t $basedir/sctp_connectx $v stream 127.0.0.1 1035";
 ok( $result eq 0 );
 
-$result =
-  system
-  "runcon -t test_sctp_connectx_t $basedir/sctp_connectx $v seq ::1 1035";
-ok( $result eq 0 );
+if ($test_ipv6) {
+    $result =
+      system
+      "runcon -t test_sctp_connectx_t $basedir/sctp_connectx $v seq ::1 1035";
+    ok( $result eq 0 );
 
-$result =
-  system
+    $result =
+      system
 "runcon -t test_sctp_deny_connectx_t $basedir/sctp_connectx $v seq ::1 1035 2>&1";
-ok( $result >> 8 eq 7 );
+    ok( $result >> 8 eq 7 );
+}
 
 #
 ########################### SCTP_SENDMSG_CONNECT #############################
@@ -215,28 +248,33 @@ $result =
 "runcon -t test_sctp_connectx_t $basedir/sctp_connectx $v -n seq 127.0.0.1 1035";
 ok( $result eq 0 );
 
-$result =
-  system
+if ($test_ipv6) {
+    $result =
+      system
 "runcon -t test_sctp_deny_connectx_t $basedir/sctp_connectx $v -n seq ::1 1035 2>&1";
-ok( $result >> 8 eq 8 );
+    ok( $result >> 8 eq 8 );
+}
 
 #
 ################################ BINDX #######################################
 #
 # net/sctp/socket.c sctp_setsockopt_bindx() SCTP_SOCKOPT_BINDX_ADD
 print "# Testing bindx.\n";
+$bindx_family = $test_ipv6 ? "" : "-4";
 
 $result =
-  system "runcon -t test_sctp_bindx_t $basedir/sctp_bindx $v -r stream 1035";
-ok( $result eq 0 );
-
-$result =
-  system "runcon -t test_sctp_bindx_t $basedir/sctp_bindx $v -r seq 1035";
+  system
+"runcon -t test_sctp_bindx_t $basedir/sctp_bindx $bindx_family $v -r stream 1035";
 ok( $result eq 0 );
 
 $result =
   system
-  "runcon -t test_sctp_deny_bindx_t $basedir/sctp_bindx $v -r seq 1035 2>&1";
+"runcon -t test_sctp_bindx_t $basedir/sctp_bindx $bindx_family $v -r seq 1035";
+ok( $result eq 0 );
+
+$result =
+  system
+"runcon -t test_sctp_deny_bindx_t $basedir/sctp_bindx $bindx_family $v -r seq 1035 2>&1";
 ok( $result >> 8 eq 2 );
 
 #
@@ -351,30 +389,33 @@ server_end($pid);
 # Start seq server.
 $pid = server_start( "-t test_sctp_server_t", "sctp_server", "$v seq 1035" );
 
-# Verify that authorized client can communicate with the server SEQ->SEQ.
-$result = system
-"runcon -t test_sctp_client_t $basedir/sctp_client $v -e system_u:object_r:netlabel_sctp_peer_t:s0 seq ::1 1035";
-ok( $result eq 0 );
+if ($test_ipv6) {
 
-# Verify that authorized client can communicate with the server STREAM->SEQ.
-$result = system
+    # Verify that authorized client can communicate with the server SEQ->SEQ.
+    $result = system
+"runcon -t test_sctp_client_t $basedir/sctp_client $v -e system_u:object_r:netlabel_sctp_peer_t:s0 seq ::1 1035";
+    ok( $result eq 0 );
+
+    # Verify that authorized client can communicate with the server STREAM->SEQ.
+    $result = system
 "runcon -t test_sctp_client_t $basedir/sctp_client $v -e system_u:object_r:netlabel_sctp_peer_t:s0 stream ::1 1035";
-ok( $result eq 0 );
+    ok( $result eq 0 );
 
 # Verify that a client using connect(2) without peer { recv } permission cannot communicate with the server SEQ->SEQ.
-$result = system
+    $result = system
 "runcon -t test_sctp_deny_peer_client_t -- $basedir/sctp_client $v -e system_u:object_r:netlabel_sctp_peer_t:s0 seq ::1 1035 2>&1";
-ok( $result >> 8 eq 6 );
+    ok( $result >> 8 eq 6 );
 
 # Verify that a client using sctp_connectx(3) without peer { recv } permission cannot communicate with the server SEQ->SEQ.
-$result = system
+    $result = system
 "runcon -t test_sctp_deny_peer_client_t -- $basedir/sctp_client $v -x -e system_u:object_r:netlabel_sctp_peer_t:s0 seq ::1 1035 2>&1";
-ok( $result >> 8 eq 6 );
+    ok( $result >> 8 eq 6 );
 
 # Verify that a client not using any connect without peer { recv } permission cannot communicate with the server SEQ->SEQ.
-$result = system
+    $result = system
 "runcon -t test_sctp_deny_peer_client_t -- $basedir/sctp_client $v -n -e system_u:object_r:netlabel_sctp_peer_t:s0 seq ::1 1035 2>&1";
-ok( $result >> 8 eq 13 );
+    ok( $result >> 8 eq 13 );
+}
 
 # Kill the seq server.
 server_end($pid);
@@ -396,10 +437,13 @@ $result = system
 "runcon -t test_sctp_client_t $basedir/sctp_client $v -e system_u:object_r:netlabel_sctp_peer_t:s0 stream 127.0.0.1 1035";
 ok( $result eq 0 );
 
+if ($test_ipv6) {
+
 # Verify that the server is denied this association as the client will timeout on connect.
-$result = system
+    $result = system
 "runcon -t test_sctp_client_t -- $basedir/sctp_client $v -e system_u:object_r:deny_assoc_sctp_peer_t:s0 stream ::1 1035 2>&1";
-ok( $result >> 8 eq 6 );
+    ok( $result >> 8 eq 6 );
+}
 
 # Kill the seq server.
 server_end($pid);
@@ -1141,15 +1185,18 @@ sub test_tables {
 "runcon -t test_sctp_deny_peer_client_t -- $basedir/sctp_client $v -e nopeer stream 127.0.0.1 1035 2>&1";
     ok( $result >> 8 eq 6 );
 
+    if ($test_ipv6) {
+
  # Verify that authorized client can communicate with the server STREAM->STREAM.
-    $result = system
+        $result = system
 "runcon -t test_sctp_client_t $basedir/sctp_client $v -e nopeer stream ::1 1035";
-    ok( $result eq 0 );
+        ok( $result eq 0 );
 
 # Verify that a client without packet { recv } permission cannot communicate with the server STREAM->STREAM.
-    $result = system
+        $result = system
 "runcon -t test_sctp_deny_peer_client_t -- $basedir/sctp_client $v -e nopeer stream ::1 1035 2>&1";
-    ok( $result >> 8 eq 6 );
+        ok( $result >> 8 eq 6 );
+    }
 
     # Kill the stream server.
     server_end($pid);
@@ -1168,15 +1215,18 @@ sub test_tables {
 "runcon -t test_sctp_deny_peer_client_t -- $basedir/sctp_client $v -e nopeer seq 127.0.0.1 1035 2>&1";
     ok( $result >> 8 eq 6 );
 
-    # Verify that authorized client can communicate with the server SEQ->SEQ.
-    $result = system
+    if ($test_ipv6) {
+
+       # Verify that authorized client can communicate with the server SEQ->SEQ.
+        $result = system
 "runcon -t test_sctp_client_t $basedir/sctp_client $v -e nopeer seq ::1 1035";
-    ok( $result eq 0 );
+        ok( $result eq 0 );
 
 # Verify that a client without packet { recv } permission cannot communicate with the server SEQ->SEQ.
-    $result = system
+        $result = system
 "runcon -t test_sctp_deny_peer_client_t -- $basedir/sctp_client $v -e nopeer seq ::1 1035 2>&1";
-    ok( $result >> 8 eq 6 );
+        ok( $result >> 8 eq 6 );
+    }
 
     # Kill the seq server.
     server_end($pid);
@@ -1192,7 +1242,9 @@ if ($test_iptables) {
 if ($test_nft) {
     print "# Testing nftables (IPv4/IPv6).\n";
     system "nft -f $basedir/nftables-load";
+    system "nft -f $basedir/nftables-ipv6.load" if $test_ipv6;
     test_tables();
+    system "nft -f $basedir/nftables-ipv6-flush" if $test_ipv6;
     system "nft -f $basedir/nftables-flush";
 }
 

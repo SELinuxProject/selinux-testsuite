@@ -1,0 +1,23 @@
+#!/bin/sh
+#
+# Return 0 if IPv6 is enabled and usable on loopback, 1 otherwise.
+#
+# IPv6 may be absent (ipv6.disable=1 on the kernel command line), disabled
+# globally (net.ipv6.conf.all.disable_ipv6=1), or disabled on loopback
+# (net.ipv6.conf.lo.disable_ipv6=1).  Following the LTP tst_net.sh approach,
+# check /proc/net/if_inet6 and the disable_ipv6 sysctls rather than module
+# parameters that may be blocked by SELinux policy.
+
+[ -f /proc/net/if_inet6 ] || exit 1
+
+disabled=$(sysctl -n net.ipv6.conf.all.disable_ipv6 2>/dev/null) || exit 1
+[ "$disabled" = 1 ] && exit 1
+
+disabled=$(sysctl -n net.ipv6.conf.lo.disable_ipv6 2>/dev/null) || exit 1
+[ "$disabled" = 1 ] && exit 1
+
+# An existing proc file does not guarantee that ::1 is configured on lo.
+awk '$1 == "00000000000000000000000000000001" && $6 == "lo" {
+    found = 1
+}
+END { exit !found }' /proc/net/if_inet6

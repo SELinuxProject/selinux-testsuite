@@ -1,6 +1,11 @@
 #!/bin/sh
 
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+HAS_IPV6="$SCRIPT_DIR/../has_ipv6"
+
 netlabelctl map del default
 netlabelctl map add default protocol:unlbl
 netlabelctl unlbl del interface:lo address:127.0.0.0/8 label:system_u:object_r:netlabel_sctp_peer_t:s0
+if "$HAS_IPV6"; then
 netlabelctl unlbl del interface:lo address:::1/128 label:system_u:object_r:netlabel_sctp_peer_t:s0
+fi

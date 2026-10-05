@@ -1,9 +1,14 @@
 #!/bin/sh
 ############################ SECMARK IPTABLE ENTRIES ########################
 #
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+HAS_IPV6="$SCRIPT_DIR/../has_ipv6"
+
 # Flush the security table first:
 iptables -t security -F
+if "$HAS_IPV6"; then
 ip6tables -t security -F
+fi
 
 #-------------- INPUT IP Stream --------------------#
 # These rules will replace the above context if sctp ports 1024:1035 are found in the packets:
@@ -11,9 +16,11 @@ iptables -t security -A INPUT -i lo -p sctp -m multiport --port 1024:1035 -j SEC
 
 iptables -t security -A INPUT -m state --state ESTABLISHED,RELATED -j CONNSECMARK --save
 
+if "$HAS_IPV6"; then
 ip6tables -t security -A INPUT -i lo -p sctp -m multiport --port 1024:1035 -j SECMARK --selctx system_u:object_r:test_sctp_server_packet_t:s0
 
 ip6tables -t security -A INPUT -m state --state ESTABLISHED,RELATED -j CONNSECMARK --save
+fi
 
 #-------------- OUTPUT IP Stream --------------------#
 # These rules will replace the above context if sctp ports 1024:1035 are found in the packets:
@@ -21,7 +28,9 @@ iptables -t security -A OUTPUT -o lo -p sctp -m multiport --port 1024:1035 -j SE
 
 iptables -t security -A OUTPUT -m state --state ESTABLISHED,RELATED -j CONNSECMARK --save
 
+if "$HAS_IPV6"; then
 ip6tables -t security -A OUTPUT -o lo -p sctp -m multiport --port 1024:1035 -j SECMARK --selctx system_u:object_r:test_sctp_server_packet_t:s0
 
 ip6tables -t security -A OUTPUT -m state --state ESTABLISHED,RELATED -j CONNSECMARK --save
+fi
 

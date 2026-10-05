@@ -3,8 +3,9 @@
 static void usage(char *progname)
 {
 	fprintf(stderr,
-		"usage:  %s [-r] [-v] stream|seq port\n"
+		"usage:  %s [-4] [-r] [-v] stream|seq port\n"
 		"\nWhere:\n\t"
+		"-4      Use two IPv4 loopback addresses.\n\t"
 		"-r      After two bindx ADDs, remove one with bindx REM.\n\t"
 		"-v      Print context information.\n\t"
 		"        The default is to add IPv4 and IPv6 loopback addrs.\n\t"
@@ -17,15 +18,19 @@ static void usage(char *progname)
 int main(int argc, char **argv)
 {
 	int opt, type, sock, result;
-	struct sockaddr_in ipv4;
+	struct sockaddr_in ipv4, ipv4_extra;
+	struct sockaddr *extra_addr;
 	struct sockaddr_in6 ipv6;
 	unsigned short port;
-	bool rem = false;
+	bool rem = false, ipv4_only = false;
 	bool verbose = false;
 	char *context;
 
-	while ((opt = getopt(argc, argv, "rv")) != -1) {
+	while ((opt = getopt(argc, argv, "4rv")) != -1) {
 		switch (opt) {
+		case '4':
+			ipv4_only = true;
+			break;
 		case 'v':
 			verbose = true;
 			break;
@@ -58,7 +63,7 @@ int main(int argc, char **argv)
 		free(context);
 	}
 
-	sock = socket(PF_INET6, type, IPPROTO_SCTP);
+	sock = socket(ipv4_only ? PF_INET : PF_INET6, type, IPPROTO_SCTP);
 	if (sock < 0) {
 		perror("socket");
 		exit(1);
@@ -88,19 +93,27 @@ int main(int argc, char **argv)
 	ipv6.sin6_port = htons(port);
 	ipv6.sin6_addr = in6addr_loopback;
 
-	result = sctp_bindx(sock, (struct sockaddr *)&ipv6, 1,
+	if (ipv4_only) {
+		ipv4_extra = ipv4;
+		ipv4_extra.sin_addr.s_addr = htonl(0x7f000002);
+		extra_addr = (struct sockaddr *)&ipv4_extra;
+	} else {
+		extra_addr = (struct sockaddr *)&ipv6;
+	}
+
+	result = sctp_bindx(sock, extra_addr, 1,
 			    SCTP_BINDX_ADD_ADDR);
 	if (result < 0) {
-		perror("sctp_bindx ADD - ipv6");
+		perror("sctp_bindx ADD - second address");
 		close(sock);
 		exit(3);
 	}
 
 	if (verbose)
-		printf("sctp_bindx ADD - ipv6\n");
+		printf("sctp_bindx ADD - %s\n", ipv4_only ? "127.0.0.2" : "::1");
 
 	if (rem) {
-		result = sctp_bindx(sock, (struct sockaddr *)&ipv6, 1,
+		result = sctp_bindx(sock, extra_addr, 1,
 				    SCTP_BINDX_REM_ADDR);
 		if (result < 0) {
 			perror("sctp_bindx - REM");
@@ -108,7 +121,7 @@ int main(int argc, char **argv)
 			exit(4);
 		}
 		if (verbose)
-			printf("sctp_bindx REM - ipv6\n");
+			printf("sctp_bindx REM - %s\n", ipv4_only ? "127.0.0.2" : "::1");
 	}
 
 	close(sock);

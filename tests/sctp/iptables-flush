@@ -1,4 +1,9 @@
 #!/bin/sh
 # Flush the security table after IPv4 and IPv6 tests.
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+HAS_IPV6="$SCRIPT_DIR/../has_ipv6"
+
 iptables -t security -F
+if "$HAS_IPV6"; then
 ip6tables -t security -F
+fi
