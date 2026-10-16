@@ -1,0 +1,10 @@
+#!/bin/sh
+# The client sends unlabeled packets; the router labels unlabeled packets
+# forwarded to the server with CALIPSO.
+netlabelctl calipso add pass doi:16
+netlabelctl map del default
+netlabelctl map add default address:0.0.0.0/0 protocol:unlbl
+netlabelctl map add default address:::/0 protocol:unlbl
+netlabelctl map add domain:unlabeled_t address:fd00:2::2 protocol:calipso,16
+netlabelctl map add domain:unlabeled_t address:::/0 protocol:unlbl
+netlabelctl map add domain:unlabeled_t address:0.0.0.0/0 protocol:unlbl

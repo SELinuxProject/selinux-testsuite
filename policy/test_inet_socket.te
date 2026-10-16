@@ -12,6 +12,14 @@ gen_require(`
 corenet_inout_generic_if(netlabel_peer_t)
 corenet_inout_generic_node(netlabel_peer_t)
 
+# Allow unlabeled traffic to be forwarded, as done by the CALIPSO
+# forwarding tests.
+gen_require(`
+	type unlabeled_t;
+')
+corenet_inout_generic_if(unlabeled_t)
+corenet_inout_generic_node(unlabeled_t)
+
 # Do not break NFS when we load NetLabel configuration.
 gen_require(`
 	type kernel_t;

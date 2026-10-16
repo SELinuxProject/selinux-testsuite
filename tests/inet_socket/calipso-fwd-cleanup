@@ -1,0 +1,6 @@
+#!/bin/sh
+# Remove the namespaces created by calipso-fwd-setup (and their veths).
+for ns in selinux-ns-c selinux-ns-r selinux-ns-s; do
+	ip netns del $ns 2>/dev/null
+done
+true
