@@ -51,6 +51,14 @@ BEGIN {
         $test_calipso = 1;
     }
 
+    # Determine if CALIPSO can be tested over the IPv6 forwarding path,
+    # which needs network namespaces.
+    $test_calipso_fwd = 0;
+    if ( $test_calipso and system("ip netns list >/dev/null 2>&1") eq 0 ) {
+        $test_count += 2;
+        $test_calipso_fwd = 1;
+    }
+
     # Determine if kernel has legacy iptables support
     $test_iptables = 0;
 
@@ -80,6 +88,10 @@ BEGIN {
             $test_count -= $is_stream ? 3 : 2;
             $test_calipso = 0;
         }
+        if ($test_calipso_fwd) {
+            $test_count -= 2;
+            $test_calipso_fwd = 0;
+        }
         if ($test_iptables) {
             $test_count -= 2;
         }
@@ -92,15 +104,17 @@ BEGIN {
 }
 
 sub server_start {
-    my ( $runcon_args, $args ) = @_;
+    my ( $runcon_args, $args, $netns ) = @_;
     my $pid;
+    my $cmd = "runcon $runcon_args $basedir/server -f $basedir/flag";
 
     $args = "-4 $args" unless $test_ipv6;
+    $cmd  = "nsenter --net=/run/netns/$netns $cmd" if defined $netns;
 
     system("mkfifo $basedir/flag");
 
     if ( ( $pid = fork() ) == 0 ) {
-        exec "runcon $runcon_args $basedir/server -f $basedir/flag $args";
+        exec "$cmd $args";
     }
 
     # Wait for it to initialize.
@@ -501,6 +515,48 @@ if ($test_calipso) {
     server_end($pid);
 
     system "/bin/sh $basedir/calipso-flush";
+}
+
+if ($test_calipso_fwd) {
+    system "/bin/sh $basedir/calipso-fwd-setup";
+
+    # The router removes the CALIPSO option from forwarded packets.
+    system "/bin/sh $basedir/calipso-fwd-del-load";
+
+    $pid = server_start(
+        "-t test_inet_server_t -l s0:c0.c10",
+        "-n $proto 65535",
+        "selinux-ns-s"
+    );
+
+    # Verify that the client can communicate with the server through
+    # the router.
+    $result = system
+"nsenter --net=/run/netns/selinux-ns-c runcon -t test_inet_client_t -l s0:c0.c10 $basedir/client -e nopeer $proto fd00:2::2 65535";
+    ok( $result eq 0 );
+
+    server_end($pid);
+    system "/bin/sh $basedir/calipso-fwd-flush";
+
+    # The router adds a CALIPSO option to forwarded packets.
+    system "/bin/sh $basedir/calipso-fwd-add-load";
+
+    $pid = server_start(
+        "-t test_inet_server_t -l s0:c0.c10",
+        "-n $proto 65535",
+        "selinux-ns-s"
+    );
+
+    # Verify that the client can communicate with the server through
+    # the router.
+    $result = system
+"nsenter --net=/run/netns/selinux-ns-c runcon -t test_inet_client_t -l s0:c0.c10 $basedir/client -e nopeer $proto fd00:2::2 65535";
+    ok( $result eq 0 );
+
+    server_end($pid);
+    system "/bin/sh $basedir/calipso-fwd-flush";
+
+    system "/bin/sh $basedir/calipso-fwd-cleanup";
 }
 
 if ( $proto eq "mptcp" and $mptcp_enabled ne "1" ) {

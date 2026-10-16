@@ -1,0 +1,9 @@
+#!/bin/sh
+# Label packets sent by the client domain with CALIPSO; everything else,
+# including the router forwarding them, is unlabeled.  The router therefore
+# removes the CALIPSO option from the forwarded packets.
+netlabelctl calipso add pass doi:16
+netlabelctl map del default
+netlabelctl map add default address:0.0.0.0/0 protocol:unlbl
+netlabelctl map add default address:::/0 protocol:unlbl
+netlabelctl map add domain:test_inet_client_t address:fd00:2::2 protocol:calipso,16

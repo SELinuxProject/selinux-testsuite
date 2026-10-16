@@ -1,0 +1,7 @@
+#!/bin/sh
+# Reset NetLabel configuration to unlabeled after the CALIPSO forwarding tests.
+netlabelctl map del domain:test_inet_client_t 2>/dev/null
+netlabelctl map del domain:unlabeled_t 2>/dev/null
+netlabelctl map del default
+netlabelctl calipso del doi:16
+netlabelctl map add default protocol:unlbl

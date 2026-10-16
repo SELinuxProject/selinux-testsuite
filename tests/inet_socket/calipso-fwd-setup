@@ -1,0 +1,50 @@
+#!/bin/sh
+# Build a client -- router -- server topology out of network namespaces so
+# that CALIPSO labeled packets go through the IPv6 forwarding path:
+#
+#   selinux-ns-c (fd00:1::2) -- selinux-ns-r (forwarding) -- selinux-ns-s (fd00:2::2)
+#
+# Commands run inside a namespace use nsenter(1) rather than "ip netns exec"
+# or "ip -n" as these remount /sys, which is not allowed for every domain.
+
+in_ns() {
+	ns=$1
+	shift
+	nsenter --net=/run/netns/"$ns" "$@"
+}
+
+ip netns add selinux-ns-c
+ip netns add selinux-ns-r
+ip netns add selinux-ns-s
+ip link add selinux-cr type veth peer name selinux-rc
+ip link add selinux-rs type veth peer name selinux-sr
+ip link set selinux-cr netns selinux-ns-c
+ip link set selinux-rc netns selinux-ns-r
+ip link set selinux-rs netns selinux-ns-r
+ip link set selinux-sr netns selinux-ns-s
+for ns in selinux-ns-c selinux-ns-r selinux-ns-s; do
+	in_ns $ns ip link set lo up
+done
+in_ns selinux-ns-c ip -6 addr add fd00:1::2/64 dev selinux-cr nodad
+in_ns selinux-ns-r ip -6 addr add fd00:1::1/64 dev selinux-rc nodad
+in_ns selinux-ns-r ip -6 addr add fd00:2::1/64 dev selinux-rs nodad
+in_ns selinux-ns-s ip -6 addr add fd00:2::2/64 dev selinux-sr nodad
+in_ns selinux-ns-c ip link set selinux-cr up
+in_ns selinux-ns-r ip link set selinux-rc up
+in_ns selinux-ns-r ip link set selinux-rs up
+in_ns selinux-ns-s ip link set selinux-sr up
+in_ns selinux-ns-c ip -6 route add default via fd00:1::1
+in_ns selinux-ns-s ip -6 route add default via fd00:2::1
+in_ns selinux-ns-r sysctl -q -w net.ipv6.conf.all.forwarding=1
+
+# Wait for the links to come up, packets sent before that are dropped.
+for _ in 1 2 3 4 5 6 7 8 9 10; do
+	down=0
+	for link in selinux-ns-c:selinux-cr selinux-ns-r:selinux-rc \
+	    selinux-ns-r:selinux-rs selinux-ns-s:selinux-sr; do
+		in_ns "${link%%:*}" ip link show dev "${link#*:}" | \
+			grep -q "state UP" || down=1
+	done
+	[ $down = 0 ] && break
+	sleep 1
+done
