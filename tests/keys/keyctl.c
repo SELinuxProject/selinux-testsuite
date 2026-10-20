@@ -142,12 +142,17 @@ int main(int argc, char *argv[])
 	/* Requires key { create read write } */
 	compute = keyctl(KEYCTL_DH_COMPUTE, &params, NULL, 0, 0);
 	if (compute < 0) {
-		fprintf(stderr, "Failed KEYCTL_DH_COMPUTE: %s\n",
-			strerror(errno));
-		exit(9);
-	}
-	if (verbose)
+		if (errno == ENOENT || errno == EOPNOTSUPP) {
+			if (verbose)
+				printf("KEYCTL_DH_COMPUTE not available, skipping\n");
+		} else {
+			fprintf(stderr, "Failed KEYCTL_DH_COMPUTE: %s\n",
+				strerror(errno));
+			exit(9);
+		}
+	} else if (verbose) {
 		printf("KEYCTL_DH_COMPUTE key ID size: %d\n", compute);
+	}
 
 	/* Requires key { write link } */
 	link = keyctl(KEYCTL_LINK, base, KEY_SPEC_PROCESS_KEYRING);

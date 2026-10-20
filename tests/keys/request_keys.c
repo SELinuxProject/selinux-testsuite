@@ -127,12 +127,17 @@ int main(int argc, char **argv)
 	/* Requires key { read write } */
 	compute = keyctl(KEYCTL_DH_COMPUTE, &params, NULL, 0, 0);
 	if (compute < 0) {
-		fprintf(stderr, "Failed KEYCTL_DH_COMPUTE: %s\n",
-			strerror(errno));
-		exit(8);
-	}
-	if (verbose)
+		if (errno == ENOENT || errno == EOPNOTSUPP) {
+			if (verbose)
+				printf("\tKEYCTL_DH_COMPUTE not available, skipping\n");
+		} else {
+			fprintf(stderr, "Failed KEYCTL_DH_COMPUTE: %s\n",
+				strerror(errno));
+			exit(8);
+		}
+	} else if (verbose) {
 		printf("\tKEYCTL_DH_COMPUTE key ID size: %d\n", compute);
+	}
 
 	exit(0);
 }
