@@ -91,11 +91,6 @@ static void do_service_manager(int fd, struct binder_transaction_data *txn_in)
 		reply_with_handle(fd, txn_in);
 
 		break;
-	case TEST_SERVICE_SEND_FD:
-		if (verbose)
-			printf("Manager Rx'ed SEND_CLIENT_YOUR_BINDER_FD for handle: %lu\n",
-			       (long unsigned)txn_in->target.handle);
-		break;
 	default:
 		fprintf(stderr, "Manager unknown txn->code: %lu for handle: %lu\n",
 			(long unsigned)txn_in->code,

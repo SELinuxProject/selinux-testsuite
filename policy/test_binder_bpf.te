@@ -38,7 +38,7 @@ allow test_binder_bpf_provider_t self:process { setrlimit };
 type test_binder_bpf_client_t;
 testsuite_domain_type(test_binder_bpf_client_t)
 typeattribute test_binder_bpf_client_t binderbpfdomain;
-allow test_binder_bpf_client_t test_binder_bpf_provider_t:binder { call impersonate };
+allow test_binder_bpf_client_t test_binder_bpf_provider_t:binder { call };
 allow test_binder_bpf_client_t test_binder_bpf_mgr_t:binder { call };
 allow test_binder_bpf_client_t test_binder_bpf_provider_t:fd { use };
 allow test_binder_bpf_client_t device_t:chr_file { getattr ioctl open read write };
@@ -52,7 +52,7 @@ allow test_binder_bpf_client_t test_binder_bpf_provider_t:bpf { map_read map_wri
 type test_binder_client_no_bpf_perm_t;
 testsuite_domain_type(test_binder_client_no_bpf_perm_t)
 typeattribute test_binder_client_no_bpf_perm_t binderbpfdomain;
-allow test_binder_client_no_bpf_perm_t test_binder_bpf_provider_t:binder { call impersonate };
+allow test_binder_client_no_bpf_perm_t test_binder_bpf_provider_t:binder { call };
 allow test_binder_client_no_bpf_perm_t test_binder_bpf_mgr_t:binder { call };
 allow test_binder_client_no_bpf_perm_t test_binder_bpf_provider_t:fd { use };
 allow test_binder_client_no_bpf_perm_t device_t:chr_file { getattr ioctl open read write };

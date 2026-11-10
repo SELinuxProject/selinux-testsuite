@@ -31,11 +31,6 @@ static void request_service_provider_fd(int fd,
 	struct binder_write_read bwr;
 	struct binder_transaction_data *txn;
 
-	if (txn_in->flags == TF_ONE_WAY && verbose) {
-		printf("Service Provider no reply to BC_TRANSACTION as flags = TF_ONE_WAY\n");
-		return;
-	}
-
 	if (verbose)
 		printf("Service Provider sending BC_REPLY with an FD\n");
 
@@ -64,11 +59,6 @@ static void request_service_provider_fd(int fd,
 	 * The Service Providers binder fd is used for testing as it allows
 	 * policy to set whether the Service Provider and Client can be
 	 * allowed access (fd use) or not.
-	 * This also allows a check for the impersonate permission later as
-	 * the Client will use the Service Provider fd to send a transaction.
-	 *
-	 * If a BPF fd is required, it is generated, however it cannot be
-	 * used to check the impersonate permission.
 	 */
 	switch (fd_type) {
 	case BINDER_FD:

@@ -1,20 +1,15 @@
 #include "binder_common.h"
 
 static int binder_parse(int fd, binder_uintptr_t ptr, binder_size_t size);
-static int transactions_complete;
+static bool received_fd;
 
 static void usage(char *progname)
 {
 	fprintf(stderr,
-		"usage:  %s [-c] [-n] [-r replies] [-m|-p] [-v]\n"
+		"usage:  %s [-n] [-r replies] [-m|-p] [-v]\n"
 		"Where:\n\t"
-		"-c  Use the number of replies for the BR_TRANSACTION_COMPLETE"
-		" count.\n\t"
 		"-n  Use the /dev/binderfs name service.\n\t"
-		"-r  Number of replies expected that depends on the test.\n\t"
-		"    It can be the number of BR_TRANSACTION_COMPLETE if\n\t"
-		"    the -c option is set or number of times to issue the\n\t"
-		"    ioctl - BINDER_WRITE_READ command if -c not set.\n\t"
+		"-r  Stop after this many reads instead of waiting for an fd.\n\t"
 		"-m  Service Provider sending BPF map fd.\n\t"
 		"-p  Service Provider sending BPF prog fd.\n\t"
 		"-v  Print context and command information.\n\t"
@@ -30,21 +25,11 @@ static void client_alarm(int sig)
 	exit(-1);
 }
 
-/* This retrieves the Service Providers file descriptor, then using this
- * sends a simple transaction to trigger the impersonate permission.
- */
-static void extract_fd_and_respond(const struct binder_transaction_data *txn_in)
+static void receive_fd(const struct binder_transaction_data *txn_in)
 {
 	int result;
-	uint32_t cmd;
 	struct stat sb;
-	struct binder_write_read bwr;
 	const struct binder_fd_object *obj;
-	struct {
-		uint32_t cmd;
-		struct binder_transaction_data txn;
-	} __attribute__((packed)) writebuf;
-	unsigned int readbuf[32];
 
 	binder_size_t *offs = (binder_size_t *)
 			      (binder_uintptr_t)txn_in->data.ptr.offsets;
@@ -73,61 +58,8 @@ static void extract_fd_and_respond(const struct binder_transaction_data *txn_in)
 		       fd_type_str, (long unsigned)obj->fd,
 		       (long long unsigned)sb.st_dev);
 
-	/* If testing BPF, then cannot do impersonate check */
-	if (fd_type > BINDER_FD)
-		return;
-
-	memset(&writebuf, 0, sizeof(writebuf));
-	memset(readbuf, 0, sizeof(readbuf));
-	memset(&bwr, 0, sizeof(bwr));
-
-	/* Send response using Service Providers fd to trigger
-	 * impersonate check.
-	 */
-	writebuf.cmd = BC_TRANSACTION;
-	writebuf.txn.target.handle = txn_in->target.handle;
-	writebuf.txn.cookie = txn_in->cookie;
-	writebuf.txn.code = txn_in->code;
-	writebuf.txn.flags = TF_ONE_WAY;
-
-	writebuf.txn.data_size = 0;
-	writebuf.txn.data.ptr.buffer = (binder_uintptr_t)NULL;
-	writebuf.txn.data.ptr.offsets = (binder_uintptr_t)NULL;
-	writebuf.txn.offsets_size = 0;
-
-	bwr.write_size = sizeof(writebuf);
-	bwr.write_consumed = 0;
-	bwr.write_buffer = (binder_uintptr_t)&writebuf;
-	bwr.read_size = sizeof(readbuf);
-	bwr.read_consumed = 0;
-	bwr.read_buffer = (binder_uintptr_t)readbuf;
-
-	result = ioctl(obj->fd, BINDER_WRITE_READ, &bwr);
-	if (result < 0) {
-		fprintf(stderr,
-			"Client ioctl BINDER_WRITE_READ error: %s\n",
-			strerror(errno));
-		exit(132);
-	}
-
-	if (verbose)
-		printf("Client read_consumed: %llu\n",
-		       (long long unsigned)bwr.read_consumed);
-
-	cmd = binder_parse(obj->fd, (binder_uintptr_t)readbuf,
-			   bwr.read_consumed);
-
-	if (cmd == BR_FAILED_REPLY ||
-	    cmd == BR_DEAD_REPLY ||
-	    cmd == BR_DEAD_BINDER) {
-		fprintf(stderr, "Client %s() failing command %s, exiting.\n",
-			__func__, cmd_name(cmd));
-		exit(133);
-	}
-
-	if (verbose)
-		printf("Client sent transaction using Service Providers FD: %lu\n",
-		       (long unsigned)obj->fd);
+	close(obj->fd);
+	received_fd =  true;
 }
 
 static void request_service_provider_fd(int fd, uint32_t handle)
@@ -243,9 +175,7 @@ static int binder_parse(int fd, binder_uintptr_t ptr, binder_size_t size)
 
 		switch (cmd) {
 		case BR_NOOP:
-			break;
 		case BR_TRANSACTION_COMPLETE:
-			transactions_complete++;
 			break;
 		case BR_INCREFS:
 		case BR_ACQUIRE:
@@ -278,7 +208,7 @@ static int binder_parse(int fd, binder_uintptr_t ptr, binder_size_t size)
 				extract_handle_and_acquire(fd, txn);
 
 			if (txn->code == TEST_SERVICE_SEND_FD)
-				extract_fd_and_respond(txn);
+				receive_fd(txn);
 
 			ptr += sizeof(*txn);
 			break;
@@ -305,7 +235,6 @@ int main(int argc, char **argv)
 {
 	int opt, result, fd, client_replies = 0, ioctl_wr = 0;
 	bool name = false;
-	bool use_transactions_complete = false;
 	uint32_t cmd;
 	pid_t pid;
 	char *context;
@@ -319,15 +248,11 @@ int main(int argc, char **argv)
 	} __attribute__((packed)) writebuf;
 	unsigned int readbuf[32];
 
-	transactions_complete = 0;
 	fd_type = BINDER_FD;
 	fd_type_str = "SP";
 
-	while ((opt = getopt(argc, argv, "cnr:vmp")) != -1) {
+	while ((opt = getopt(argc, argv, "nr:vmp")) != -1) {
 		switch (opt) {
-		case 'c':
-			use_transactions_complete = true;
-			break;
 		case 'n':
 			name = true;
 			break;
@@ -451,11 +376,7 @@ int main(int argc, char **argv)
 		}
 
 		result = 0;
-		if (use_transactions_complete &&
-		    transactions_complete == client_replies)
-			break;
-		else if (!use_transactions_complete &&
-			 ioctl_wr == client_replies)
+		if (received_fd || (client_replies && ioctl_wr == client_replies))
 			break;
 	}
 

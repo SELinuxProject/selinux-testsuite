@@ -225,7 +225,7 @@ if ($test_binder) {
     # Verify that the BPF map fd can be transferred.
     $result =
       system
-      "runcon -t test_binder_bpf_client_t $binder_basedir/client $n $v -m -r 1";
+      "runcon -t test_binder_bpf_client_t $binder_basedir/client $n $v -m";
     ok( $result eq 0 );
 
     # Verify BPF no map perms.
@@ -242,7 +242,7 @@ if ($test_binder) {
     # Verify that the BPF prog fd can be transferred.
     $result =
       system
-      "runcon -t test_binder_bpf_client_t $binder_basedir/client $n $v -p -r 1";
+      "runcon -t test_binder_bpf_client_t $binder_basedir/client $n $v -p";
     ok( $result eq 0 );
 
     # Verify BPF no prog perms.

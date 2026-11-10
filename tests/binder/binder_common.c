@@ -1,13 +1,13 @@
 /*
  * This is a simple binder Service Manager/Service Provider that only uses
  * the raw ioctl commands to test the SELinux binder permissions:
- *     set_context_mgr, call, transfer, impersonate.
+ *     set_context_mgr, call, transfer.
  *
  * If configured, the BPF permissions are also tested.
  *
  * Using binder test policy the following will be validated:
  *    security_binder_set_context_mgr() binder { set_context_mgr }
- *    security_binder_transaction()     binder { call impersonate }
+ *    security_binder_transaction()     binder { call }
  *    security_binder_transfer_binder() binder { transfer }
  *    security_binder_transfer_file()   fd { use }
  *					bpf { map_create map_read map_write };
