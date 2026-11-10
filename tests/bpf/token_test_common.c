@@ -120,7 +120,7 @@ int sendfd(int sockfd, int fd)
 	union {
 		char buf[CMSG_SPACE(sizeof(fds))];
 		struct cmsghdr align;
-	} u;
+		} u;
 
 	msg.msg_iov = &io;
 	msg.msg_iovlen = 1;
@@ -154,7 +154,7 @@ int recvfd(int sockfd, int *fd)
 	union {
 		char buf[CMSG_SPACE(sizeof(fds))];
 		struct cmsghdr align;
-	} u;
+		} u;
 
 	msg.msg_iov = &io;
 	msg.msg_iovlen = 1;
