@@ -38,7 +38,11 @@ BEGIN {
         $v = " ";
     }
 
-    plan tests => 56;
+    # A test (called twice) is commented out because it does not work
+    # for any known kernel.
+    # See https://github.com/SELinuxProject/selinux-testsuite/issues/92
+    #plan tests => 56;
+    plan tests => 54;
 }
 
 # Set for testing mount(2) on first run
@@ -100,16 +104,19 @@ while ( $i < 2 ) {
     );
     ok( $result eq 0, $test_msg );
 
-    # First mount(2) ok, second currently fails with EBUSY
-    $result = system(
-"runcon -t test_filesystem_t $mount_cmd $v -s $dev -t $target -f $fs_type -o $mount_opts 2>&1"
-    );
-    if ( $i eq 0 and $result >> 8 eq 16 ) {
-        ok( 1, "$test_msg - returned EBUSY, possible bug/feature" );
-    }
-    else {
-        ok( $result eq 0 );
-    }
+# The following test is commented out because it does not work
+# for any known kernel.
+# See https://github.com/SELinuxProject/selinux-testsuite/issues/92
+# First mount(2) ok, second currently fails with EBUSY
+#    $result = system(
+# "runcon -t test_filesystem_t $mount_cmd $v -s $dev -t $target -f $fs_type -o $mount_opts 2>&1"
+#    );
+#    if ( $i eq 0 and $result >> 8 eq 16 ) {
+#        ok( 1, "$test_msg - returned EBUSY, possible bug/feature" );
+#    }
+#    else {
+#        ok( $result eq 0 );
+#    }
 
     # Create file and change context via type_transition rule, check ok:
     $result = system(
