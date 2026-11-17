@@ -3,7 +3,7 @@
 use Test;
 
 BEGIN {
-    $test_count            = 30;
+    $test_count            = 36;
     $test_hugepages        = 0;
     $test_exec_checking    = 0;
     $test_map_checking     = 0;
@@ -12,23 +12,23 @@ BEGIN {
     system("echo 1 > /proc/sys/vm/nr_hugepages 2> /dev/null");
     if ( system("grep -q 1 /proc/sys/vm/nr_hugepages 2> /dev/null") == 0 ) {
         $test_hugepages = 1;
-        $test_count += 8;
+        $test_count += 12;
     }
 
     if ( system("grep -q 0 /sys/fs/selinux/checkreqprot 2> /dev/null") == 0 ) {
         $test_exec_checking = 1;
-        $test_count += 4;
+        $test_count += 6;
     }
 
     if ( system("grep -q '/dev .*noexec' /proc/self/mounts 2> /dev/null") != 0 )
     {
         $test_devzero_checking = 1;
-        $test_count += 4;
+        $test_count += 8;
     }
 
     if ( -e '/sys/fs/selinux/class/file/perms/map' ) {
         $test_map_checking = 1;
-        $test_count += 1;
+        $test_count += 2;
     }
 
     plan tests => $test_count;
@@ -79,6 +79,13 @@ if ($test_devzero_checking) {
     $result = system
 "runcon -t test_no_mmap_dev_zero_t $basedir/mmap_file_shared /dev/zero 2>&1";
     ok($result);
+    $result =
+      system
+      "runcon -t test_mmap_dev_zero_t $basedir/mmap_file_shared -s /dev/zero";
+    ok( $result, 0 );
+    $result = system
+"runcon -t test_no_mmap_dev_zero_t $basedir/mmap_file_shared -s /dev/zero 2>&1";
+    ok($result);
 }
 
 # Test success and failure for mprotect w/ anonymous shared memory.
@@ -91,6 +98,14 @@ $result = system
   "runcon -t test_no_mprotect_anon_shared_t $basedir/mprotect_anon_shared 2>&1";
 ok($result);
 
+$result =
+  system
+  "runcon -t test_mprotect_anon_shared_t $basedir/mprotect_anon_shared -s";
+ok( $result, 0 );
+$result = system
+"runcon -t test_no_mprotect_anon_shared_t $basedir/mprotect_anon_shared -s 2>&1";
+ok($result);
+
 if ($test_devzero_checking) {
 
     # Test success and failure for mprotect /dev/zero.
@@ -99,6 +114,12 @@ if ($test_devzero_checking) {
     ok( $result, 0 );
     $result = system
 "runcon -t test_no_mprotect_dev_zero_t $basedir/mprotect_file_shared /dev/zero 2>&1";
+    ok($result);
+    $result = system
+"runcon -t test_mprotect_dev_zero_t $basedir/mprotect_file_shared -s /dev/zero";
+    ok( $result, 0 );
+    $result = system
+"runcon -t test_no_mprotect_dev_zero_t $basedir/mprotect_file_shared -s /dev/zero 2>&1";
     ok($result);
 }
 
@@ -139,6 +160,12 @@ ok( $result, 0 );
 $result = system
   "runcon -t test_file_rw_t $basedir/mmap_file_shared $basedir/temp_file 2>&1";
 ok($result);
+$result = system
+  "runcon -t test_file_rwx_t $basedir/mmap_file_shared -s $basedir/temp_file";
+ok( $result, 0 );
+$result = system
+"runcon -t test_file_rw_t $basedir/mmap_file_shared -s $basedir/temp_file 2>&1";
+ok($result);
 
 if ($test_exec_checking) {
 
@@ -149,11 +176,20 @@ if ($test_exec_checking) {
     $result = system
 "runcon -t test_file_rw_t -- $basedir/mmap_file_shared -r $basedir/temp_file 2>&1";
     ok($result);
+    $result = system
+"runcon -t test_file_rwx_t -- $basedir/mmap_file_shared -r -s $basedir/temp_file";
+    ok( $result, 0 );
+    $result = system
+"runcon -t test_file_rw_t -- $basedir/mmap_file_shared -r -s $basedir/temp_file 2>&1";
+    ok($result);
 }
 
 if ($test_map_checking) {
     $result = system
 "runcon -t test_no_map_t -- $basedir/mmap_file_shared $basedir/temp_file 2>&1";
+    ok($result);
+    $result = system
+"runcon -t test_no_map_t -- $basedir/mmap_file_shared -s $basedir/temp_file 2>&1";
     ok($result);
 }
 
@@ -163,6 +199,12 @@ $result = system
 ok( $result, 0 );
 $result = system
 "runcon -t test_file_rw_t $basedir/mprotect_file_shared $basedir/temp_file 2>&1";
+ok($result);
+$result = system
+"runcon -t test_file_rwx_t $basedir/mprotect_file_shared -s $basedir/temp_file";
+ok( $result, 0 );
+$result = system
+"runcon -t test_file_rw_t $basedir/mprotect_file_shared -s $basedir/temp_file 2>&1";
 ok($result);
 
 # Test success and failure for execmem on mmap w/ file private mapping.
@@ -206,6 +248,12 @@ if ($test_hugepages) {
     $result = system
       "runcon -t test_no_execmem_t $basedir/mmap_hugetlb_anon_shared 2>&1";
     ok($result);
+    $result =
+      system "runcon -t test_execmem_t $basedir/mmap_hugetlb_anon_shared -s";
+    ok( $result, 0 );
+    $result = system
+      "runcon -t test_no_execmem_t $basedir/mmap_hugetlb_anon_shared -s 2>&1";
+    ok($result);
 
 # Test success and failure for execmem on mprotect w/ hugetlb anonymous shared memory.
     $result = system
@@ -213,6 +261,12 @@ if ($test_hugepages) {
     ok( $result, 0 );
     $result = system
 "runcon -t test_no_mprotect_anon_shared_t $basedir/mprotect_hugetlb_anon_shared 2>&1";
+    ok($result);
+    $result = system
+"runcon -t test_mprotect_anon_shared_t $basedir/mprotect_hugetlb_anon_shared -s";
+    ok( $result, 0 );
+    $result = system
+"runcon -t test_no_mprotect_anon_shared_t $basedir/mprotect_hugetlb_anon_shared -s 2>&1";
     ok($result);
 
 # Test success and failure for execmem on mmap w/ hugetlb anonymous private memory.
