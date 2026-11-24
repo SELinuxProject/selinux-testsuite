@@ -30,7 +30,8 @@ TARGETS = \
 	test_transition.te test_unix_socket.te \
 	test_mmap.te test_overlayfs.te test_mqueue.te \
 	test_ibpkey.te test_atsecure.te test_cgroupfs.te \
-	test_file_contexts.te
+	test_file_contexts.te \
+	test_attribute_assignment.te
 
 ifeq (x$(DISTRO),$(filter x$(DISTRO),xRHEL4 xRHEL5 xRHEL6))
 SUPPORTS_CIL = n

@@ -1,0 +1,67 @@
+##########################################
+#
+# Policy for testing attribute assignment to attributes
+#
+
+# 4 attributtes linked in a typeattribute sequence d->c->b->a
+attribute test_attribute_a;
+attribute test_attribute_b;
+attribute test_attribute_c;
+attribute test_attribute_d;
+
+typeattribute test_attribute_b test_attribute_a;
+typeattribute test_attribute_c test_attribute_b;
+typeattribute test_attribute_d test_attribute_c;
+
+# 2 types assigned to attributes b and d
+type test_attribute_setpgid_yes_t;
+type test_attribute_setpgid_no_t;
+
+typeattribute test_attribute_setpgid_no_t test_attribute_b;
+typeattribute test_attribute_setpgid_yes_t test_attribute_d;
+
+# Attribute "a" is made into a minimal domain type
+testsuite_domain_type_minimal(test_attribute_a)
+# Attribute "c" and types assigned to it can change its pgid
+testsuite_domain_type(test_attribute_c)
+
+# Allow each attribute some access so that they don't get optimized out
+allow test_attribute_a test_attribute_a:dir getattr;
+allow test_attribute_b test_attribute_b:dir getattr;
+allow test_attribute_c test_attribute_c:dir getattr;
+allow test_attribute_d test_attribute_d:dir getattr;
+
+##########################################
+#
+# repeats entrypoint test, only with attributes as proxies for every type
+#
+
+# Type that the test domain can be entered through
+attribute test_attribute_entrypoint;
+files_type(test_attribute_entrypoint)
+
+# Type that the test domain can NOT be entered through
+attribute test_attribute_entrypoint_deny;
+files_type(test_attribute_entrypoint_deny)
+
+# Test domain that can only be entered via test_attribute_entrypoint
+attribute test_attribute_domain;
+testsuite_domain_type(test_attribute_domain)
+
+# Allow test_attribute_domain to be entered via test_attribute_entrypoint.
+domain_entry_file(test_attribute_domain, test_attribute_entrypoint)
+
+# Allow test_attribute_domain to execute test_attribute_entrypoint_deny, but not
+# to enter through it
+can_exec(test_attribute_domain, test_entrypoint_deny_t)
+
+# assign corresponding types
+type test_attribute_entrypoint_t;
+typeattribute test_attribute_entrypoint_t test_attribute_entrypoint;
+
+type test_attribute_entrypoint_deny_t;
+typeattribute test_attribute_entrypoint_deny_t test_attribute_entrypoint_deny;
+
+type test_attribute_domain_t;
+typeattribute test_attribute_domain_t test_attribute_domain;
+
