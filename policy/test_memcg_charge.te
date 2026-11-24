@@ -1,0 +1,50 @@
+########################################
+#
+# Policy for testing the dma-buf memcg charge controls.
+
+attribute memcg_chargetestdomain;
+
+# Label of the xattr-relabeled cgroup directory.
+type test_memcg_cgroup_t;
+files_type(test_memcg_cgroup_t)
+fs_associate_cgroupfs(test_memcg_cgroup_t)
+
+require {
+	type cgroup_t;
+	class cgroup { charge_to };
+}
+
+#
+# memcg_charge_test_domain(domain)
+#
+# Generate a test domain that can open the dma-heap and reach the
+# cgroup directories, but is not allowed charge_to.
+#
+define(`memcg_charge_test_domain', `
+type $1;
+testsuite_domain_type($1)
+typeattribute $1 memcg_chargetestdomain;
+')
+
+dev_rw_dma_dev(memcg_chargetestdomain)
+fs_search_cgroup_dirs(memcg_chargetestdomain)
+
+# Reaching the cgroup directories is not what is being tested.
+allow memcg_chargetestdomain cgroup_t:dir list_dir_perms;
+allow memcg_chargetestdomain test_memcg_cgroup_t:dir list_dir_perms;
+
+# pidfd: checked against the target process SID.
+memcg_charge_test_domain(test_memcg_charge_task_t)
+allow test_memcg_charge_task_t self:cgroup charge_to;
+
+memcg_charge_test_domain(test_memcg_nocharge_task_t)
+
+# cgroupfd: checked against the cgroup label.
+memcg_charge_test_domain(test_memcg_charge_cgroup_t)
+allow test_memcg_charge_cgroup_t cgroup_t:cgroup charge_to;
+
+memcg_charge_test_domain(test_memcg_nocharge_cgroup_t)
+
+# Same, with the label in the security.selinux xattr.
+memcg_charge_test_domain(test_memcg_charge_xattr_t)
+allow test_memcg_charge_xattr_t test_memcg_cgroup_t:cgroup charge_to;

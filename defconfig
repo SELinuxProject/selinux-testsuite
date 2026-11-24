@@ -94,6 +94,12 @@ CONFIG_NET_KEY=m
 # This is not required for SELinux operation itself.
 CONFIG_TUN=m
 
+# Test the cgroup charge_to checks
+# They are not required for SELinux operation itself.
+CONFIG_MEMCG=y
+CONFIG_DMABUF_HEAPS=y
+CONFIG_DMABUF_HEAPS_SYSTEM=y
+
 # Test perf events.
 # This is not required for SELinux operation itself.
 CONFIG_HAVE_PERF_EVENTS=y
