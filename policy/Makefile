@@ -212,6 +212,12 @@ export M4PARAM += -Dio_uring_allowed_defined
 endif
 endif
 
+# memcg_charge test dependencies: charge_to on the cgroup class, in the
+# loaded policy (or the policy headers when building without selinuxfs).
+ifeq ($(shell if [ -e $(SELINUXFS)/policyvers ]; then [ -f $(SELINUXFS)/class/cgroup/perms/charge_to ]; else grep -q all_cgroup_perms.*charge_to $(POLDEV)/include/support/all_perms.spt; fi && grep -q dev_rw_dma_dev $(POLDEV)/include/kernel/devices.if && echo true),true)
+TARGETS += test_memcg_charge.te
+endif
+
 .PHONY: all build clean expand_check load unload
 
 all: build

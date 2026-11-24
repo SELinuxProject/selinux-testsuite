@@ -186,6 +186,11 @@ SUBDIRS += io_uring
 endif
 endif
 
+# memcg_charge test dependencies: charge_to on the cgroup class in the loaded policy
+ifeq ($(shell [ -f $(SELINUXFS)/class/cgroup/perms/charge_to ] && grep -qs charge_fd $(INCLUDEDIR)/linux/dma-heap.h && echo true),true)
+SUBDIRS += memcg_charge
+endif
+
 ifeq ($(DISTRO),RHEL4)
     SUBDIRS:=$(filter-out bounds dyntrace dyntrans inet_socket mmap nnp_nosuid overlay unix_socket, $(SUBDIRS))
 endif

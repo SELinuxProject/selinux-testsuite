@@ -1,0 +1,76 @@
+#!/usr/bin/perl
+
+use Test::More;
+
+BEGIN {
+    $basedir = $0;
+    $basedir =~ s|(.*)/[^/]*|$1|;
+
+    if ( !-e "/sys/fs/cgroup/cgroup.controllers" ) {
+        plan skip_all => "cgroup v2 unified hierarchy not mounted";
+    }
+    elsif ( system("$basedir/charge probe >/dev/null 2>&1") != 0 ) {
+        plan skip_all => "kernel does not validate dma-heap charge_fd";
+    }
+    elsif (
+        system(
+            "echo +memory > /sys/fs/cgroup/cgroup.subtree_control 2>/dev/null")
+        != 0
+      )
+    {
+        plan skip_all => "memory controller not enabled in the cgroup root";
+    }
+    else {
+        plan tests => 6;
+    }
+}
+
+my $root  = "/sys/fs/cgroup";
+my $dflt  = "$root/selinuxtest_memcg_default";
+my $xattr = "$root/selinuxtest_memcg_xattr";
+
+# Charge to our own process (pidfd): checked with cgroup:charge_to on the
+# target process SID.
+sub charge_pid {
+    my ($domain) = @_;
+    return system("runcon -t $domain -- $basedir/charge pid 2>&1") >> 8;
+}
+
+# Charge to a cgroup (cgroupfd): checked with cgroup:charge_to on its label.
+sub charge_cgroup {
+    my ( $domain, $cg ) = @_;
+    my $join = "echo \$\$ > $cg/cgroup.procs";
+    my $run  = "exec runcon -t $domain -- $basedir/charge cgroup $cg";
+    return system("sh -c '$join && $run' 2>&1") >> 8;
+}
+
+# One cgroup keeps the default label (genfscon), the other is relabeled
+# through the security.selinux xattr.
+mkdir($dflt);
+mkdir($xattr);
+system("chcon -t test_memcg_cgroup_t $xattr");
+
+$result = charge_pid("test_memcg_charge_task_t");
+ok( $result eq 0, "charge to a pidfd with cgroup:charge_to" );
+
+$result = charge_pid("test_memcg_nocharge_task_t");
+ok( $result eq 2, "charge to a pidfd without cgroup:charge_to" );
+
+$result = charge_cgroup( "test_memcg_charge_cgroup_t", $dflt );
+ok( $result eq 0, "charge to a default-labeled cgroup with cgroup:charge_to" );
+
+$result = charge_cgroup( "test_memcg_nocharge_cgroup_t", $dflt );
+ok( $result eq 2,
+    "charge to a default-labeled cgroup without cgroup:charge_to" );
+
+$result = charge_cgroup( "test_memcg_charge_xattr_t", $xattr );
+ok( $result eq 0, "charge to a relabeled cgroup with cgroup:charge_to" );
+
+$result = charge_cgroup( "test_memcg_charge_cgroup_t", $xattr );
+ok( $result eq 2, "charge to a relabeled cgroup allowed for another label" );
+
+# Cleanup.
+rmdir($xattr);
+rmdir($dflt);
+
+exit;
